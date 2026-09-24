@@ -1,5 +1,5 @@
 // Lightweight API client for the custom backend (uses localStorage for token).
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const BASE = import.meta.env.VITE_API_URL || 'https://ravand-production.up.railway.app'
 
 function token() { try { return localStorage.getItem('rg_token') || '' } catch { return '' } }
 
