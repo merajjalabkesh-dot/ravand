@@ -13,6 +13,5 @@ backend/data/
 
 # Large video assets — served from Firebase/Cloudflare, not committed to git
 public/portal.mp4
-public/portal2.mp4
 *.mp4.bak
 *.bak
