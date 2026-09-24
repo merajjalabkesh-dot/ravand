@@ -1,0 +1,18 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+npm-debug.log*
+.env
+.env.*
+!.env.example
+backend/data/
+*.sqlite
+*.sqlite-journal
+
+# Large video assets — served from Firebase/Cloudflare, not committed to git
+public/portal.mp4
+public/portal2.mp4
+*.mp4.bak
+*.bak

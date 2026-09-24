@@ -1,0 +1,196 @@
+import React from 'react'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, phaseOfHour, nextEventISO } from '../lib/store'
+import EventCard from '../components/EventCard'
+
+function useHabitData(db) {
+  const today = todayISO()
+  const dayIds = (iso) => {
+    const d = db.days[iso]
+    if (!d) return new Set()
+    return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
+  }
+  const dayPct = (iso) => {
+    const goods = db.habits.filter((h) => h.type !== 'bad' && isSched(h, iso))
+    if (!goods.length) return 0
+    const ids = dayIds(iso)
+    let n = 0
+    goods.forEach((h) => { if (ids.has(h.id)) n++ })
+    return Math.round((n / goods.length) * 100)
+  }
+  const isSched = (h, iso) => {
+    if (h.type === 'bad') return true
+    const d = h.days || []
+    if (!d.length) return true
+    const jw = new Date(iso.split('-').map(Number)).getDay()
+    return d.includes(jw)
+  }
+  const habitStreak = (id) => {
+    let s = 0, iso = today
+    if (!dayIds(iso).has(id)) iso = isoAddDays(iso, -1)
+    while (dayIds(iso).has(id)) { s++; iso = isoAddDays(iso, -1) }
+    return s
+  }
+  const bestStreak = (id) => {
+    let best = 0, cur = 0
+    for (let i = 400; i >= 0; i--) { if (dayIds(isoAddDays(today, -i)).has(id)) cur++; else { if (cur > best) best = cur; cur = 0 } }
+    if (cur > best) best = cur
+    return best
+  }
+  const weekDone = (id) => { let n = 0; for (let i = 0; i < 7; i++) if (dayIds(isoAddDays(today, -i)).has(id)) n++; return n }
+  return { dayIds, dayPct, isSched, habitStreak, bestStreak, weekDone, today }
+}
+
+const stagger = { animate: { transition: { staggerChildren: 0.07 } } }
+const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 10 }, transition: { duration: .35, ease: [0.22, 1, 0.36, 1] } }
+
+const CheckSvg = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+const FireSvg = ({ style }) => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M12 22c4.4 0 7-2.6 7-6.5 0-3-2-5-4.2-6.6C13.9 7.6 13 5.7 13 3c-4.2 1.6-6.5 5.6-6.5 9.5 0 .9.1 1.7.4 2.4-1.6-1.2-2.4-2.9-2.4-4.7-1.7 2-2.5 4-2.5 6 0 3.9 2.8 5.8 7 5.8z"/><path d="M12 22c2.2 0 3.5-1.3 3.5-3 0-1.3-1-2.3-1.8-3.1-.6.6-1 1.3-1 2 .7-.4 1.2-.9 1.5-1.5"/></svg>
+
+const Ring = ({ pct, size = 112 }) => {
+  const r = (size - 6) / 2, c = 2 * Math.PI * r
+  return (
+    <svg className="ring" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle className="bg" cx={size / 2} cy={size / 2} r={r} />
+      <motion.circle
+        className="fg"
+        cx={size / 2} cy={size / 2} r={r}
+        strokeDasharray={c}
+        initial={{ strokeDashoffset: c }}
+        animate={{ strokeDashoffset: c * (1 - Math.min(100, Math.max(0, pct)) / 100) }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </svg>
+  )
+}
+
+function StatCard({ color, icon, num, lbl, to, onClick }) {
+  const bg = { accent: 'accbg', warm: 'accbg2', rose: 'rosebg' }[color] || 'accbg'
+  return (
+    <button className="stat clickable" onClick={onClick} style={{ textAlign: 'right' }} data-action={to ? 'goto' : undefined}>
+      <span className={`stat-icon ${bg}`}>{icon}</span>
+      <span><span className="num">{num}</span><br /><span className="lbl">{lbl}</span></span>
+    </button>
+  )
+}
+
+export default function Home() {
+  const { db, mutate, toast } = useApp()
+  const navigate = useNavigate()
+  const H = useHabitData(db)
+  const today = H.today
+  const d = new Date()
+  const ph = phaseOfHour(d.getHours())
+  const iso = H.today
+  const pct = H.dayPct(iso)
+  const j = (db.days[iso] && db.days[iso].journal) || { mood: 0, text: '' }
+  const tD = (db.days[iso] && db.days[iso].tasks) ? db.days[iso].tasks.filter((t2) => t2.done).length : 0
+  const tC = (db.days[iso] && db.days[iso].tasks) ? db.days[iso].tasks.length : 0
+  const bestAll = db.habits.reduce((m, h) => Math.max(m, H.bestStreak(h.id)), 0)
+  const wake = db.days[iso] && db.days[iso].wake
+  const sleepLogged = !!(db.days[iso] && db.days[iso].sleep)
+  const showSleep = !!wake && !sleepLogged && (d.getHours() * 60 + d.getMinutes()) >= 19 * 60
+  const avgW = db.settings.curWake || null
+
+  const wakeUp = () => {
+    const now = new Date()
+    mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.wake = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') })
+    toast('صبحِ خوب! روزِ جدیدت شروع شد 🌅')
+  }
+  const logSleep = (t) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = t }); toast('قرار خوابِ امروزت ثبت شد 🌙') }
+
+  const habitNext = (db.events || []).map((ev) => ({ ...ev, nextISO: nextEventISO(ev) })).filter((e) => e.nextISO).sort((a, b) => (a.nextISO < b.nextISO ? -1 : 1))[0]
+
+  const habitsHtml = db.habits.length === 0
+    ? <div className="empty-state"><div className="big">✦</div><p>هنوز عادتی نداری.<br />از صفحهٔ «عادت‌ها» اولین عادتت را بساز.</p></div>
+    : db.habits.slice(0, 5).map((h) => {
+        const done = H.dayIds(iso).has(h.id)
+        const st = H.habitStreak(h.id)
+        const goal = h.weeklyGoal || 7
+        const w = H.weekDone(h.id)
+        return (
+          <div className="mini-row" key={h.id}>
+            <span className="mini-dot" style={{ background: h.color }} />
+            <span className="mini-name">{h.name}</span>
+            <span className="mini-stat" style={{ fontSize: 11 }}>{toFa(w)}/{toFa(goal)} هفته</span>
+            {st > 0 && <span className="mini-stat">{toFa(st)} روز <FireSvg style={{ color: 'var(--accent-warm)', verticalAlign: '-2px' }} /></span>}
+            {done && <span style={{ color: 'var(--accent-2)' }}><CheckSvg /></span>}
+          </div>
+        )
+      })
+
+  return (
+    <motion.div variants={stagger} initial="initial" animate="animate" exit="exit">
+      <motion.div variants={fadeUp}>
+        <div className="glass" style={{ background: 'linear-gradient(150deg,rgba(18,20,28,.95) 0%,rgba(124,92,252,.2) 65%,rgba(67,232,168,.1) 100%)', border: '1px solid var(--glass-border)', borderRadius: 24, padding: '28px 32px', marginBottom: 22, position: 'relative', overflow: 'hidden' }}>
+          {!wake ? (
+            <>
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 30, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 230 }}>
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)}</div>
+                  <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>سلام، {db.user.first} 🌅</h2>
+                  <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>هنوز روزت را شروع نکردی — بیدار شدنت را ثبت کن.</div>
+                  <button className="btn" style={{ marginTop: 18 }} onClick={wakeUp}>من بیدار شدم</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 30, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 230 }}>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)} · بیدار شدی ساعت {fmtMin(minOf(wake))}</div>
+                <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>سلام، {db.user.first} 👋</h2>
+                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>ادامه بده — روزت در جریان است.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="stat-grid">
+        <StatCard color="accent" icon={<CheckSvg />} num={toFa(pct) + '٪'} lbl="عادت‌های امروز" onClick={() => navigate('/today')} />
+        <StatCard color="warm" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} num={toFa(tD) + '/' + toFa(tC)} lbl="کارهای امروز" onClick={() => navigate('/today')} />
+        <StatCard color="warm" icon={<FireSvg />} num={toFa(bestAll)} lbl="بهترین رکورد" onClick={() => navigate('/habits')} />
+        <StatCard color="rose" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M9 8h6M9 12h6"/></svg>} num={j.text ? 'نوشته شد' : 'خالی'} lbl="ژورنال امروز" onClick={() => navigate('/journal')} />
+      </motion.div>
+
+      {habitNext && (
+        <motion.div variants={fadeUp} className="glass home-event">
+          <div className="glass-title"><span>📅 رویداد بعدی</span><button className="btn ghost small" onClick={() => navigate('/reports')} style={{ marginRight: 'auto' }}>همه</button></div>
+          <EventCard ev={habitNext} />
+        </motion.div>
+      )}
+
+      <div className="home-sections">
+        <motion.div variants={fadeUp} className="glass">
+          <div className="glass-title"><FireSvg /> عادت‌های امروز</div>
+          {habitsHtml}
+        </motion.div>
+        <motion.div variants={fadeUp} className="glass">
+          <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> حرکت در روز</div>
+          <div className="ring-wrap">
+            <Ring pct={pct} />
+            <div>
+              <div className="ring-label">پیشرفت عادت‌های امروز</div>
+              <div className="ring-num">{toFa(pct)}٪</div>
+              {j.mood > 0 && <div className="ring-label" style={{ marginTop: 8 }}>حس امروز <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{['', 'بی‌حال', 'کسل', 'معمولی', 'خوب', 'عالی'][j.mood]}</span></div>}
+            </div>
+          </div>
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.06)' }}>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>خواب و بیداری</div>
+            {showSleep ? (
+              <div className="sleep-card" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1 }}><div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>امشب قرار است ساعت چند بخوابی؟</div></div>
+                {['21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00'].map((t) => (
+                  <button key={t} className={'sleep-pill' + (minOf(t) === minOf(db.settings.sleepGoal) ? ' active' : '')} onClick={() => logSleep(t)}>{toFa(t)}</button>
+                ))}
+              </div>
+            ) : sleepLogged ? (
+              <div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>قرار شد ساعت <b style={{ color: 'var(--ink)' }}>{fmtMin(minOf(db.days[iso].sleep))}</b> بخوابی 🌙</div>
+            ) : null}
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  )
+}
