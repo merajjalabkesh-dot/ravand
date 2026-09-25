@@ -5,6 +5,7 @@ import { AppProvider, useApp } from './lib/store'
 
 // Lazy-load heavy screens so the login page isn't slowed down by the whole app.
 const Landing = lazy(() => import('./pages/Landing'))
+import InstallGuide from './components/InstallGuide'
 const Layout = lazy(() => import('./components/Layout'))
 const Home = lazy(() => import('./pages/Home'))
 const Today = lazy(() => import('./pages/Today'))
@@ -52,6 +53,7 @@ function AppInner() {
           </Layout>
         )}
       </Suspense>
+      {db.user && db.user.first ? <InstallGuide /> : null}
       <Toast />
     </>
   )

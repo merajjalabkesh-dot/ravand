@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import GlyphPortal from '../components/ui/glyph-portal'
-import PortalVideo from '../components/PortalVideo'
+import PortalBackground from '../components/PortalBackground'
 import { useApp } from '../lib/store'
 import { api, setToken } from '../lib/apiClient'
 
@@ -112,7 +112,7 @@ const submit = async (e) => {
         focusChar="n"
         annotations={false}
         enterLabel=""
-        background={<PortalVideo />}
+        background={<PortalBackground />}
         style={{ '--gp-paper': '#0a0f1f', '--gp-ink': '#cfe0ff', '--gp-field': '#0a0f1f' }}
         front={
           <div style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
