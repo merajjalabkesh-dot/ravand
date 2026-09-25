@@ -546,7 +546,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 .jpicker-trigger:hover { border-color: rgba(124, 92, 252, .4); }
 .jpicker-trigger svg { color: var(--muted); }
 .jpicker-pop {
-  position: absolute; z-index: 120; top: calc(100% + 8px); right: 0; min-width: 280px;
+  position: fixed; z-index: 300; min-width: 280px; width: 280px;
   background: var(--bg-2); border: 1px solid var(--glass-border); border-radius: 18px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .55); padding: 12px;
 }

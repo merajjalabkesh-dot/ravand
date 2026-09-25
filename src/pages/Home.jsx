@@ -102,6 +102,16 @@ export default function Home() {
   const toggleTask = (id) => {
     mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); const task = (day.tasks || []).find((x) => x.id === id); if (task) task.done = !task.done })
   }
+  const moveHabit = (id, dir) => {
+    mutate((s) => {
+      const list = s.habits || []
+      const i = list.findIndex((x) => x.id === id)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= list.length) return
+      const [item] = list.splice(i, 1)
+      list.splice(j, 0, item)
+    })
+  }
   const moveTask = (id, dir) => {
     mutate((s) => {
       const day = s.days[iso]
@@ -133,7 +143,7 @@ export default function Home() {
   const habitsHtml = (todayHabits.length === 0 && todayTasks.length === 0)
     ? <div className="empty-state"><div className="big">✦</div><p>امروز هنوز کاری نداری.<br />از صفحهٔ «Today» کار اضافه کن یا یک عادت بساز.</p></div>
     : <>
-        {todayHabits.map((h) => {
+        {todayHabits.map((h, habitIdx) => {
           const done = H.dayIds(iso).has(h.id)
           const isBad = h.type === 'bad'
           return (
@@ -142,6 +152,10 @@ export default function Home() {
               {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>ترک</span>}
               <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
               {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? 'انجام شد' : 'پاک'}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
+              <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, -1) }} disabled={habitIdx === 0} title="انتقال به بالا"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, 1) }} disabled={habitIdx === todayHabits.length - 1} title="انتقال به پایین"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+              </span>
             </div>
           )
         })}

@@ -6,7 +6,9 @@ export default function JalaliDatePicker({ value, onChange, min, max, className,
   const [open, setOpen] = useState(false)
   const [jy, setJy] = useState(0)
   const [jm, setJm] = useState(1)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
   const ref = useRef(null)
+  const btnRef = useRef(null)
 
   // initialize the view month from current value (or today)
   const sync = () => {
@@ -19,6 +21,18 @@ export default function JalaliDatePicker({ value, onChange, min, max, className,
       setJy(j.jy); setJm(j.jm)
     }
   }
+const toggleOpen = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      const width = 280
+      const left = Math.max(8, Math.min(window.innerWidth - width - 8, r.left + r.width - width))
+      const spaceBelow = window.innerHeight - r.bottom
+      const top = spaceBelow > 330 ? r.bottom + 8 : Math.max(8, r.top - 320)
+      setPos({ top, left })
+    }
+    setOpen(!open)
+  }
+
   useEffect(() => { if (open) sync() }, [open, value])
 
   useEffect(() => {
@@ -59,12 +73,12 @@ export default function JalaliDatePicker({ value, onChange, min, max, className,
 
   return (
     <div className="jpicker" ref={ref}>
-      <button type="button" className="jpicker-trigger" onClick={() => setOpen((v) => !v)}>
+      <button ref={btnRef} type="button" className="jpicker-trigger" onClick={toggleOpen}>
         {valueJ ? <>{toFa(valueJ.jd)} {JMONTH_NAMES[valueJ.jm - 1]} {toFa(valueJ.jy)}</> : (placeholder || 'انتخاب تاریخ')}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       {open && (
-        <div className="jpicker-pop">
+        <div className="jpicker-pop" style={{ top: pos.top, left: pos.left }}>
           <div className="jpicker-head">
             <button type="button" className="jpicker-nav" onClick={() => changeMonth(-1)} aria-label="ماه قبل"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
             <div className="jpicker-title">{JMONTH_NAMES[jm - 1]} {toFa(jy)}</div>
