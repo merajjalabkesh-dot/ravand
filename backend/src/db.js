@@ -4,31 +4,43 @@ import pg from 'pg'
 const { Pool } = pg
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('sslmode=require') ? { rejectUnauthorized: false } : undefined,
+  // Neon always uses TLS. Explicit ssl option avoids relying on URL parsing.
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
   max: 5,
 })
 
 let ready = false
 async function ensureSchema() {
   if (ready) return
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      name TEXT,
-      last TEXT,
-      pass_hash TEXT,
-      otp TEXT,
-      otp_exp BIGINT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS user_data (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      data TEXT NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `)
-  ready = true
+  if (!process.env.DATABASE_URL) {
+    console.warn('[db] DATABASE_URL is not set — data cannot be persisted')
+    throw new Error('DATABASE_URL missing')
+  }
+  try {
+    await pool.query('SELECT 1')
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        name TEXT,
+        last TEXT,
+        pass_hash TEXT,
+        otp TEXT,
+        otp_exp BIGINT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS user_data (
+        user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        data TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `)
+    ready = true
+    console.log('[db] postgres connected + schema ready')
+  } catch (e) {
+    console.error('[db] connection failed:', e && e.message, e && e.code)
+    throw e
+  }
 }
 
 export async function getByEmail(email) {
