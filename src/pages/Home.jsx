@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, phaseOfHour, nextEventISO } from '../lib/store'
@@ -105,10 +105,14 @@ export default function Home() {
   const todayHabits = db.habits.filter(isScheduledToday)
   const todayTasks = (db.days[iso] && db.days[iso].tasks) || []
 
+  const [wakeTime, setWakeTime] = useState('')
   const wakeUp = () => {
     const now = new Date()
-    mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.wake = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') })
-    toast('صبحِ خوب! روزِ جدیدت شروع شد 🌅')
+    const nowStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0')
+    const finalTime = wakeTime || nowStr
+    mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.wake = finalTime })
+    setWakeTime('')
+    toast(wakeTime ? 'بیداری ساعت ' + toFa(wakeTime) + ' ثبت شد 🌅' : 'صبحِ خوب! روزِ جدیدت شروع شد 🌅')
   }
   const logSleep = (t) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = t }); toast('قرار خوابِ امروزت ثبت شد 🌙') }
 
@@ -148,7 +152,11 @@ export default function Home() {
                   <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)}</div>
                   <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>سلام، {db.user.first} 🌅</h2>
                   <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>هنوز روزت را شروع نکردی — بیدار شدنت را ثبت کن.</div>
-                  <button className="btn" style={{ marginTop: 18 }} onClick={wakeUp}>من بیدار شدم</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
+                    <button className="btn" onClick={wakeUp}>من بیدار شدم</button>
+                    <input className="input" type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} style={{ width: 'auto' }} title="اگر یادت رفت، ساعت بیدار شدنت را بعداً ثبت کن" />
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>یا ساعت بیدار شدنت را بعداً ثبت کن</span>
+                  </div>
                 </div>
               </div>
             </>

@@ -679,3 +679,8 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 .install-text { font-size: 14px; color: rgba(220,235,255,.8); margin-bottom: 14px; }
 .install-steps { text-align: right; font-size: 13.5px; line-height: 2; color: rgba(210,225,255,.9); padding-right: 8px; margin-bottom: 18px; }
 .install-steps b { color: #fff; }
+
+/* ---------- Task reorder ---------- */
+.task-move { color: var(--muted); padding: 5px 6px; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
+.task-move:hover:not(:disabled) { color: var(--accent); background: rgba(124,92,252,.12); }
+.task-move:disabled { opacity: .25; cursor: not-allowed; }

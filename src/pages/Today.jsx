@@ -61,6 +61,18 @@ export default function Today() {
     })
   }
   const delTask = (id) => { mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks.filter((x) => x.id !== id) }); toast('کار حذف شد') }
+  const moveTask = (id, dir) => {
+    mutate((s) => {
+      const day = s.days[iso]
+      if (!day || !day.tasks) return
+      const list = day.tasks
+      const i = list.findIndex((x) => x.id === id)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= list.length) return
+      const [item] = list.splice(i, 1)
+      list.splice(j, 0, item)
+    })
+  }
   const addTask = () => {
     const inp = document.getElementById('task-input')
     const when = document.getElementById('task-date')
@@ -82,6 +94,7 @@ export default function Today() {
           </div>
           <button className="day-nav" onClick={() => setIso(isoAddDays(iso, 1))} title="روز بعد" aria-label="روز بعد" disabled={isToday}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
           <JalaliDatePicker value={iso} onChange={(v) => v && setIso(v)} max={todayISO()} className="today-date-input" />
+          {!isToday && <button className="btn ghost small" onClick={() => setIso(todayISO())}>امروز</button>}
         </div>
       </motion.div>
 
@@ -119,10 +132,14 @@ export default function Today() {
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> {isToday ? 'کارهای روزانه' : 'کارهای این روز'}</div>
         {tC === 0 ? <p className="glass-hint">{isToday ? 'کارهای امروزت را بنویس تا گزارش روز کامل شود.' : 'کاری برای این روز ثبت نشده.'}</p>
-          : (d.tasks || []).map((t) => (
+          : (d.tasks || []).map((t, idx) => (
             <div className={'task-row' + (t.done ? ' done' : '')} key={t.id}>
               <span className="task-box" onClick={() => toggleTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
               <span className="ttext">{t.text}</span>
+              <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                <button className="task-move" onClick={() => moveTask(t.id, -1)} disabled={idx === 0} title="انتقال به بالا"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                <button className="task-move" onClick={() => moveTask(t.id, 1)} disabled={idx === tC - 1} title="انتقال به پایین"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+              </span>
               <button className="task-del" onClick={() => delTask(t.id)} title="حذف"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
             </div>
           ))}
