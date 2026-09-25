@@ -47,7 +47,30 @@ export default function Landing() {
   const afterAuth = async (token, user, modeLabel) => {
   setToken(token)
   const fallbackFirst = (user && user.name) || email.trim().split('@')[0] || 'کاربر'
-  mutate((d) => { d.user = { first: fallbackFirst, last: (user && user.last) || '', email: user && user.email ? user.email : email.trim() } })
+  // pull the authoritative data from the server first; only push local if server is empty
+  try {
+    const me = await api.me()
+    const remote = (me && me.data) || {}
+    const remoteHasData = remote.habits || remote.days || remote.events || remote.settings
+    if (remoteHasData) {
+      mutate((d) => {
+        const localUser = d.user
+        Object.assign(d, remote)
+        d.user = { ...(d.user || {}), ...(localUser || {}) }
+        d.user.first = d.user.first || fallbackFirst
+        d.user.email = (user && user.email) || d.user.email || email.trim()
+        d.settings = Object.assign({}, d.settings || {}, remote.settings || {})
+      })
+    } else {
+      // server empty -> local (which may have data) is pushed via mutate
+      mutate((d) => {
+        d.user = { first: fallbackFirst, last: (user && user.last) || '', email: (user && user.email) || email.trim() }
+      })
+    }
+  } catch (e) {
+    console.warn('afterAuth me failed', e.message)
+    mutate((d) => { d.user = { first: fallbackFirst, last: (user && user.last) || '', email: (user && user.email) || email.trim() } })
+  }
   toast(modeLabel === 'login' ? 'خوش آمدی 👋' : modeLabel === 'signup' ? 'حساب ساخته شد 🌱' : 'کد تأیید شد ✅')
 }
 

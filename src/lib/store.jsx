@@ -311,23 +311,25 @@ export function AppProvider({ children }) {
     root.style.setProperty('font-size', (15 * (db.settings.fontScale || 1)) + 'px')
   }, [db.settings.theme, db.settings.accent, db.settings.fontScale])
 
-  /* Backend auth bootstrap: if a token exists, pull identity + remote data */
+  /* Backend auth bootstrap: pull remote identity + data on app start */
   useEffect(() => {
     if (!hasToken()) { setAuthReady(true); return }
     let alive = true
     api.me().then((r) => {
       if (!alive) return
       setAuthUser(r.user || null)
-      if (r.data) {
+      if (r.data && (r.data.habits || r.data.days || r.data.events || r.data.settings)) {
+        // remote has real data -> load it (server wins, never overwrite with empty local)
         setDb((prev) => {
           const next = JSON.parse(JSON.stringify(prev))
+          // remember the local user identity so we don't lose the name
+          const localUser = next.user
           Object.assign(next, r.data)
+          next.user = { ...(next.user || {}), ...(localUser || {}) }
           next.settings = Object.assign({}, prev.settings, r.data.settings || {})
           persist(next)
           return next
         })
-      } else {
-        setTimeout(() => pushDb(db), 400)
       }
     }).catch((e) => {
       console.warn('[auth] me failed', e.message)
