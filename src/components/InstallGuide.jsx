@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useI18n } from '../lib/i18n'
 
 // Shows a one-time guide for iOS users on how to add the app to their home screen.
 export default function InstallGuide() {
+  const { t } = useI18n()
   const [show, setShow] = useState(false)
   const [dismissed, setDismissed] = useState(() => { try { return localStorage.getItem('rg_install_dismiss') === '1' } catch { return false } })
 
@@ -27,17 +29,17 @@ export default function InstallGuide() {
   return (
     <div className="install-overlay" onClick={close}>
       <div className="install-card" onClick={(e) => e.stopPropagation()}>
-        <div className="install-icon">📲</div>
-        <h3 className="install-title">روند را به صفحهٔ اصلی اضافه کن</h3>
+        <div className="install-icon">{t('install.icon')}</div>
+        <h3 className="install-title">{t('install.title')}</h3>
         <p className="install-text">
-          برای استفادهٔ آفلاین و مثل یک برنامهٔ واقعی:
+          {t('install.text')}
         </p>
         <ol className="install-steps">
-          <li><b>آیکون Share</b> (مربع با فلش)</li>
-          <li><b>Add to Home Screen</b> را بزن</li>
-          <li>پس از افزودن، برنامهٔ «روند» را از صفحهٔ اصلی باز کن</li>
+          <li>{t('install.step1')}</li>
+          <li>{t('install.step2')}</li>
+          <li>{t('install.step3')}</li>
         </ol>
-        <button className="btn" onClick={close}>باشه، فهمیدم</button>
+        <button className="btn" onClick={close}>{t('install.gotIt')}</button>
       </div>
     </div>
   )

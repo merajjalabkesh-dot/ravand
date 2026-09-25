@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { toFa, g2j, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES } from '../lib/store'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { toFa, g2j, jalaliToISO, jalaliMonthLen, isLeapJalali } from '../lib/store'
+import { useI18n } from '../lib/i18n'
 
 // Jalali date picker — displays Persian (Shamsi) calendar, works with ISO value (YYYY-MM-DD).
 export default function JalaliDatePicker({ value, onChange, min, max, className, placeholder }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [jy, setJy] = useState(0)
   const [jm, setJm] = useState(1)
@@ -61,6 +63,16 @@ const toggleOpen = () => {
   const jToday = (() => { const now = new Date(); return g2j(now.getFullYear(), now.getMonth() + 1, now.getDate()) })()
   const valueJ = value ? g2j(+value.slice(0, 4), +value.slice(5, 7), +value.slice(8, 10)) : null
 
+  const monthNames = useMemo(() => [
+    t('date.month01'), t('date.month02'), t('date.month03'), t('date.month04'),
+    t('date.month05'), t('date.month06'), t('date.month07'), t('date.month08'),
+    t('date.month09'), t('date.month10'), t('date.month11'), t('date.month12'),
+  ], [t])
+  const dowNames = useMemo(() => [
+    t('date.dowSat'), t('date.dowSun'), t('date.dowMon'), t('date.dowTue'),
+    t('date.dowWed'), t('date.dowThu'), t('date.dowFri'),
+  ], [t])
+
   const minJ = min ? g2j(+min.slice(0, 4), +min.slice(5, 7), +min.slice(8, 10)) : null
   const maxJ = max ? g2j(+max.slice(0, 4), +max.slice(5, 7), +max.slice(8, 10)) : null
 
@@ -74,18 +86,18 @@ const toggleOpen = () => {
   return (
     <div className="jpicker" ref={ref}>
       <button ref={btnRef} type="button" className="jpicker-trigger" onClick={toggleOpen}>
-        {valueJ ? <>{toFa(valueJ.jd)} {JMONTH_NAMES[valueJ.jm - 1]} {toFa(valueJ.jy)}</> : (placeholder || 'انتخاب تاریخ')}
+        {valueJ ? t('date.selectedFormat', { day: toFa(valueJ.jd), month: monthNames[valueJ.jm - 1], year: toFa(valueJ.jy) }) : (placeholder || t('date.placeholder'))}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       {open && (
         <div className="jpicker-pop" style={{ top: pos.top, left: pos.left }}>
           <div className="jpicker-head">
-            <button type="button" className="jpicker-nav" onClick={() => changeMonth(-1)} aria-label="ماه قبل"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-            <div className="jpicker-title">{JMONTH_NAMES[jm - 1]} {toFa(jy)}</div>
-            <button type="button" className="jpicker-nav" onClick={() => changeMonth(1)} aria-label="ماه بعد"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+            <button type="button" className="jpicker-nav" onClick={() => changeMonth(-1)} aria-label={t('date.prevMonth')}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div className="jpicker-title">{t('date.titleFormat', { month: monthNames[jm - 1], year: toFa(jy) })}</div>
+            <button type="button" className="jpicker-nav" onClick={() => changeMonth(1)} aria-label={t('date.nextMonth')}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
           <div className="jpicker-grid">
-            {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((d, i) => <div className="jpicker-dow" key={i}>{d}</div>)}
+            {dowNames.map((d, i) => <div className="jpicker-dow" key={i}>{d}</div>)}
             {Array.from({ length: gridStart }).map((_, i) => <div className="jpicker-empty" key={'e' + i} />)}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const jd = i + 1

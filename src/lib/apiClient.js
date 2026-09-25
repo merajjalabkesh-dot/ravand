@@ -24,6 +24,7 @@ export const api = {
   requestOtp: (email) => req('POST', '/api/auth/request-otp', { email }),
   verifyOtp: (email, code) => req('POST', '/api/auth/verify-otp', { email, code }),
   me: () => req('GET', '/api/auth/me'),
+  changePassword: (currentPassword, newPassword) => req('POST', '/api/auth/change-password', { currentPassword, newPassword }),
   saveData: (data) => req('PUT', '/api/data', data),
   loadData: () => req('GET', '/api/data'),
 }

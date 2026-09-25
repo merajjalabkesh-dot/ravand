@@ -53,6 +53,12 @@ export async function getUser(id) {
   const r = await pool.query('SELECT id, email, name, last FROM users WHERE id = $1', [id])
   return r.rows[0] || null
 }
+/** برای احراز هویت — هش رمز را هم برمی‌گرداند. فقط داخل سرور استفاده شود. */
+export async function getUserAuth(id) {
+  await ensureSchema()
+  const r = await pool.query('SELECT id, email, pass_hash FROM users WHERE id = $1', [id])
+  return r.rows[0] || null
+}
 export async function createUser({ id, email, name, last, passHash }) {
   await ensureSchema()
   await pool.query('INSERT INTO users (id, email, name, last, pass_hash) VALUES ($1,$2,$3,$4,$5)', [id, email, name || '', last || '', passHash || null])

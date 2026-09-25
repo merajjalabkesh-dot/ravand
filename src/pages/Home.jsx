@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, phaseOfHour, nextEventISO } from '../lib/store'
+import { useI18n } from '../lib/i18n'
 import EventCard from '../components/EventCard'
 
 function useHabitData(db) {
@@ -77,6 +78,7 @@ function StatCard({ color, icon, num, lbl, to, onClick }) {
 
 export default function Home() {
   const { db, mutate, toast } = useApp()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const H = useHabitData(db)
   const today = H.today
@@ -134,14 +136,14 @@ export default function Home() {
     const finalTime = wakeTime || nowStr
     mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.wake = finalTime })
     setWakeTime('')
-    toast(wakeTime ? 'بیداری ساعت ' + toFa(wakeTime) + ' ثبت شد 🌅' : 'صبحِ خوب! روزِ جدیدت شروع شد 🌅')
+    toast(wakeTime ? t('home.wakeLoggedToast', { time: toFa(wakeTime) }) : t('home.morningToast'))
   }
-  const logSleep = (t) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = t }); toast('قرار خوابِ امروزت ثبت شد 🌙') }
+  const logSleep = (t) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = t }); toast(t('home.sleepLoggedToast')) }
 
   const habitNext = (db.events || []).map((ev) => ({ ...ev, nextISO: nextEventISO(ev) })).filter((e) => e.nextISO).sort((a, b) => (a.nextISO < b.nextISO ? -1 : 1))[0]
 
   const habitsHtml = (todayHabits.length === 0 && todayTasks.length === 0)
-    ? <div className="empty-state"><div className="big">✦</div><p>امروز هنوز کاری نداری.<br />از صفحهٔ «Today» کار اضافه کن یا یک عادت بساز.</p></div>
+    ? <div className="empty-state"><div className="big">✦</div><p className="preline">{t('home.emptyTasks')}</p></div>
     : <>
         {todayHabits.map((h, habitIdx) => {
           const done = H.dayIds(iso).has(h.id)
@@ -149,12 +151,12 @@ export default function Home() {
           return (
             <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
               <span className="task-box" style={{ background: done ? h.color : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
-              {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>ترک</span>}
+              {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
               <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
-              {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? 'انجام شد' : 'پاک'}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
+              {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? t('home.badDoneStat') : t('home.cleanStat')}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, -1) }} disabled={habitIdx === 0} title="انتقال به بالا"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, 1) }} disabled={habitIdx === todayHabits.length - 1} title="انتقال به پایین"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, -1) }} disabled={habitIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, 1) }} disabled={habitIdx === todayHabits.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
               </span>
             </div>
           )
@@ -164,8 +166,8 @@ export default function Home() {
             <span className="task-box" style={{ background: t.done ? 'var(--accent-2)' : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
             <span className="ttext" style={{ textDecoration: t.done ? 'line-through' : 'none', opacity: t.done ? .55 : 1 }}>{t.text}</span>
             <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, -1) }} disabled={taskIdx === 0} title="انتقال به بالا"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, 1) }} disabled={taskIdx === todayTasks.length - 1} title="انتقال به پایین"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, -1) }} disabled={taskIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, 1) }} disabled={taskIdx === todayTasks.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
             </span>
           </div>
         ))}
@@ -180,12 +182,12 @@ export default function Home() {
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 30, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 230 }}>
                   <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)}</div>
-                  <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>سلام، {db.user.first} 🌅</h2>
-                  <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>هنوز روزت را شروع نکردی — بیدار شدنت را ثبت کن.</div>
+                  <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>{t('home.greetingMorning', { name: db.user.first })}</h2>
+                  <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>{t('home.notStartedYet')}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
-                    <button className="btn" onClick={wakeUp}>من بیدار شدم</button>
-                    <input className="input" type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} style={{ width: 'auto' }} title="اگر یادت رفت، ساعت بیدار شدنت را بعداً ثبت کن" />
-                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>یا ساعت بیدار شدنت را بعداً ثبت کن</span>
+                    <button className="btn" onClick={wakeUp}>{t('home.wakeUp')}</button>
+                    <input className="input" type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} style={{ width: 'auto' }} title={t('home.wakeTimeTitle')} />
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>{t('home.wakeTimeHint')}</span>
                   </div>
                 </div>
               </div>
@@ -193,9 +195,9 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 30, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 230 }}>
-                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)} · بیدار شدی ساعت {fmtMin(minOf(wake))}</div>
-                <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>سلام، {db.user.first} 👋</h2>
-                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>ادامه بده — روزت در جریان است.</div>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4, letterSpacing: .5, textTransform: 'uppercase' }}>{faDate(iso, true)} · {t('home.wokeUpAt', { time: fmtMin(minOf(wake)) })}</div>
+                <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-.6px' }}>{t('home.greetingDay', { name: db.user.first })}</h2>
+                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 10 }}>{t('home.keepGoing')}</div>
               </div>
             </div>
           )}
@@ -203,45 +205,45 @@ export default function Home() {
       </motion.div>
 
       <motion.div variants={fadeUp} className="stat-grid">
-        <StatCard color="accent" icon={<CheckSvg />} num={toFa(pct) + '٪'} lbl="عادت‌های امروز" onClick={() => navigate('/app/today')} />
-        <StatCard color="warm" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} num={toFa(tD) + '/' + toFa(tC)} lbl="کارهای امروز" onClick={() => navigate('/app/today')} />
-        <StatCard color="warm" icon={<FireSvg />} num={toFa(bestAll)} lbl="بهترین رکورد" onClick={() => navigate('/app/habits')} />
-        <StatCard color="rose" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M9 8h6M9 12h6"/></svg>} num={j.text ? 'نوشته شد' : 'خالی'} lbl="ژورنال امروز" onClick={() => navigate('/app/journal')} />
+        <StatCard color="accent" icon={<CheckSvg />} num={toFa(pct) + t('home.percentSign')} lbl={t('home.todaysHabitsStat')} onClick={() => navigate('/app/today')} />
+        <StatCard color="warm" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} num={toFa(tD) + '/' + toFa(tC)} lbl={t('home.todaysTasksTitle')} onClick={() => navigate('/app/today')} />
+        <StatCard color="warm" icon={<FireSvg />} num={toFa(bestAll)} lbl={t('home.bestRecordStat')} onClick={() => navigate('/app/habits')} />
+        <StatCard color="rose" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M9 8h6M9 12h6"/></svg>} num={j.text ? t('home.journalWritten') : t('home.journalEmpty')} lbl={t('home.todaysJournalStat')} onClick={() => navigate('/app/journal')} />
       </motion.div>
 
       {habitNext && (
         <motion.div variants={fadeUp} className="glass home-event">
-          <div className="glass-title"><span>📅 رویداد بعدی</span><button className="btn ghost small" onClick={() => navigate('/app/reports')} style={{ marginRight: 'auto' }}>همه</button></div>
+          <div className="glass-title"><span>{t('home.nextEvent')}</span><button className="btn ghost small" onClick={() => navigate('/app/reports')} style={{ marginRight: 'auto' }}>{t('home.allEvents')}</button></div>
           <EventCard ev={habitNext} />
         </motion.div>
       )}
 
       <div className="home-sections">
         <motion.div variants={fadeUp} className="glass">
-          <div className="glass-title"><FireSvg /> کارهای امروز</div>
+          <div className="glass-title"><FireSvg /> {t('home.todaysTasksTitle')}</div>
           {habitsHtml}
         </motion.div>
         <motion.div variants={fadeUp} className="glass">
-          <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> حرکت در روز</div>
+          <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> {t('home.dayActivityTitle')}</div>
           <div className="ring-wrap">
             <Ring pct={pct} />
             <div>
-              <div className="ring-label">پیشرفت عادت‌های امروز</div>
-              <div className="ring-num">{toFa(pct)}٪</div>
-              {j.mood > 0 && <div className="ring-label" style={{ marginTop: 8 }}>حس امروز <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{['', 'بی‌حال', 'کسل', 'معمولی', 'خوب', 'عالی'][j.mood]}</span></div>}
+              <div className="ring-label">{t('home.habitProgressLabel')}</div>
+              <div className="ring-num">{toFa(pct)}{t('home.percentSign')}</div>
+              {j.mood > 0 && <div className="ring-label" style={{ marginTop: 8 }}>{t('home.todaysFeeling')} <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{t(['home.moodNone', 'home.moodTired', 'home.moodLazy', 'home.moodNormal', 'home.moodGood', 'home.moodGreat'][j.mood])}</span></div>}
             </div>
           </div>
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.06)' }}>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>خواب و بیداری</div>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>{t('home.sleepWakeTitle')}</div>
             {showSleep ? (
               <div className="sleep-card" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: 1 }}><div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>امشب قرار است ساعت چند بخوابی؟</div></div>
+                <div style={{ flex: 1 }}><div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>{t('home.sleepQuestion')}</div></div>
                 {['21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00'].map((t) => (
                   <button key={t} className={'sleep-pill' + (minOf(t) === minOf(db.settings.sleepGoal) ? ' active' : '')} onClick={() => logSleep(t)}>{toFa(t)}</button>
                 ))}
               </div>
             ) : sleepLogged ? (
-              <div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>قرار شد ساعت <b style={{ color: 'var(--ink)' }}>{fmtMin(minOf(db.days[iso].sleep))}</b> بخوابی 🌙</div>
+              <div className="sleep-now" style={{ fontSize: 13, color: 'var(--muted)' }}>{t('home.sleepPlannedAt', { time: fmtMin(minOf(db.days[iso].sleep)) })}</div>
             ) : null}
           </div>
         </motion.div>

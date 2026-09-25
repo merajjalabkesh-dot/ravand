@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AppProvider, useApp } from './lib/store'
+import { I18nProvider } from './lib/i18n'
 
 // ============================================================
 // مسیرها
@@ -102,9 +103,11 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppRoutes />
-      <Toast />
-    </AppProvider>
+    <I18nProvider>
+      <AppProvider>
+        <AppRoutes />
+        <Toast />
+      </AppProvider>
+    </I18nProvider>
   )
 }

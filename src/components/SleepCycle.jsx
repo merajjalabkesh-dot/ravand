@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { toFa, fmtMin } from '../lib/store'
+import { useI18n } from '../lib/i18n'
 
 const CYCLE = 90
 const LATENCY = 15
@@ -13,6 +14,7 @@ const enNum = (m) => {
 }
 
 export default function SleepCycle() {
+  const { t } = useI18n()
   const [bed, setBed] = useState('23:00')        // "من ساعت X می‌خوابم"
   const [wake, setWake] = useState('06:30')      // "می‌خواهم ساعت Y بیدار شوم"
 
@@ -31,42 +33,42 @@ export default function SleepCycle() {
 
   return (
     <div className="glass sleep-cycle">
-      <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> سیکل خواب</div>
-      <p className="glass-hint" style={{ marginTop: -6, marginBottom: 14 }}>هر سیکل ~۹۰ دقیقه است، و رسیدن به خواب ~۱۵ دقیقه طول می‌کشد. بیدار شدن در پایان سیکل = بیداری راحت (چون در عمیق‌ترین فاز نیستی).</p>
+      <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> {t('sleep.title')}</div>
+      <p className="glass-hint" style={{ marginTop: -6, marginBottom: 14 }}>{t('sleep.hint')}</p>
 
       <div className="sleep-cycle-grid">
         {/* A: bedtime → wake times */}
         <div className="sleep-cycle-card">
-          <div className="sleep-cycle-label">می‌خواهم ساعت</div>
+          <div className="sleep-cycle-label">{t('sleep.wakeTimeLabel')}</div>
           <input className="input" type="time" value={bed} style={{ width: 'auto' }} onChange={(e) => setBed(e.target.value)} />
-          <div className="sleep-cycle-label" style={{ marginTop: 6 }}>بخوابم — کی بیدار شوم؟</div>
+          <div className="sleep-cycle-label" style={{ marginTop: 6 }}>{t('sleep.sleepThenWake')}</div>
           <div className="sleep-cycle-opts">
             {wakeOpts.map((o) => (
               <button key={o.n} className={'sleep-opt' + (o.n === bestWake.n ? ' best' : '')} onClick={() => setWake(enNum(o.min))}>
                 <span className="sleep-opt-time">{fmtMin(o.min)}</span>
-                <span className="sleep-opt-info">{toFa(o.n)} سیکل · {toFa(o.n * 90 + 15)} دقیقه خواب</span>
-                {o.n === bestWake.n && <span className="sleep-opt-tag">پیشنهاد</span>}
+                <span className="sleep-opt-info">{t('sleep.optInfoWake', { cycles: toFa(o.n), minutes: toFa(o.n * 90 + 15) })}</span>
+                {o.n === bestWake.n && <span className="sleep-opt-tag">{t('sleep.recommendedTag')}</span>}
               </button>
             ))}
           </div>
-          <p className="glass-hint" style={{ marginTop: 10 }}>متعادل‌ترین: {toFa(5)} سیکل ≈ {toFa(7)}‌ساعت و {toFa(45)} دقیقه<br />بزرگسالان معمولاً ۴ تا ۶ سیکل می‌خوابند.</p>
+          <p className="glass-hint" style={{ marginTop: 10 }}>{t('sleep.balanced', { cycles: toFa(5), hours: toFa(7), minutes: toFa(45) })}<br />{t('sleep.balancedNote')}</p>
         </div>
 
         {/* B: desired wake → bedtimes */}
         <div className="sleep-cycle-card">
-          <div className="sleep-cycle-label">می‌خواهم ساعت</div>
+          <div className="sleep-cycle-label">{t('sleep.bedTimeLabel')}</div>
           <input className="input" type="time" value={wake} style={{ width: 'auto' }} onChange={(e) => setWake(e.target.value)} />
-          <div className="sleep-cycle-label" style={{ marginTop: 6 }}>بیدار شوم — کی بخوابم؟</div>
+          <div className="sleep-cycle-label" style={{ marginTop: 6 }}>{t('sleep.bedThenWake')}</div>
           <div className="sleep-cycle-opts">
             {bedOpts.map((o) => (
               <button key={o.n} className={'sleep-opt' + (o.n === bestBed.n ? ' best' : '')} onClick={() => setBed(enNum(o.min))}>
                 <span className="sleep-opt-time">{fmtMin(o.min)}</span>
-                <span className="sleep-opt-info">{toFa(o.n)} سیکل · خوابِ ~{toFa(o.n * 90)} دقیقه</span>
-                {o.n === bestBed.n && <span className="sleep-opt-tag">پیشنهاد</span>}
+                <span className="sleep-opt-info">{t('sleep.optInfoBed', { cycles: toFa(o.n), minutes: toFa(o.n * 90) })}</span>
+                {o.n === bestBed.n && <span className="sleep-opt-tag">{t('sleep.recommendedTagReverse')}</span>}
               </button>
             ))}
           </div>
-          <p className="glass-hint" style={{ marginTop: 10 }}>متعادل‌ترین: {toFa(5)} سیکل ≈ {toFa(7)}‌ساعت و {toFa(45)} دقیقه<br />+ {toFa(15)} دقیقه برای به‌خواب رفتن (قبل از ساعت خواب بگذار روی تخت).</p>
+          <p className="glass-hint" style={{ marginTop: 10 }}>{t('sleep.balancedReverse', { cycles: toFa(5), hours: toFa(7), minutes: toFa(45) })}<br />{t('sleep.balancedNoteReverse', { latency: toFa(15) })}</p>
         </div>
       </div>
     </div>

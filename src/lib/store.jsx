@@ -17,10 +17,26 @@ export const isoAddDays = (iso, n) => {
   const dt = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n))
   return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate())
 }
-export const toFa = (n) => String(n === undefined || n === null ? '' : n).replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])
+
+/* زبان فعال — تابع‌های ماژولی به کانتکست دسترسی ندارند، پس از همین متغیر می‌خوانند.
+   I18nProvider هر بار زبان عوض می‌شود این را به‌روز می‌کند. */
+let activeLang = 'fa'
+export const setActiveLang = (l) => { activeLang = (l === 'en') ? 'en' : 'fa' }
+export const getActiveLang = () => activeLang
+
+const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹'
+/** عدد را با رقم مناسب زبان فعال برمی‌گرداند: فارسی -> ۱۲۳، انگلیسی -> 123 */
+export const num = (n) => {
+  const s = String(n === undefined || n === null ? '' : n)
+  return activeLang === 'en' ? s : s.replace(/[0-9]/g, (d) => FA_DIGITS[+d])
+}
+/** نام مستعار قدیمی — حالا با زبان فعال هماهنگ است */
+export const toFa = num
 export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 
 const JWEEK = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
+const JWEEK_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const weekdayName = (jw) => ((activeLang === 'en' ? JWEEK_EN : JWEEK)[jw] || '')
 const JMONTH = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 export function g2j(gy, gm, gd) {
   const gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
@@ -62,20 +78,25 @@ export const jalaliToISO = (jy, jm, jd) => { const g = j2g(jy, jm, jd); return g
 export function jalaliMonthLen(jy, jm) { if (jm <= 6) return 31; if (jm <= 11) return 30; return isLeapJalali(jy) ? 30 : 29 }
 export function isLeapJalali(jy) { const g = j2g(jy + 1, 1, 1); const g2 = j2g(jy, 1, 1); return (new Date(g.gy, g.gm - 1, g.gd) - new Date(g2.gy, g2.gm - 1, g2.gd)) / 86400000 === 366 }
 export const JMONTH_NAMES = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+/** نام ماه‌ها با زبان فعال — در انگلیسی معادل میلادی همان ماه برگردانده می‌شود */
+const JMONTH_NAMES_EN = ['March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February']
+export const monthName = (jm) => ((activeLang === 'en' ? JMONTH_NAMES_EN : JMONTH_NAMES)[jm - 1] || '')
 export const faDate = (iso, withWeekday) => {
   const { jy, jm, jd, jw } = jalaliOf(iso)
-  const base = toFa(jd) + ' ' + JMONTH[jm - 1] + ' ' + toFa(jy)
-  return withWeekday ? JWEEK[jw] + '، ' + base : base
+  const base = num(jd) + ' ' + monthName(jm) + ' ' + num(jy)
+  if (activeLang === 'en') return withWeekday ? weekdayName(jw) + ', ' + base : base
+  return withWeekday ? weekdayName(jw) + '، ' + base : base
 }
-export const faMonth = (jy, jm) => JMONTH[jm - 1] + ' ' + toFa(jy)
-export const nowFaHM = () => { const d = new Date(); return toFa(pad(d.getHours())) + ':' + toFa(pad(d.getMinutes())) }
+export const faMonth = (jy, jm) => monthName(jm) + ' ' + num(jy)
+export const nowFaHM = () => { const d = new Date(); return num(pad(d.getHours())) + ':' + num(pad(d.getMinutes())) }
 export function phaseOfHour(h) {
-  if (h >= 3 && h < 6) return { name: 'سحر', day: false }
-  if (h >= 6 && h < 11) return { name: 'صبح', day: true }
-  if (h >= 11 && h < 14) return { name: 'ظهر', day: true }
-  if (h >= 14 && h < 18) return { name: 'عصر', day: true }
-  if (h >= 18 && h < 20) return { name: 'شام', day: true }
-  return { name: 'شب', day: false }
+  const en = activeLang === 'en'
+  if (h >= 3 && h < 6) return { name: en ? 'Dawn' : 'سحر', day: false }
+  if (h >= 6 && h < 11) return { name: en ? 'Morning' : 'صبح', day: true }
+  if (h >= 11 && h < 14) return { name: en ? 'Midday' : 'ظهر', day: true }
+  if (h >= 14 && h < 18) return { name: en ? 'Afternoon' : 'عصر', day: true }
+  if (h >= 18 && h < 20) return { name: en ? 'Evening' : 'شام', day: true }
+  return { name: en ? 'Night' : 'شب', day: false }
 }
 
 /* sleep/wake */
@@ -113,7 +134,9 @@ export function eventLabel(ev) {
   const mm = +dateStr.slice(0, 2), dd = +dateStr.slice(3, 5)
   const now = new Date()
   const j = g2j(now.getFullYear(), mm, dd)
-  return 'هر سال ' + toFa(j.jd) + ' ' + JMONTH_NAMES[j.jm - 1]
+  return (activeLang === 'en'
+    ? 'Every year on ' + num(j.jd) + ' ' + monthName(j.jm)
+    : 'هر سال ' + num(j.jd) + ' ' + monthName(j.jm))
 }
 export function countdownOf(isoStr) {
   const target = new Date(isoStr + 'T00:00:00')
@@ -127,10 +150,13 @@ export function countdownOf(isoStr) {
 }
 export function formatCountdown(isoStr) {
   const c = countdownOf(isoStr)
-  if (c.isToday) return 'امروز 🎉'
-  if (c.days > 0) return toFa(c.days) + ' روز مانده'
-  if (c.hours > 0) return toFa(c.hours) + ' ساعت و ' + toFa(c.minutes) + ' دقیقه مانده'
-  return toFa(c.minutes) + ' دقیقه مانده'
+  const en = activeLang === 'en'
+  if (c.isToday) return en ? 'Today 🎉' : 'امروز 🎉'
+  if (c.days > 0) return en ? num(c.days) + ' days left' : num(c.days) + ' روز مانده'
+  if (c.hours > 0) return en
+    ? num(c.hours) + 'h ' + num(c.minutes) + 'm left'
+    : num(c.hours) + ' ساعت و ' + num(c.minutes) + ' دقیقه مانده'
+  return en ? num(c.minutes) + 'm left' : num(c.minutes) + ' دقیقه مانده'
 }
 export function eventIcon(name) {
   const n = String(name || '').trim().toLowerCase()
@@ -143,6 +169,9 @@ export function eventIcon(name) {
 }
 
 export const MOOD_WORDS = ['', 'بی‌حال', 'کسل', 'معمولی', 'خوب', 'عالی']
+const MOOD_WORDS_EN = ['', 'Drained', 'Lazy', 'So-so', 'Good', 'Great']
+/** واژهٔ حس با زبان فعال (۱ تا ۵) */
+export const moodWord = (level) => ((activeLang === 'en' ? MOOD_WORDS_EN : MOOD_WORDS)[level] || '')
 export const MOOD_COLORS = ['', '#f87171', '#fb923c', '#fbbf24', '#4ade80', '#38bdf8']
 const MOOD_COLORS_F = MOOD_COLORS
 export function moodFace(level, size) {
@@ -374,7 +403,7 @@ export function AppProvider({ children }) {
     return () => clearInterval(t)
   }, [db.user, db.settings.wakeNotify, db.settings.curWake, db.settings.wakeGoal, db.days])
 
-  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, view, setView, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, dayOf, ACCENTS, MOOD_WORDS, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, view, dayOf, authUser, authReady])
+  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, view, setView, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, dayOf, ACCENTS, MOOD_WORDS, moodWord, monthName, num, setActiveLang, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, view, dayOf, authUser, authReady])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

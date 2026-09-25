@@ -1,9 +1,9 @@
-// Auth routes: register, login (email+password), me, logout.
+// Auth routes: register, login (email+password), me, change-password, logout.
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
-import { getByEmail, getUser, createUser, loadData } from '../db.js'
+import { getByEmail, getUser, getUserAuth, createUser, loadData, setPassword } from '../db.js'
 
 const router = Router()
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
@@ -69,6 +69,26 @@ router.get('/me', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('me error', e.message)
     res.status(500).json({ error: 'server-error' })
+  }
+})
+
+// تغییر رمز عبور — رمز فعلی باید درست باشد تا کسی که وارد اکانت شده، رمز را عوض نکند
+router.post('/change-password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {}
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'passwords-required' })
+  if (String(newPassword).length < 6) return res.status(400).json({ error: 'weak-password' })
+  if (String(currentPassword) === String(newPassword)) return res.status(400).json({ error: 'same-password' })
+  try {
+    const u = await getUserAuth(req.uid)
+    if (!u || !u.pass_hash) return res.status(404).json({ error: 'user-not-found' })
+    const ok = await bcrypt.compare(String(currentPassword), u.pass_hash)
+    if (!ok) return res.status(401).json({ error: 'wrong-password' })
+    const hash = await bcrypt.hash(String(newPassword), 10)
+    await setPassword(req.uid, hash)
+    res.json({ ok: true })
+  } catch (e) {
+    console.error('change-password error', e && e.message, e && e.stack)
+    res.status(500).json({ error: 'server-error', detail: e && e.message })
   }
 })
 
