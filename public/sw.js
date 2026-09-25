@@ -1,5 +1,5 @@
 // Service Worker - offline support for the app shell
-const CACHE = 'ravand-v1'
+const CACHE = 'ravand-v2'
 const PRECACHE = ['/']
 
 self.addEventListener('install', (e) => {
@@ -17,16 +17,17 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
+  const origin = self.location.origin
   // don't cache API calls or video files (need fresh / streaming)
   if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.mp4')) return
+  if (e.request.method !== 'GET') return
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached
       return fetch(e.request).then((resp) => {
-        // cache same-origin static assets
         const clone = resp.clone()
-        if (resp && resp.ok && url.origin === location.origin) {
-          caches.open(CACHE).then((c) => c.put(e.request, clone))
+        if (resp && resp.ok && url.origin === origin) {
+          caches.open(CACHE).then((c) => c.put(e.request, clone)).catch(() => {})
         }
         return resp
       }).catch(() => caches.match('/'))
