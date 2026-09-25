@@ -15,3 +15,6 @@ backend/data/
 public/portal.mp4
 *.mp4.bak
 *.bak
+
+# Local stage backups — kept on disk as rollback points, not in git
+backup/

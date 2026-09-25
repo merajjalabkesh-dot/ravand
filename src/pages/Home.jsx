@@ -203,15 +203,15 @@ export default function Home() {
       </motion.div>
 
       <motion.div variants={fadeUp} className="stat-grid">
-        <StatCard color="accent" icon={<CheckSvg />} num={toFa(pct) + '٪'} lbl="عادت‌های امروز" onClick={() => navigate('/today')} />
-        <StatCard color="warm" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} num={toFa(tD) + '/' + toFa(tC)} lbl="کارهای امروز" onClick={() => navigate('/today')} />
-        <StatCard color="warm" icon={<FireSvg />} num={toFa(bestAll)} lbl="بهترین رکورد" onClick={() => navigate('/habits')} />
-        <StatCard color="rose" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M9 8h6M9 12h6"/></svg>} num={j.text ? 'نوشته شد' : 'خالی'} lbl="ژورنال امروز" onClick={() => navigate('/journal')} />
+        <StatCard color="accent" icon={<CheckSvg />} num={toFa(pct) + '٪'} lbl="عادت‌های امروز" onClick={() => navigate('/app/today')} />
+        <StatCard color="warm" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} num={toFa(tD) + '/' + toFa(tC)} lbl="کارهای امروز" onClick={() => navigate('/app/today')} />
+        <StatCard color="warm" icon={<FireSvg />} num={toFa(bestAll)} lbl="بهترین رکورد" onClick={() => navigate('/app/habits')} />
+        <StatCard color="rose" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M9 8h6M9 12h6"/></svg>} num={j.text ? 'نوشته شد' : 'خالی'} lbl="ژورنال امروز" onClick={() => navigate('/app/journal')} />
       </motion.div>
 
       {habitNext && (
         <motion.div variants={fadeUp} className="glass home-event">
-          <div className="glass-title"><span>📅 رویداد بعدی</span><button className="btn ghost small" onClick={() => navigate('/reports')} style={{ marginRight: 'auto' }}>همه</button></div>
+          <div className="glass-title"><span>📅 رویداد بعدی</span><button className="btn ghost small" onClick={() => navigate('/app/reports')} style={{ marginRight: 'auto' }}>همه</button></div>
           <EventCard ev={habitNext} />
         </motion.div>
       )}
