@@ -8,6 +8,7 @@ const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, 
 export default function Today() {
   const { db, mutate, toast } = useApp()
   const [iso, setIso] = useState(todayISO())
+  const [taskDate, setTaskDate] = useState(todayISO())
   const isToday = iso === todayISO()
   const d = db.days[iso] || { habits: {}, tasks: [], journal: { mood: 0, text: '' } }
   const ids = db.days[iso] ? new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) : new Set()
@@ -75,12 +76,11 @@ export default function Today() {
   }
   const addTask = () => {
     const inp = document.getElementById('task-input')
-    const when = document.getElementById('task-date')
     if (!inp || !inp.value.trim()) { toast('کار را بنویس'); return }
-    const target = when && when.value ? when.value : iso
+    const target = taskDate
     mutate((s) => { const day = s.days[target] || (s.days[target] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks || []; day.tasks.push({ id: Math.random().toString(36).slice(2, 7), text: inp.value.trim(), done: false }) })
     inp.value = ''
-    toast(target === iso ? 'کار اضافه شد' : 'کار برای ' + faDate(target, false) + ' ثبت شد')
+    toast(target === todayISO() ? 'کار اضافه شد' : 'کار برای ' + faDate(target, false) + ' ثبت شد')
   }
 
   return (
@@ -93,8 +93,8 @@ export default function Today() {
             <div className="sub">{isToday ? 'گزارش همین امروز — عادت‌ها و کارهایی که ثبت شد.' : 'بازبینی و ویرایش این روز.'}</div>
           </div>
           <button className="day-nav" onClick={() => setIso(isoAddDays(iso, 1))} title="روز بعد" aria-label="روز بعد" disabled={isToday}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
-          <JalaliDatePicker value={iso} onChange={(v) => v && setIso(v)} max={todayISO()} className="today-date-input" />
-          {!isToday && <button className="btn ghost small" onClick={() => setIso(todayISO())}>امروز</button>}
+          <JalaliDatePicker value={iso} onChange={(v) => { if (v) { setIso(v); setTaskDate(v) } }} max={todayISO()} className="today-date-input" />
+          {!isToday && <button className="btn ghost small" onClick={() => { setIso(todayISO()); setTaskDate(todayISO()) }}>امروز</button>}
         </div>
       </motion.div>
 
@@ -145,7 +145,7 @@ export default function Today() {
           ))}
         <div className="add-row">
           <input className="input" id="task-input" maxLength={120} placeholder="کار جدید را بنویس…" onKeyDown={(e) => e.key === 'Enter' && addTask()} />
-          <input className="input" type="date" id="task-date" defaultValue={iso} min={iso} max="2099-12-31" title="تاریخ انجام کار" style={{ width: 'auto' }} />
+          <JalaliDatePicker value={taskDate} onChange={(v) => v && setTaskDate(v)} min={iso} placeholder="انتخاب روز" />
           <button className="btn" onClick={addTask}>افزودن</button>
         </div>
       </motion.div>
