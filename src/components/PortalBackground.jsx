@@ -13,13 +13,13 @@ export default function PortalBackground({ className, style }) {
         className={className}
         style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
-          background: 'radial-gradient(circle at 50% 30%, #12203c 0%, #0a0f1f 55%, #05070f 100%)',
+          background: 'radial-gradient(circle at 50% 30%, #10233f 0%, #0a0f1f 45%, #04060d 100%)',
           overflow: 'hidden', ...style,
         }}
       >
-        {/* soft glow accents */}
-        <div style={{ position: 'absolute', left: '-10%', top: '8%', width: '60%', height: '34%', background: 'radial-gradient(circle, rgba(90,120,255,.22), transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', right: '-12%', bottom: '10%', width: '58%', height: '36%', background: 'radial-gradient(circle, rgba(120,80,250,.18), transparent 70%)', borderRadius: '50%' }} />
+        {/* soft glow accents — kept subtle so the bright brand pops */}
+        <div style={{ position: 'absolute', left: '-14%', top: '6%', width: '64%', height: '36%', background: 'radial-gradient(circle, rgba(90,130,255,.16), transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', right: '-16%', bottom: '8%', width: '60%', height: '38%', background: 'radial-gradient(circle, rgba(130,90,255,.12), transparent 70%)', borderRadius: '50%' }} />
       </div>
     )
   }

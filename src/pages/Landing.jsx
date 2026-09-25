@@ -10,6 +10,7 @@ let fontLoaded = null
 
 export default function Landing() {
   const { mutate, toast } = useApp()
+  const [isMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches)
   const [face, setFace] = useState(null)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -113,11 +114,11 @@ const submit = async (e) => {
         annotations={false}
         enterLabel=""
         background={<PortalBackground />}
-        style={{ '--gp-paper': '#0a0f1f', '--gp-ink': '#cfe0ff', '--gp-field': '#0a0f1f' }}
+        style={{ '--gp-paper': '#0a0f1f', '--gp-ink': isMobile ? '#eaf4ff' : '#cfe0ff', '--gp-field': '#0a0f1f' }}
         front={
           <div style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
-            <p style={{ margin: '0 auto', fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 600, lineHeight: 1.5, color: 'rgba(207,224,255,.9)', textShadow: '0 2px 18px rgba(10,15,31,.8)', maxWidth: 420 }}>عادت‌هایت را بساز، روندت را ببین.</p>
-            <p style={{ margin: '12px auto 0', fontSize: 14, lineHeight: 1.5, color: 'rgba(160,175,205,.7)', maxWidth: 420 }}>اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
+            <p style={{ margin: '0 auto', fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 600, lineHeight: 1.5, color: isMobile ? 'rgba(255,255,255,.94)' : 'rgba(207,224,255,.9)', textShadow: isMobile ? '0 0 22px rgba(120,170,255,.6), 0 2px 14px rgba(5,8,20,.8)' : '0 2px 18px rgba(10,15,31,.8)', maxWidth: 420 }}>عادت‌هایت را بساز، روندت را ببین.</p>
+            <p style={{ margin: '12px auto 0', fontSize: 14, lineHeight: 1.5, color: isMobile ? 'rgba(220,235,255,.85)' : 'rgba(160,175,205,.7)', maxWidth: 420 }}>اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
           </div>
         }
       >
