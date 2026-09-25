@@ -69,7 +69,8 @@ const submit = async (e) => {
   } catch (err) {
     console.warn('auth err', err.message, err.status)
     setErrMsg(
-      (err.status === 401 && err.message === 'wrong-credentials') ? 'رمز عبور اشتباه است'
+      (err.status === 401 && err.message === 'wrong-password') ? 'رمز عبور اشتباه است'
+      : (err.status === 401 && err.message === 'user-not-found') ? 'با این ایمیل هنوز اکانتی ساخته نشده — اول «ساخت حساب» را بزن'
       : (err.status === 409) ? 'با این ایمیل از قبل اکانت ساخته‌ای — به ورود برو'
       : (err.status === 400 && err.message === 'weak-password') ? 'رمز باید حداقل ۶ کاراکتر باشد'
       : 'خطا — ' + (err.message || 'نامشخص')

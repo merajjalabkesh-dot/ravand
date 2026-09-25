@@ -38,9 +38,9 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body || {}
   const norm = String(email || '').toLowerCase().trim()
   const u = getByEmail(norm)
-  if (!u || !u.pass_hash) return res.status(401).json({ error: 'wrong-credentials' })
+  if (!u || !u.pass_hash) return res.status(401).json({ error: 'user-not-found', hint: 'با این ایمیل اکانتی ساخته نشده.' })
   const ok = await bcrypt.compare(String(password || ''), u.pass_hash)
-  if (!ok) return res.status(401).json({ error: 'wrong-credentials' })
+  if (!ok) return res.status(401).json({ error: 'wrong-password', hint: 'رمز عبور اشتباه است.' })
   res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
 })
 
