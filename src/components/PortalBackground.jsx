@@ -20,6 +20,8 @@ export default function PortalBackground({ className, style }) {
         {/* soft glow accents — kept subtle so the bright brand pops */}
         <div style={{ position: 'absolute', left: '-14%', top: '6%', width: '64%', height: '36%', background: 'radial-gradient(circle, rgba(90,130,255,.16), transparent 70%)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', right: '-16%', bottom: '8%', width: '60%', height: '38%', background: 'radial-gradient(circle, rgba(130,90,255,.12), transparent 70%)', borderRadius: '50%' }} />
+        {/* bright spotlight directly behind the word — the letters clip this and glow */}
+        <div style={{ position: 'absolute', left: '50%', top: '48%', transform: 'translate(-50%,-50%)', width: '78%', height: '34%', background: 'radial-gradient(ellipse at center, rgba(235,244,255,.95) 0%, rgba(150,190,255,.6) 28%, rgba(110,140,255,.22) 52%, transparent 76%)', filter: 'blur(6px)' }} />
         {/* ambient glow behind the brand word so "Ravand" pops on mobile */}
         <div style={{
           position: 'absolute', left: '50%', top: '48%', transform: 'translate(-50%, -50%)',
