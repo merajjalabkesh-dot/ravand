@@ -309,6 +309,11 @@ export function AppProvider({ children }) {
     root.style.setProperty('--bg-glow-1', gl1)
     root.style.setProperty('--bg-glow-2', gl2)
     root.style.setProperty('font-size', (15 * (db.settings.fontScale || 1)) + 'px')
+    // Scale the whole app visually (works with fixed px sizes across the codebase)
+    const scale = db.settings.fontScale || 1
+    root.style.setProperty('--font-scale', String(scale))
+    const rootEl = document.getElementById('root')
+    if (rootEl) rootEl.style.zoom = scale === 1 ? '' : String(scale)
   }, [db.settings.theme, db.settings.accent, db.settings.fontScale])
 
   /* Backend auth bootstrap: pull remote identity + data on app start */

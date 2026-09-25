@@ -63,10 +63,12 @@ export default function Today() {
   const delTask = (id) => { mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks.filter((x) => x.id !== id) }); toast('کار حذف شد') }
   const addTask = () => {
     const inp = document.getElementById('task-input')
+    const when = document.getElementById('task-date')
     if (!inp || !inp.value.trim()) { toast('کار را بنویس'); return }
-    mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks || []; day.tasks.push({ id: Math.random().toString(36).slice(2, 7), text: inp.value.trim(), done: false }) })
+    const target = when && when.value ? when.value : iso
+    mutate((s) => { const day = s.days[target] || (s.days[target] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks || []; day.tasks.push({ id: Math.random().toString(36).slice(2, 7), text: inp.value.trim(), done: false }) })
     inp.value = ''
-    toast('کار اضافه شد')
+    toast(target === iso ? 'کار اضافه شد' : 'کار برای ' + faDate(target, false) + ' ثبت شد')
   }
 
   return (
@@ -126,6 +128,7 @@ export default function Today() {
           ))}
         <div className="add-row">
           <input className="input" id="task-input" maxLength={120} placeholder="کار جدید را بنویس…" onKeyDown={(e) => e.key === 'Enter' && addTask()} />
+          <input className="input" type="date" id="task-date" defaultValue={iso} min={iso} max="2099-12-31" title="تاریخ انجام کار" style={{ width: 'auto' }} />
           <button className="btn" onClick={addTask}>افزودن</button>
         </div>
       </motion.div>

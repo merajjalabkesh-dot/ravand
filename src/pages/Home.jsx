@@ -93,6 +93,18 @@ export default function Home() {
   const showSleep = !!wake && !sleepLogged && (d.getHours() * 60 + d.getMinutes()) >= 19 * 60
   const avgW = db.settings.curWake || null
 
+  // Unified list for Home: today's scheduled habits + real tasks
+  const isScheduledToday = (h) => H.isSched(h, iso)
+  const toggleHabit = (id) => {
+    if (db.settings.sound) { try { const AC = window.AudioContext || window.webkitAudioContext; const ac = new AC(); const o = ac.createOscillator(); const g = ac.createGain(); o.type = 'sine'; o.frequency.value = 760; g.gain.setValueAtTime(0.0001, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.1, ac.currentTime + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.13); o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.15) } catch (e) {} }
+    mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.habits = day.habits || {}; if (day.habits[id]) delete day.habits[id]; else day.habits[id] = true })
+  }
+  const toggleTask = (id) => {
+    mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); const task = (day.tasks || []).find((x) => x.id === id); if (task) task.done = !task.done })
+  }
+  const todayHabits = db.habits.filter(isScheduledToday)
+  const todayTasks = (db.days[iso] && db.days[iso].tasks) || []
+
   const wakeUp = () => {
     const now = new Date()
     mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.wake = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') })
@@ -102,23 +114,28 @@ export default function Home() {
 
   const habitNext = (db.events || []).map((ev) => ({ ...ev, nextISO: nextEventISO(ev) })).filter((e) => e.nextISO).sort((a, b) => (a.nextISO < b.nextISO ? -1 : 1))[0]
 
-  const habitsHtml = db.habits.length === 0
-    ? <div className="empty-state"><div className="big">✦</div><p>هنوز عادتی نداری.<br />از صفحهٔ «عادت‌ها» اولین عادتت را بساز.</p></div>
-    : db.habits.slice(0, 5).map((h) => {
-        const done = H.dayIds(iso).has(h.id)
-        const st = H.habitStreak(h.id)
-        const goal = h.weeklyGoal || 7
-        const w = H.weekDone(h.id)
-        return (
-          <div className="mini-row" key={h.id}>
-            <span className="mini-dot" style={{ background: h.color }} />
-            <span className="mini-name">{h.name}</span>
-            <span className="mini-stat" style={{ fontSize: 11 }}>{toFa(w)}/{toFa(goal)} هفته</span>
-            {st > 0 && <span className="mini-stat">{toFa(st)} روز <FireSvg style={{ color: 'var(--accent-warm)', verticalAlign: '-2px' }} /></span>}
-            {done && <span style={{ color: 'var(--accent-2)' }}><CheckSvg /></span>}
+  const habitsHtml = (todayHabits.length === 0 && todayTasks.length === 0)
+    ? <div className="empty-state"><div className="big">✦</div><p>امروز هنوز کاری نداری.<br />از صفحهٔ «Today» کار اضافه کن یا یک عادت بساز.</p></div>
+    : <>
+        {todayHabits.map((h) => {
+          const done = H.dayIds(iso).has(h.id)
+          const isBad = h.type === 'bad'
+          return (
+            <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
+              <span className="task-box" style={{ background: done ? h.color : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
+              {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>ترک</span>}
+              <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
+              {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? 'انجام شد' : 'پاک'}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
+            </div>
+          )
+        })}
+        {todayTasks.map((t) => (
+          <div className="task-row" key={'t-' + t.id} onClick={() => toggleTask(t.id)} style={{ cursor: 'pointer' }}>
+            <span className="task-box" style={{ background: t.done ? 'var(--accent-2)' : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
+            <span className="ttext" style={{ textDecoration: t.done ? 'line-through' : 'none', opacity: t.done ? .55 : 1 }}>{t.text}</span>
           </div>
-        )
-      })
+        ))}
+      </>
 
   return (
     <motion.div variants={stagger} initial="initial" animate="animate" exit="exit">
@@ -163,7 +180,7 @@ export default function Home() {
 
       <div className="home-sections">
         <motion.div variants={fadeUp} className="glass">
-          <div className="glass-title"><FireSvg /> عادت‌های امروز</div>
+          <div className="glass-title"><FireSvg /> کارهای امروز</div>
           {habitsHtml}
         </motion.div>
         <motion.div variants={fadeUp} className="glass">

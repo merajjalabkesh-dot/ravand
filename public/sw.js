@@ -1,27 +1,29 @@
-// Service Worker — installs the full app shell (HTML + built JS/CSS) so the
-// installed PWA opens and runs without network.
-const CACHE = 'ravand-v4'
+// Service Worker — full app shell precache so the installed PWA works offline,
+// including a cold start after the app has been fully closed.
+const CACHE = 'ravand-v5'
 const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
-// Fetch index.html, parse out the built asset URLs, and cache them.
 async function precacheAppShell() {
   const cache = await caches.open(CACHE)
   await cache.addAll(SHELL)
 
-  // Read the HTML so we can find every hashed JS/CSS file Vite emitted.
+  // Find every hashed asset Vite emitted in index.html and cache it.
   try {
     const response = await fetch('/', { cache: 'reload' })
-    const html = await response.text()
+    const cloneForHtml = response.clone()
+    const html = await cloneForHtml.text()
     await cache.put('/', response.clone())
+    await cache.put('/index.html', new Response(html, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }))
 
     const urls = new Set()
     const re = /(?:src|href)=["']([^"']+)["']/g
     let m
     while ((m = re.exec(html))) {
       const u = m[1]
-      if (u.startsWith('/assets/') || u.startsWith('./assets/')) {
-        urls.add(u.startsWith('./') ? u.slice(1) : u)
-      }
+      if (u.includes('/assets/')) urls.add(u.startsWith('.') ? new URL(u, self.location.origin).pathname : u)
     }
     if (urls.size) await cache.addAll([...urls])
   } catch (e) {
@@ -51,20 +53,29 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) return
   if (/\.(mp4|webm|mov)$/i.test(url.pathname)) return
 
-  // SPA navigations: network first, fall back to the cached index.
+  // SPA navigations: cached shell first so a cold offline start always works.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          caches.open(CACHE).then((c) => c.put(request, response.clone())).catch(() => {})
-          return response
-        })
-        .catch(() => caches.match(request).then((r) => r || caches.match('/index.html') || caches.match('/')))
+      caches.match('/index.html').then((cached) => {
+        const network = fetch(request)
+          .then((response) => {
+            if (response && response.ok) {
+              caches.open(CACHE).then((c) => c.put('/index.html', response.clone())).catch(() => {})
+            }
+            return response
+          })
+          .catch(() => null)
+        if (cached) {
+          network.catch(() => {})
+          return cached
+        }
+        return network.then((r) => r || caches.match('/')).then((r) => r || Response.error())
+      })
     )
     return
   }
 
-  // Static assets: cache first (built files never change within a deployment).
+  // Static assets: cache first.
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
