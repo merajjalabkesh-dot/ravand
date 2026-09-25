@@ -34,8 +34,8 @@ router.post('/register', async (req, res) => {
     await createUser({ id, email: norm, name: (name || '').trim(), last: (last || '').trim(), passHash: hash })
     res.json({ token: sign(id), user: { id, email: norm, name: (name || '').trim() } })
   } catch (e) {
-    console.error('register error', e.message)
-    res.status(500).json({ error: 'server-error' })
+    console.error('register error', e && e.message, e && e.stack)
+    res.status(500).json({ error: 'server-error', detail: e && e.message })
   }
 })
 
@@ -49,8 +49,8 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'wrong-password', hint: 'رمز عبور اشتباه است.' })
     res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
   } catch (e) {
-    console.error('login error', e.message)
-    res.status(500).json({ error: 'server-error' })
+    console.error('login error', e && e.message, e && e.stack)
+    res.status(500).json({ error: 'server-error', detail: e && e.message })
   }
 })
 
