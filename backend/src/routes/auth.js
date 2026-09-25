@@ -27,35 +27,49 @@ router.post('/register', async (req, res) => {
   if (!email || !password) return res.status(400).json({ error: 'email-password-required' })
   if (String(password).length < 6) return res.status(400).json({ error: 'weak-password' })
   const norm = String(email).toLowerCase().trim()
-  if (getByEmail(norm)) return res.status(409).json({ error: 'email-already-in-use' })
-  const id = crypto.randomUUID()
-  const hash = await bcrypt.hash(String(password), 10)
-  createUser({ id, email: norm, name: (name || '').trim(), last: (last || '').trim(), passHash: hash })
-  res.json({ token: sign(id), user: { id, email: norm, name: (name || '').trim() } })
+  try {
+    if (await getByEmail(norm)) return res.status(409).json({ error: 'email-already-in-use' })
+    const id = crypto.randomUUID()
+    const hash = await bcrypt.hash(String(password), 10)
+    await createUser({ id, email: norm, name: (name || '').trim(), last: (last || '').trim(), passHash: hash })
+    res.json({ token: sign(id), user: { id, email: norm, name: (name || '').trim() } })
+  } catch (e) {
+    console.error('register error', e.message)
+    res.status(500).json({ error: 'server-error' })
+  }
 })
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body || {}
   const norm = String(email || '').toLowerCase().trim()
-  const u = getByEmail(norm)
-  if (!u || !u.pass_hash) return res.status(401).json({ error: 'user-not-found', hint: 'با این ایمیل اکانتی ساخته نشده.' })
-  const ok = await bcrypt.compare(String(password || ''), u.pass_hash)
-  if (!ok) return res.status(401).json({ error: 'wrong-password', hint: 'رمز عبور اشتباه است.' })
-  res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
+  try {
+    const u = await getByEmail(norm)
+    if (!u || !u.pass_hash) return res.status(401).json({ error: 'user-not-found', hint: 'با این ایمیل اکانتی ساخته نشده.' })
+    const ok = await bcrypt.compare(String(password || ''), u.pass_hash)
+    if (!ok) return res.status(401).json({ error: 'wrong-password', hint: 'رمز عبور اشتباه است.' })
+    res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
+  } catch (e) {
+    console.error('login error', e.message)
+    res.status(500).json({ error: 'server-error' })
+  }
 })
 
-// Request a 6-digit OTP — creates the user if they're new (sign-up via OTP)
 // OTP (email) temporarily disabled — will be replaced by SMS gateway later.
 router.post('/request-otp', (_req, res) => res.status(501).json({ error: 'otp-disabled' }))
 
 // OTP (email) temporarily disabled — will be replaced by SMS gateway later.
 router.post('/verify-otp', (_req, res) => res.status(501).json({ error: 'otp-disabled' }))
 
-router.get('/me', requireAuth, (req, res) => {
-  const u = getUser(req.uid)
-  if (!u) return res.status(404).json({ error: 'user-not-found' })
-  const data = loadData(req.uid) || {}
-  res.json({ user: { id: u.id, email: u.email, name: u.name || '' }, data })
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const u = await getUser(req.uid)
+    if (!u) return res.status(404).json({ error: 'user-not-found' })
+    const data = (await loadData(req.uid)) || {}
+    res.json({ user: { id: u.id, email: u.email, name: u.name || '' }, data })
+  } catch (e) {
+    console.error('me error', e.message)
+    res.status(500).json({ error: 'server-error' })
+  }
 })
 
 router.post('/logout', (_req, res) => res.json({ ok: true }))
