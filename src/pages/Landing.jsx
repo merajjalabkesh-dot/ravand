@@ -15,9 +15,7 @@ export default function Landing() {
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState('login') // login | signup | otp
-  const [otpStep, setOtpStep] = useState('send') // send | verify
-  const [otpCode, setOtpCode] = useState('')
+  const [mode, setMode] = useState('login') // login | signup
   const [busy, setBusy] = useState(false)
   const [errMsg, setErrMsg] = useState('')
 
@@ -58,20 +56,7 @@ const submit = async (e) => {
   setErrMsg('')
   setBusy(true)
   try {
-    if (mode === 'otp') {
-      if (otpStep === 'send') {
-        if (!email.trim()) { setErrMsg('ایمیل را بنویس'); setBusy(false); return }
-        await api.requestOtp(email.trim())
-        setOtpStep('verify')
-        setErrMsg('')
-        setBusy(false)
-        return
-      } else {
-        // verify code
-        const r = await api.verifyOtp(email.trim(), otpCode.trim())
-        await afterAuth(r.token, r.user, 'otp')
-      }
-    } else if (mode === 'signup') {
+    if (mode === 'signup') {
       if (!firstName.trim()) { setErrMsg('نامت را بنویس'); setBusy(false); return }
       const r = await api.register(email.trim(), password, firstName.trim(), lastName.trim())
       await afterAuth(r.token, r.user, 'signup')
@@ -85,9 +70,7 @@ const submit = async (e) => {
     console.warn('auth err', err.message, err.status)
     setErrMsg(
       (err.status === 401 && err.message === 'wrong-credentials') ? 'رمز عبور اشتباه است'
-      : (err.status === 401 && err.message === 'wrong-otp') ? 'کد واردشده اشتباه است'
-      : (err.status === 401 && err.message === 'otp-expired') ? 'کد منقضی شده — دوباره درخواست کن'
-      : (err.status === 409) ? 'با این ایمیل از قبل اکانت ساخته‌ای — به ورود برو (یا کد ایمیلی بزن)'
+      : (err.status === 409) ? 'با این ایمیل از قبل اکانت ساخته‌ای — به ورود برو'
       : (err.status === 400 && err.message === 'weak-password') ? 'رمز باید حداقل ۶ کاراکتر باشد'
       : 'خطا — ' + (err.message || 'نامشخص')
     )
@@ -121,17 +104,14 @@ const submit = async (e) => {
           </div>
           <form className="landing-form" onSubmit={submit} style={{ width: 'min(100%, 26rem)', display: 'flex', flexDirection: 'column', gap: 12, padding: 'clamp(20px, 4vw, 30px)', background: 'rgba(10,18,38,.65)', border: '1px solid rgba(140,170,235,.25)', borderRadius: 22, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxShadow: '0 12px 60px rgba(0,0,0,.55)' }}>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2, color: 'rgba(200,222,255,.95)' }}>
-              {mode === 'login' ? 'ورود به روند' : mode === 'signup' ? 'ساخت حساب' : (otpStep === 'send' ? 'ورود با کد' : 'کد را وارد کن')}
+              {mode === 'signup' ? 'ساخت حساب' : 'ورود به روند'}
             </div>
             <div style={{ fontSize: 13, color: 'rgba(150,180,225,.75)', marginBottom: 8 }}>
-              {mode === 'login' ? 'با ایمیل و رمز وارد شو؛ داده‌هات در ابر می‌ماند.'
-                : mode === 'signup' ? 'نامت را بگو و حساب بساز — عادت‌ها و ژورنالت در ابر می‌ماند.'
-                : 'کد ۶ رقمی به ایمیلت می‌فرستیم؛ بدون رمز وارد می‌شوی.'}
+              {mode === 'signup' ? 'نامت را بگو و حساب بساز؛ عادت‌ها و ژورنالت در ابر می‌ماند.' : 'با ایمیل و رمز وارد شو؛ داده‌هات در ابر می‌ماند.'}
             </div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 2 }}>
-              <button type="button" className={'auth-toggle' + (mode === 'login' ? ' on' : '')} onClick={() => { setMode('login'); setOtpStep('send') }}>ورود</button>
+              <button type="button" className={'auth-toggle' + (mode === 'login' ? ' on' : '')} onClick={() => setMode('login')}>ورود</button>
               <button type="button" className={'auth-toggle' + (mode === 'signup' ? ' on' : '')} onClick={() => setMode('signup')}>ساخت حساب</button>
-              <button type="button" className={'auth-toggle' + (mode === 'otp' ? ' on' : '')} onClick={() => { setMode('otp'); setOtpStep('send') }}>کد ایمیلی</button>
             </div>
             {mode === 'signup' && (
               <>
@@ -139,15 +119,10 @@ const submit = async (e) => {
                 <input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" maxLength={40} placeholder="نام خانوادگی (اختیاری)" style={{ color: '#0c1212', background: '#fff', border: '1px solid #ccc' }} />
               </>
             )}
-            {mode === 'otp' && otpStep === 'verify' && (
-              <input className="input" value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" maxLength={6} placeholder="کد ۶ رقمی" style={{ color: '#0c1212', background: '#fff', border: '1px solid #ccc', letterSpacing: 4, textAlign: 'center', fontSize: 22 }} />
-            )}
             <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="ایمیل" required style={{ color: '#0c1212', background: '#fff', border: '1px solid #ccc' }} />
-            {mode !== 'otp' && (
-              <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="رمز (حداقل ۶ کاراکتر)" required minLength={6} style={{ color: '#0c1212', background: '#fff', border: '1px solid #ccc' }} />
-            )}
+            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="رمز (حداقل ۶ کاراکتر)" required minLength={6} style={{ color: '#0c1212', background: '#fff', border: '1px solid #ccc' }} />
             <button type="submit" disabled={busy} style={{ width: '100%', padding: '13px 20px', borderRadius: 14, background: 'linear-gradient(135deg, #6fa8ff, #8a5cf6)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer', border: 'none', boxShadow: '0 8px 30px rgba(90,120,255,.4)', opacity: busy ? .7 : 1 }}>
-              {busy ? '…' : (mode === 'login' ? 'ورود به روند' : mode === 'signup' ? 'ساخت حساب و ورود' : (otpStep === 'send' ? 'ارسال کد' : 'ورود با کد'))}
+              {busy ? '…' : (mode === 'signup' ? 'ساخت حساب و ورود' : 'ورود به روند')}
             </button>
             {errMsg && <div className="landing-err">{errMsg}</div>}
           </form>

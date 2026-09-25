@@ -1,10 +1,9 @@
-// Auth routes: register, login (email+password), request OTP, verify OTP, me, logout.
+// Auth routes: register, login (email+password), me, logout.
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
-import { getByEmail, getUser, createUser, setPassword, setOtp, loadData } from '../db.js'
-import { sendOtpEmail } from '../mailer.js'
+import { getByEmail, getUser, createUser, loadData } from '../db.js'
 
 const router = Router()
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
@@ -12,12 +11,6 @@ const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
 function sign(id) {
   return jwt.sign({ uid: id }, SECRET, { expiresIn: process.env.JWT_EXPIRES || '7d' })
 }
-
-function otpCode() {
-  return String(Math.floor(100000 + Math.random() * 900000)) // 6-digit
-}
-
-const otpTtlMs = 10 * 60 * 1000 // 10 min
 
 function requireAuth(req, res, next) {
   const h = req.headers.authorization || ''
@@ -52,35 +45,11 @@ router.post('/login', async (req, res) => {
 })
 
 // Request a 6-digit OTP — creates the user if they're new (sign-up via OTP)
-router.post('/request-otp', async (req, res) => {
-  const { email } = req.body || {}
-  const norm = String(email || '').toLowerCase().trim()
-  if (!norm) return res.status(400).json({ error: 'email-required' })
-  let u = getByEmail(norm)
-  if (!u) {
-    const id = crypto.randomUUID()
-    createUser({ id, email: norm, name: '', last: '', passHash: null })
-    u = getByEmail(norm)
-  }
-  const code = otpCode()
-  setOtp(u.id, code, Date.now() + otpTtlMs)
-  const mail = await sendOtpEmail(norm, code)
-  if (mail && mail.error) return res.status(500).json({ error: 'email-send-failed', detail: mail.error })
-  res.json({ ok: true, hint: 'code sent' })
-})
+// OTP (email) temporarily disabled — will be replaced by SMS gateway later.
+router.post('/request-otp', (_req, res) => res.status(501).json({ error: 'otp-disabled' }))
 
-router.post('/verify-otp', (req, res) => {
-  const { email, code } = req.body || {}
-  const norm = String(email || '').toLowerCase().trim()
-  const u = getByEmail(norm)
-  if (!u || !u.otp || !u.otp_exp) return res.status(401).json({ error: 'no-otp-requested' })
-  if (String(code) !== String(u.otp)) return res.status(401).json({ error: 'wrong-otp' })
-  if (Date.now() > u.otp_exp) return res.status(401).json({ error: 'otp-expired' })
-  // consume OTP
-  setOtp(u.id, null, null)
-  // if the user was OTP-only (no password), seed local data if any (already loaded later)
-  res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
-})
+// OTP (email) temporarily disabled — will be replaced by SMS gateway later.
+router.post('/verify-otp', (_req, res) => res.status(501).json({ error: 'otp-disabled' }))
 
 router.get('/me', requireAuth, (req, res) => {
   const u = getUser(req.uid)

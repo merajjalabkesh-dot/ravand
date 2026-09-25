@@ -263,10 +263,11 @@ export function AppProvider({ children }) {
   const persist = (data) => { try { safeStore.setItem('rg_data_v2', JSON.stringify(data)) } catch (e) { /* storage locked — continue in-memory */ } }
   const hasToken = () => { try { return !!localStorage.getItem('rg_token') } catch { return false } }
   const pushDb = (data) => {
-    if (!hasToken()) return
+    if (!hasToken()) { console.warn('[sync] no token — skipping push'); return }
     api.saveData(data).then((r) => {
       if (r && r.error) console.warn('[sync] push failed:', r.error)
-    }).catch((e) => console.warn('[sync] push exception', e))
+      else console.log('[sync] pushed ok', (data.habits || []).length, 'habits')
+    }).catch((e) => console.warn('[sync] push EXCEPTION:', e && e.message))
   }
   const save = useCallback((next) => { setDb(next); persist(next); pushDb(next) }, [])
   const mutate = useCallback((fn) => {
