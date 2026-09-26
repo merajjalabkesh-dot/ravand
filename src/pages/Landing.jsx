@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import GlyphPortal from '../components/ui/glyph-portal'
 import PortalBackground from '../components/PortalBackground'
 import {
-  Hero, About, Features, Audience, Why, DownloadCards, Faq,
+  Hero, About, Live, Features, Compare, Audience, Testimonials, Pricing, DownloadCards, Faq,
 } from '../components/site/Sections'
 import { setPageMeta } from '../lib/seo'
 
@@ -68,10 +68,12 @@ export default function Landing() {
           {/* ---- ریل محتوایی: بعد از اسکرول اینجا ظاهر می‌شود ---- */}
           <div className="gp-rail">
             <Hero compact />
+            <Live />
             <About />
             <Features />
-            <Audience />
-            <Why />
+            <Compare />
+            <Testimonials />
+            <Pricing />
             <section className="site-section" id="download">
               <div className="site-sec-head">
                 <span className="site-kicker">دانلود</span>
@@ -86,7 +88,7 @@ export default function Landing() {
             <section className="site-cta-band">
               <div className="site-cta-in">
                 <h2>آماده‌ای روندت را شروع کنی؟</h2>
-                <p>همین حالا حساب بساز و اولین عادتت را تعریف کن.</p>
+                <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
                 <div className="site-cta-btns">
                   <Link className="btn site-btn big" to="/login">ساخت حساب رایگان</Link>
                   <Link className="btn site-btn ghost big" to="/download">دانلود برنامه</Link>
@@ -96,7 +98,7 @@ export default function Landing() {
             <footer className="gp-rail-foot">
               <div className="site-foot-bar">
                 <span>© {new Date().getFullYear()} روند — همهٔ حقوق محفوظ است.</span>
-                <span className="site-foot-note">ساخته‌شده برای زندگی منظم‌تر</span>
+                <span className="site-foot-note">بدون تبلیغ · بدون فروش داده</span>
               </div>
             </footer>
           </div>

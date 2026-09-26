@@ -21,12 +21,24 @@ export const IconWeb = (p) => <S {...p}><circle cx="12" cy="12" r="9" /><path d=
 
 export const IconDownload = (p) => <S {...p}><path d="M12 3v12" /><path d="m7.5 10.5 4.5 4.5 4.5-4.5" /><path d="M4 20h16" /></S>
 export const IconCheck = (p) => <S {...p}><path d="M4 12.5 9 17.5 20 6.5" /></S>
+export const IconX = (p) => <S {...p}><path d="M18 6 6 18M6 6l12 12" /></S>
+export const IconMinus = (p) => <S {...p}><path d="M5 12h14" /></S>
 export const IconArrow = (p) => <S {...p}><path d="M19 12H5M12 19l-7-7 7-7" /></S>
 export const IconShield = (p) => <S {...p}><path d="M12 3 5 6v5.5c0 4.2 2.8 8.1 7 9.5 4.2-1.4 7-5.3 7-9.5V6z" /><path d="m9 12 2 2 4-4" /></S>
 export const IconSparkle = (p) => <S {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4" /><path d="M12 8.5 13.6 12 12 15.5 10.4 12z" fill="currentColor" stroke="none" /></S>
 
+/** جدول هر روز — همان نشانهٔ برند، در اندازهٔ آیکون */
+export const IconGrid = (p) => (
+  <S {...p} fill="currentColor" stroke="none">
+    <rect x="3" y="16" width="5" height="5" rx="1.4" opacity="0.32" />
+    <rect x="9.5" y="11" width="5" height="5" rx="1.4" opacity="0.6" />
+    <rect x="16" y="6" width="5" height="5" rx="1.4" />
+  </S>
+)
+
 /** نگاشت نام آیکون به کامپوننت */
 export const ICONS = {
+  grid: IconGrid,
   calendar: IconCalendar,
   chart: IconChart,
   book: IconBook,

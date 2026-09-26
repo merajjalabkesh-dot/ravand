@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
-import { ICONS, IconCheck, IconDownload, IconArrow } from './Icons'
+import { ICONS, IconCheck, IconDownload, IconArrow, IconX, IconMinus } from './Icons'
+import Heatmap from './Heatmap'
+import Logo from './Logo'
 
 /* ------------------------------------------------------------------ */
 /*  هیرو                                                               */
@@ -12,21 +14,20 @@ export function Hero({ compact = false }) {
       <div className="site-hero-glow" aria-hidden="true" />
       <div className="site-hero-in">
         <span className="site-eyebrow">
-          <span className="dot" /> نسخهٔ {new Date().getFullYear()} منتشر شد
+          <span className="dot" /> {SITE.hero.eyebrow}
         </span>
         <h1 className="site-hero-title">{SITE.hero.title}</h1>
         <p className="site-hero-sub">{SITE.hero.subtitle}</p>
         <div className="site-hero-cta">
           <Link className="btn site-btn big" to="/login">{SITE.hero.cta}</Link>
-          <Link className="btn site-btn ghost big" to="/download">
-            <IconDownload size={19} /> {SITE.hero.ctaSecondary}
+          <Link className="btn site-btn ghost big" to="#live">
+            {SITE.hero.ctaSecondary}
           </Link>
         </div>
         <ul className="site-hero-points">
-          <li><IconCheck size={16} /> بدون تبلیغ</li>
-          <li><IconCheck size={16} /> کار آفلاین</li>
-          <li><IconCheck size={16} /> تقویم جلالی</li>
-          <li><IconCheck size={16} /> رایگان</li>
+          {SITE.hero.points.map((p) => (
+            <li key={p}><IconCheck size={16} /> {p}</li>
+          ))}
         </ul>
       </div>
     </section>
@@ -40,20 +41,55 @@ export function About() {
   return (
     <section className="site-section" id="about">
       <div className="site-sec-head">
-        <span className="site-kicker">درباره</span>
+        <span className="site-kicker">{SITE.about.kicker}</span>
         <h2 className="site-sec-title">{SITE.about.title}</h2>
       </div>
-      <div className="about-grid">
-        {SITE.about.body.map((p, i) => (
-          <p key={i} className="about-p">{p}</p>
-        ))}
+      <div className="about-body">
+        {SITE.about.body.map((p, i) => <p key={i}>{p}</p>)}
       </div>
     </section>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  ویژگی‌ها                                                           */
+/*  نمایش زندهٔ جدول                                                    */
+/* ------------------------------------------------------------------ */
+export function Live() {
+  return (
+    <section className="site-section site-live" id="live">
+      <div className="site-sec-head">
+        <span className="site-kicker">{SITE.live.kicker}</span>
+        <h2 className="site-sec-title">{SITE.live.title}</h2>
+        <p className="site-sec-sub">{SITE.live.subtitle}</p>
+      </div>
+
+      <div className="live-card">
+        <div className="live-head">
+          <Logo size={30} tone="gradient" />
+          <div>
+            <div className="live-title">روند</div>
+            <div className="live-sub">سه ماه گذشته</div>
+          </div>
+          <div className="live-stats">
+            <div className="live-stat"><b>۴۱</b><span>روز کامل</span></div>
+            <div className="live-stat"><b>۲۳</b><span>روز بدون ثبت</span></div>
+            <div className="live-stat"><b>۵</b><span>عادت فعال</span></div>
+          </div>
+        </div>
+
+        <Heatmap weeks={18} labels={SITE.live} />
+
+        <p className="live-note">
+          این داده واقعی نیست — نمونه‌ای است با الگویی شبیه زندگی واقعی.
+          تو در اپ خودت همین جدول را از صفر می‌سازی.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  امکانات                                                            */
 /* ------------------------------------------------------------------ */
 export function Features() {
   return (
@@ -79,7 +115,41 @@ export function Features() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  برای چه کسانی                                                      */
+/*  مقایسه                                                             */
+/* ------------------------------------------------------------------ */
+export function Compare() {
+  const C = SITE.compare
+  return (
+    <section className="site-section" id="compare">
+      <div className="site-sec-head">
+        <span className="site-kicker">{C.kicker}</span>
+        <h2 className="site-sec-title">{C.title}</h2>
+        <p className="site-sec-sub">{C.subtitle}</p>
+      </div>
+      <div className="cmp">
+        <div className="cmp-head">
+          <span className="cmp-feat" />
+          <span className="cmp-col us">{C.usLabel}</span>
+          <span className="cmp-col them">{C.themLabel}</span>
+        </div>
+        {C.rows.map((r) => (
+          <div className="cmp-row" key={r.feature}>
+            <span className="cmp-feat">{r.feature}</span>
+            <span className={'cmp-cell' + (r.us === true ? ' yes' : r.us === false ? ' no' : ' text')}>
+              {r.us === true ? <IconCheck size={18} /> : r.us === false ? <IconX size={17} /> : r.us}
+            </span>
+            <span className={'cmp-cell' + (r.them === true ? ' yes' : r.them === false ? ' no' : ' text')}>
+              {r.them === true ? <IconCheck size={18} /> : r.them === false ? <IconX size={17} /> : r.them}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  مخاطب                                                              */
 /* ------------------------------------------------------------------ */
 export function Audience() {
   return (
@@ -104,26 +174,67 @@ export function Audience() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  چرا روند                                                          */
+/*  نظر کاربران                                                        */
 /* ------------------------------------------------------------------ */
-export function Why() {
+export function Testimonials() {
+  const T = SITE.testimonials
   return (
-    <section className="site-section" id="why">
+    <section className="site-section" id="voices">
       <div className="site-sec-head">
-        <span className="site-kicker">تمایز</span>
-        <h2 className="site-sec-title">{SITE.whyTitle}</h2>
+        <span className="site-kicker">{T.kicker}</span>
+        <h2 className="site-sec-title">{T.title}</h2>
+        <p className="site-sec-sub">{T.note}</p>
       </div>
-      <div className="why-grid">
-        {SITE.why.map((w) => (
-          <div className="why-item" key={w.title}>
-            <IconCheck size={20} />
-            <div>
-              <h3>{w.title}</h3>
-              <p>{w.text}</p>
-            </div>
-          </div>
+      <div className="voice-grid">
+        {T.items.map((v) => (
+          <figure className="voice" key={v.name}>
+            <p className="voice-text">{v.text}</p>
+            <figcaption>
+              <span className="voice-avatar">{v.name.charAt(0)}</span>
+              <span>
+                <b>{v.name}</b>
+                <i>{v.role}</i>
+              </span>
+            </figcaption>
+          </figure>
         ))}
       </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  تعرفه                                                              */
+/* ------------------------------------------------------------------ */
+export function Pricing() {
+  const P = SITE.pricing
+  return (
+    <section className="site-section" id="pricing">
+      <div className="site-sec-head">
+        <span className="site-kicker">{P.kicker}</span>
+        <h2 className="site-sec-title">{P.title}</h2>
+        <p className="site-sec-sub">{P.subtitle}</p>
+      </div>
+      <div className="price-grid">
+        {P.plans.map((pl) => (
+          <article className={'price-card' + (pl.primary ? ' primary' : '')} key={pl.id}>
+            {pl.primary && <span className="price-badge">پیشنهاد ما</span>}
+            <h3 className="price-name">{pl.name}</h3>
+            <div className="price-amount">
+              {pl.price !== '—'
+                ? <><b>{pl.price}</b><span>{pl.unit}</span></>
+                : <b className="price-soon">—</b>}
+            </div>
+            <div className="price-period">{pl.period}</div>
+            <p className="price-text">{pl.text}</p>
+            <ul className="price-feats">
+              {pl.features.map((f) => <li key={f}><IconCheck size={15} /> {f}</li>)}
+            </ul>
+            <Link className={'btn site-btn full' + (pl.primary ? '' : ' ghost')} to="/login">{pl.cta}</Link>
+          </article>
+        ))}
+      </div>
+      <p className="price-promise"><IconCheck size={16} /> {P.promise}</p>
     </section>
   )
 }
@@ -178,6 +289,29 @@ export function DownloadSection() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  مراحل نصب                                                          */
+/* ------------------------------------------------------------------ */
+export function Steps() {
+  return (
+    <section className="site-section" id="steps">
+      <div className="site-sec-head">
+        <span className="site-kicker">راهنما</span>
+        <h2 className="site-sec-title">در سه قدم شروع کن</h2>
+      </div>
+      <ol className="steps-grid">
+        {SITE.steps.map((s) => (
+          <li className="step" key={s.n}>
+            <span className="step-n">{String(s.n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  سوالات متداول                                                      */
 /* ------------------------------------------------------------------ */
 export function Faq() {
@@ -186,18 +320,14 @@ export function Faq() {
     <section className="site-section" id="faq">
       <div className="site-sec-head">
         <span className="site-kicker">سوالات</span>
-        <h2 className="site-sec-title">سوالات متداول</h2>
+        <h2 className="site-sec-title">{SITE.faqTitle}</h2>
       </div>
       <div className="faq-list">
         {SITE.faq.map((item, i) => {
           const isOpen = open === i
           return (
             <div className={'faq-item' + (isOpen ? ' open' : '')} key={item.q}>
-              <button
-                className="faq-q"
-                aria-expanded={isOpen}
-                onClick={() => setOpen(isOpen ? -1 : i)}
-              >
+              <button className="faq-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? -1 : i)}>
                 <span>{item.q}</span>
                 <span className="faq-sign" aria-hidden="true">{isOpen ? '−' : '+'}</span>
               </button>
@@ -217,8 +347,9 @@ export function CtaBand() {
   return (
     <section className="site-cta-band">
       <div className="site-cta-in">
+        <Logo size={44} tone="gradient" glow />
         <h2>آماده‌ای روندت را شروع کنی؟</h2>
-        <p>همین حالا حساب بساز و اولین عادتت را تعریف کن.</p>
+        <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
         <div className="site-cta-btns">
           <Link className="btn site-btn big" to="/login">ساخت حساب رایگان</Link>
           <Link className="btn site-btn ghost big" to="/download">دانلود برنامه</Link>
