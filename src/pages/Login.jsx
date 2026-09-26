@@ -4,13 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuthForm } from '../lib/useAuth'
 import { useI18n } from '../lib/i18n'
 import { useApp } from '../lib/store'
-
-const Sun = () => (
-  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent-warm)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="4.4" />
-    <path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" />
-  </svg>
-)
+import Logo from '../components/site/Logo'
 
 const Eye = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -68,15 +62,10 @@ export default function Login() {
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
       >
         <div className="login-sun">
-          <Sun />
+          <Logo size={54} tone="gradient" glow />
         </div>
 
         <div className="login-brand">
-          <span className="brand-mark">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.2 1.8" />
-            </svg>
-          </span>
           <h1>{t('nav.brand')}</h1>
         </div>
 

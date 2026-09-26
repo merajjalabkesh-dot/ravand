@@ -1,8 +1,12 @@
 /* ============================================================
    روند — استایل سایت
-   هویت: شیشه‌ای، تیره، بنفش #8b5cf6 و سبز #43e8a8
+   هویت: شیشهٔ مایع، تیره، بنفش #8b5cf6 و سبز #43e8a8
    نشانه: سه خانهٔ صعودی (همان جدول روزها)
+   تکنیک‌های بصری الهام‌گرفته از سایت‌های مرجع:
+   شیشهٔ مایع، پس‌زمینهٔ لکنتیک، متن حرف‌به‌حرف
    ============================================================ */
+
+@import './glass.css';
 
 :root {
   --site-max: 1160px;
@@ -10,12 +14,10 @@
   --site-ink-mid: #b8c4e8;
   --site-muted: #8494b8;
   --site-line: rgba(140, 170, 230, .16);
-  --site-card: rgba(18, 26, 48, .6);
   --site-accent: #8b5cf6;
   --site-accent-2: #43e8a8;
   --site-warm: #f5a623;
 
-  /* سطوح جدول — همان پنج سطح اپ */
   --hm-cell: 13px;
   --hm-gap: 4px;
   --hm-0: rgba(139, 92, 246, .07);
@@ -34,17 +36,17 @@
 /* ---------------- نشانهٔ برند ---------------- */
 .rg-logo { display: inline-block; flex-shrink: 0; line-height: 0; }
 .rg-logo svg { width: 100%; height: 100%; display: block; }
-.rg-logo-glow { filter: drop-shadow(0 0 18px rgba(139, 92, 246, .45)); }
+.rg-logo-glow { filter: drop-shadow(0 0 20px rgba(139, 92, 246, .5)); }
 
-/* ---------------- هدر ---------------- */
+/* ---------------- هدر شیشه‌ای ---------------- */
 .site-header {
   position: sticky; top: 0; z-index: 60;
-  background: rgba(7, 11, 24, .74);
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  background: rgba(7, 11, 24, .5);
+  backdrop-filter: blur(20px) saturate(.5); -webkit-backdrop-filter: blur(20px) saturate(.5);
   border-bottom: 1px solid transparent;
   transition: border-color .2s, background .2s;
 }
-.site-header.is-scrolled { border-bottom-color: var(--site-line); background: rgba(7, 11, 24, .92); }
+.site-header.is-scrolled { border-bottom-color: var(--site-line); background: rgba(7, 11, 24, .8); }
 .site-header-in {
   max-width: var(--site-max); margin: 0 auto;
   display: flex; align-items: center; gap: 18px; padding: 13px 22px;
@@ -57,13 +59,16 @@
   color: var(--site-muted); text-transform: uppercase; direction: ltr;
 }
 
-.site-nav { display: flex; align-items: center; gap: 2px; margin-inline-start: auto; }
+.site-nav {
+  display: flex; align-items: center; gap: 2px; margin-inline-start: auto;
+  border-radius: 999px; padding: 6px 10px;
+}
 .site-nav-link {
-  padding: 8px 13px; border-radius: 10px; text-decoration: none;
+  padding: 7px 13px; border-radius: 999px; text-decoration: none;
   color: var(--site-ink-mid); font-size: 14px; font-weight: 500;
   transition: color .15s, background .15s;
 }
-.site-nav-link:hover { color: var(--site-ink); background: rgba(255, 255, 255, .05); }
+.site-nav-link:hover { color: var(--site-ink); background: rgba(255, 255, 255, .08); }
 .site-nav-cta { display: flex; align-items: center; gap: 8px; margin-inline-start: 10px; }
 
 .site-burger { display: none; margin-inline-start: auto; flex-direction: column; gap: 5px; padding: 10px; }
@@ -78,44 +83,37 @@
 /* ---------------- دکمه‌ها ---------------- */
 .site-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 10px 18px; border-radius: 12px;
+  padding: 10px 18px; border-radius: 999px;
   font-size: 14px; font-weight: 700; text-decoration: none;
   background: linear-gradient(135deg, #8b5cf6, #6d3ff2);
-  color: #fff; border: 1px solid transparent;
+  color: #fff; border: none;
   box-shadow: 0 8px 26px rgba(139, 92, 246, .3);
-  transition: transform .16s, filter .16s, background .16s;
+  transition: transform .16s, filter .16s, box-shadow .16s;
 }
 .site-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
 .site-btn:active { transform: translateY(0); }
-.site-btn.ghost {
-  background: transparent; color: var(--site-ink);
-  border-color: var(--site-line); box-shadow: none;
-}
-.site-btn.ghost:hover { background: rgba(255, 255, 255, .06); }
-.site-btn.big { padding: 14px 26px; font-size: 15.5px; border-radius: 14px; }
+.site-btn.ghost { background: rgba(255, 255, 255, .04); color: var(--site-ink); box-shadow: none; }
+.site-btn.ghost:hover { background: rgba(255, 255, 255, .09); }
+.site-btn.big { padding: 14px 28px; font-size: 15.5px; }
 .site-btn.full { width: 100%; margin-top: auto; }
 .site-btn:focus-visible { outline: 2px solid var(--site-accent-2); outline-offset: 3px; }
 
 /* ---------------- هیرو ---------------- */
-.site-hero { position: relative; padding: clamp(56px, 10vw, 110px) 22px clamp(44px, 6vw, 76px); overflow: hidden; }
-.site-hero.compact { padding-block: clamp(44px, 7vw, 84px) clamp(32px, 5vw, 54px); }
-.site-hero-glow {
-  position: absolute; inset: -40% -10% auto; height: 130%;
-  background:
-    radial-gradient(600px 400px at 20% 30%, rgba(139, 92, 246, .28), transparent 62%),
-    radial-gradient(520px 380px at 80% 16%, rgba(67, 232, 168, .14), transparent 60%);
-  pointer-events: none;
+.site-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(56px, 10vw, 110px) 22px clamp(44px, 6vw, 76px);
+  min-height: 92vh; display: flex; align-items: center; justify-content: center;
 }
+.site-hero.compact { padding-block: clamp(44px, 7vw, 84px) clamp(32px, 5vw, 54px); min-height: 0; }
 .site-hero-in {
-  position: relative; z-index: 1;
-  max-width: 780px; margin: 0 auto; text-align: center;
+  position: relative; z-index: 2;
+  max-width: 800px; margin: 0 auto; text-align: center;
   display: flex; flex-direction: column; align-items: center;
 }
-.site-hero-in .rg-logo { margin-bottom: 22px; }
+.site-hero-in .rg-logo { margin-bottom: 26px; }
 .site-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 14px; border-radius: 999px;
-  background: rgba(139, 92, 246, .12); border: 1px solid var(--site-line);
+  padding: 7px 16px; border-radius: 999px;
   color: var(--site-ink-mid); font-size: 12.5px; font-weight: 600;
 }
 .site-eyebrow .dot {
@@ -123,19 +121,22 @@
   background: var(--site-accent-2); box-shadow: 0 0 10px var(--site-accent-2);
 }
 .site-hero-title {
-  margin: 20px 0 16px; font-size: clamp(30px, 5.4vw, 52px);
-  font-weight: 900; line-height: 1.25; letter-spacing: -.02em;
-  background: linear-gradient(180deg, #fff, #b6c6f0);
+  margin: 26px 0 18px; font-size: clamp(32px, 5.6vw, 56px);
+  font-weight: 900; line-height: 1.2; letter-spacing: -.03em;
+  background: linear-gradient(180deg, #fff 10%, #b6c6f0 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .site-hero-sub { margin: 0 auto; max-width: 620px; font-size: clamp(15px, 1.6vw, 17.5px); line-height: 1.95; color: var(--site-ink-mid); }
-.site-hero-cta { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.site-hero-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .site-hero-points {
-  margin: 30px 0 0; padding: 0; list-style: none;
-  display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center;
-  font-size: 13.5px; color: var(--site-muted);
+  margin: 34px 0 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  font-size: 13px; color: var(--site-muted);
 }
-.site-hero-points li { display: inline-flex; align-items: center; gap: 6px; }
+.site-hero-points li {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 15px; border-radius: 999px;
+}
 .site-hero-points svg { color: var(--site-accent-2); }
 
 /* ---------------- بخش‌ها ---------------- */
@@ -148,31 +149,24 @@
 .site-sec-title { font-size: clamp(23px, 3.3vw, 34px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
 .site-sec-sub { margin: 14px auto 0; max-width: 600px; color: var(--site-muted); font-size: 15px; line-height: 1.9; }
 .site-inline-link { color: var(--site-accent-2); text-decoration: none; border-bottom: 1px solid rgba(67, 232, 168, .35); }
-.site-inline-link:hover { border-bottom-color: var(--site-accent-2); }
 
 /* ---------------- درباره ---------------- */
 .about-body { max-width: 800px; margin: 0 auto; display: grid; gap: 20px; }
 .about-body p {
   font-size: 15.5px; line-height: 2.1; color: var(--site-ink-mid);
-  padding: 22px 26px; border-radius: 18px;
-  background: var(--site-card); border: 1px solid var(--site-line);
+  padding: 22px 26px; border-radius: 20px;
 }
-.about-body p:first-child {
+.about-body .about-lead {
   font-size: 17px; color: var(--site-ink); font-weight: 600;
-  border-color: rgba(139, 92, 246, .3);
-  background: linear-gradient(150deg, rgba(139, 92, 246, .14), rgba(18, 26, 48, .6));
 }
 
 /* ============================================================
-   جدول هر روز — همان نشانهٔ برند
+   جدول هر روز
    ============================================================ */
 .site-live { padding-bottom: clamp(30px, 4vw, 48px); }
 .live-card {
   max-width: 900px; margin: 0 auto;
   padding: 28px 30px 24px; border-radius: 26px;
-  background: linear-gradient(160deg, rgba(22, 30, 56, .8), rgba(12, 18, 38, .7));
-  border: 1px solid var(--site-line);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
 }
 .live-head { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; flex-wrap: wrap; }
 .live-title { font-size: 17px; font-weight: 800; }
@@ -186,30 +180,13 @@
 .hm-wrap::-webkit-scrollbar { height: 6px; }
 .hm-wrap::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, .3); border-radius: 3px; }
 
-.hm-months {
-  display: grid; gap: var(--hm-gap);
-  margin-bottom: 6px; padding-inline-start: 22px;
-  font-size: 11px; color: var(--site-muted);
-}
+.hm-months { display: grid; gap: var(--hm-gap); margin-bottom: 6px; padding-inline-start: 22px; font-size: 11px; color: var(--site-muted); }
 .hm-months span { white-space: nowrap; }
 .hm-body { display: flex; gap: 6px; }
-.hm-days {
-  display: grid; grid-template-rows: repeat(7, var(--hm-cell));
-  gap: var(--hm-gap); width: 16px;
-  font-size: 10px; color: var(--site-muted); line-height: 1;
-}
+.hm-days { display: grid; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); width: 16px; font-size: 10px; color: var(--site-muted); line-height: 1; }
 .hm-days span { display: flex; align-items: center; }
-.hm-grid {
-  position: relative;
-  display: grid; grid-auto-flow: column;
-  grid-template-rows: repeat(7, var(--hm-cell));
-  gap: var(--hm-gap);
-}
-.hm-cell {
-  width: var(--hm-cell); height: var(--hm-cell);
-  border-radius: 3.5px; background: var(--hm-0);
-  transition: transform .12s, box-shadow .12s;
-}
+.hm-grid { position: relative; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); }
+.hm-cell { width: var(--hm-cell); height: var(--hm-cell); border-radius: 3.5px; background: var(--hm-0); transition: transform .12s, box-shadow .12s; }
 .hm-cell.lv0 { background: var(--hm-0); }
 .hm-cell.lv1 { background: var(--hm-1); }
 .hm-cell.lv2 { background: var(--hm-2); }
@@ -226,12 +203,10 @@
   color: var(--site-ink); font-size: 12px; white-space: nowrap;
   pointer-events: none; z-index: 5; box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
 }
-
 .hm-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
 .hm-hint { font-size: 12.5px; color: var(--site-muted); }
 .hm-legend { display: flex; align-items: center; gap: 4px; }
 .hm-legend-label { font-size: 11.5px; color: var(--site-muted); margin: 0 4px; }
-
 .live-note {
   margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--site-line);
   font-size: 12.5px; color: var(--site-muted); line-height: 1.8; text-align: center;
@@ -239,24 +214,19 @@
 
 /* ---------------- امکانات ---------------- */
 .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 16px; }
-.feat-card {
-  padding: 26px 24px; border-radius: 20px;
-  background: var(--site-card); border: 1px solid var(--site-line);
-  transition: transform .2s, border-color .2s, background .2s;
-}
-.feat-card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, .45); background: rgba(24, 32, 60, .7); }
+.feat-card { padding: 26px 24px; border-radius: 22px; transition: transform .2s; }
+.feat-card:hover { transform: translateY(-4px); }
 .feat-icon {
   display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 16px;
-  border-radius: 14px; color: var(--site-accent-2);
-  background: rgba(67, 232, 168, .1); border: 1px solid rgba(67, 232, 168, .22);
+  border-radius: 15px; color: var(--site-accent-2);
 }
 .feat-card h3 { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
 .feat-card p { font-size: 14px; line-height: 1.95; color: var(--site-muted); }
 
 /* ---------------- مقایسه ---------------- */
-.cmp { max-width: 760px; margin: 0 auto; border-radius: 20px; overflow: hidden; border: 1px solid var(--site-line); background: var(--site-card); }
+.cmp { max-width: 760px; margin: 0 auto; border-radius: 22px; overflow: hidden; }
 .cmp-head, .cmp-row { display: grid; grid-template-columns: 1fr 130px 130px; align-items: center; }
-.cmp-head { padding: 16px 0; background: rgba(139, 92, 246, .12); border-bottom: 1px solid var(--site-line); }
+.cmp-head { padding: 16px 0; border-bottom: 1px solid var(--site-line); }
 .cmp-head .cmp-col { text-align: center; font-size: 13.5px; font-weight: 800; }
 .cmp-head .cmp-col.us { color: var(--site-accent-2); }
 .cmp-head .cmp-col.them { color: var(--site-muted); font-weight: 600; }
@@ -266,19 +236,14 @@
 .cmp-feat { padding: 0 22px; font-size: 14px; color: var(--site-ink-mid); line-height: 1.7; }
 .cmp-cell { display: grid; place-items: center; font-size: 12.5px; color: var(--site-muted); text-align: center; padding: 0 10px; }
 .cmp-cell.yes { color: var(--site-accent-2); }
-.cmp-cell.no { color: rgba(248, 113, 113, .55); }
+.cmp-cell.no { color: rgba(248, 113, 113, .5); }
 
 /* ---------------- مخاطب ---------------- */
 .aud-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; }
-.aud-item {
-  display: flex; gap: 14px; align-items: flex-start;
-  padding: 22px; border-radius: 18px;
-  background: var(--site-card); border: 1px solid var(--site-line);
-}
+.aud-item { display: flex; gap: 14px; align-items: flex-start; padding: 22px; border-radius: 20px; }
 .aud-num {
   flex-shrink: 0; display: grid; place-items: center;
   width: 38px; height: 38px; border-radius: 12px;
-  background: rgba(139, 92, 246, .12); border: 1px solid rgba(139, 92, 246, .26);
   color: var(--site-accent); font-weight: 800; font-size: 15px;
 }
 .aud-item h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
@@ -286,13 +251,8 @@
 
 /* ---------------- نظر کاربران ---------------- */
 .voice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 16px; }
-.voice {
-  display: flex; flex-direction: column; gap: 18px;
-  padding: 26px 24px; border-radius: 20px; margin: 0;
-  background: var(--site-card); border: 1px solid var(--site-line);
-  transition: transform .2s, border-color .2s;
-}
-.voice:hover { transform: translateY(-4px); border-color: rgba(67, 232, 168, .35); }
+.voice { display: flex; flex-direction: column; gap: 18px; padding: 26px 24px; border-radius: 22px; margin: 0; transition: transform .2s; }
+.voice:hover { transform: translateY(-4px); }
 .voice-text { font-size: 14.5px; line-height: 2.05; color: var(--site-ink-mid); flex: 1; }
 .voice figcaption { display: flex; align-items: center; gap: 11px; }
 .voice-avatar {
@@ -305,16 +265,8 @@
 
 /* ---------------- تعرفه ---------------- */
 .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; max-width: 720px; margin: 0 auto; align-items: start; }
-.price-card {
-  position: relative; display: flex; flex-direction: column; gap: 6px;
-  padding: 30px 26px 26px; border-radius: 24px;
-  background: var(--site-card); border: 1px solid var(--site-line);
-}
-.price-card.primary {
-  border-color: rgba(139, 92, 246, .45);
-  background: linear-gradient(165deg, rgba(38, 28, 78, .7), rgba(14, 20, 42, .7));
-  box-shadow: 0 20px 60px rgba(139, 92, 246, .18);
-}
+.price-card { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 30px 26px 26px; border-radius: 26px; }
+.price-card.primary { box-shadow: 0 20px 60px rgba(139, 92, 246, .18), inset 0 1px 1px rgba(255, 255, 255, .18); }
 .price-badge {
   position: absolute; top: -11px; inset-inline-start: 26px;
   padding: 4px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
@@ -330,29 +282,20 @@
 .price-feats { list-style: none; padding: 0; margin: 10px 0 22px; display: grid; gap: 9px; font-size: 13.5px; color: var(--site-muted); }
 .price-feats li { display: flex; align-items: center; gap: 8px; }
 .price-feats svg { color: var(--site-accent-2); flex-shrink: 0; }
-.price-promise {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  margin: 28px 0 0; font-size: 13.5px; color: var(--site-muted);
+.price-promise { display: flex; justify-content: center; margin: 28px 0 0; }
+.price-promise-in {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 999px; font-size: 13.5px; color: var(--site-muted);
 }
-.price-promise svg { color: var(--site-accent-2); }
+.price-promise-in svg { color: var(--site-accent-2); }
 
 /* ---------------- دانلود ---------------- */
 .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 18px; align-items: stretch; }
 .dl-grid.compact { grid-template-columns: repeat(auto-fit, minmax(252px, 1fr)); }
-.dl-card {
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 28px 24px; border-radius: 22px;
-  background: var(--site-card); border: 1px solid var(--site-line);
-  transition: transform .2s, border-color .2s;
-}
-.dl-card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, .45); }
-.dl-card.primary { background: linear-gradient(165deg, rgba(30, 26, 62, .75), rgba(14, 20, 42, .7)); border-color: rgba(139, 92, 246, .3); }
+.dl-card { display: flex; flex-direction: column; gap: 14px; padding: 28px 24px; border-radius: 24px; transition: transform .2s; }
+.dl-card:hover { transform: translateY(-4px); }
 .dl-card-top { display: flex; align-items: center; gap: 14px; }
-.dl-icon {
-  display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0;
-  border-radius: 15px; color: var(--site-accent-2);
-  background: rgba(67, 232, 168, .1); border: 1px solid rgba(67, 232, 168, .24);
-}
+.dl-icon { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; color: var(--site-accent-2); }
 .dl-name { font-size: 19px; font-weight: 800; }
 .dl-latin { font-size: 12px; color: var(--site-muted); direction: ltr; letter-spacing: .04em; }
 .dl-text { font-size: 14px; line-height: 1.95; color: var(--site-ink-mid); }
@@ -365,15 +308,15 @@
 .dl-note-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
 .dl-note-item {
   display: flex; flex-direction: column; gap: 7px;
-  padding: 20px 22px; border-radius: 16px;
-  background: rgba(245, 166, 35, .07); border: 1px solid rgba(245, 166, 35, .22);
+  padding: 20px 22px; border-radius: 18px;
+  background: rgba(245, 166, 35, .06); border: 1px solid rgba(245, 166, 35, .2);
 }
 .dl-note-item strong { font-size: 14.5px; color: var(--site-warm); }
 .dl-note-item span { font-size: 13px; line-height: 1.9; color: var(--site-muted); }
 
 /* ---------------- مراحل ---------------- */
 .steps-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr)); gap: 16px; }
-.step { padding: 26px 22px; border-radius: 20px; background: var(--site-card); border: 1px solid var(--site-line); }
+.step { padding: 26px 22px; border-radius: 22px; }
 .step-n {
   display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 14px;
   border-radius: 13px; font-weight: 900; font-size: 16px;
@@ -384,8 +327,7 @@
 
 /* ---------------- سوالات ---------------- */
 .faq-list { max-width: 780px; margin: 0 auto; display: grid; gap: 10px; }
-.faq-item { border-radius: 16px; overflow: hidden; background: var(--site-card); border: 1px solid var(--site-line); transition: border-color .2s; }
-.faq-item.open { border-color: rgba(139, 92, 246, .42); }
+.faq-item { border-radius: 18px; overflow: hidden; }
 .faq-q {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px;
   padding: 18px 22px; text-align: start; font-size: 15.5px; font-weight: 700; color: var(--site-ink);
@@ -394,7 +336,7 @@
 .faq-sign {
   flex-shrink: 0; display: grid; place-items: center;
   width: 26px; height: 26px; border-radius: 8px;
-  background: rgba(139, 92, 246, .14); color: var(--site-accent);
+  background: rgba(139, 92, 246, .16); color: var(--site-accent);
   font-size: 17px; font-weight: 700; line-height: 1;
 }
 .faq-a { padding: 0 22px 20px; }
@@ -403,9 +345,7 @@
 /* ---------------- فراخوان ---------------- */
 .site-cta-band { max-width: var(--site-max); margin: 20px auto 0; padding: 0 22px clamp(56px, 8vw, 92px); }
 .site-cta-in {
-  padding: clamp(40px, 6vw, 66px) 28px; border-radius: 28px; text-align: center;
-  background: linear-gradient(150deg, rgba(139, 92, 246, .2), rgba(67, 232, 168, .1));
-  border: 1px solid rgba(139, 92, 246, .3);
+  padding: clamp(40px, 6vw, 66px) 28px; border-radius: 30px; text-align: center;
   display: flex; flex-direction: column; align-items: center;
 }
 .site-cta-in .rg-logo { margin-bottom: 20px; }
@@ -414,7 +354,7 @@
 .site-cta-btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
 /* ---------------- فوتر ---------------- */
-.site-footer { border-top: 1px solid var(--site-line); background: rgba(4, 7, 16, .7); }
+.site-footer { border-top: 1px solid var(--site-line); background: rgba(4, 7, 16, .6); }
 .site-foot-in {
   max-width: var(--site-max); margin: 0 auto;
   display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 34px;
@@ -442,9 +382,9 @@
 .login-top { position: absolute; top: 24px; inset-inline: 24px; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .login-back {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 8px 15px; border-radius: 11px;
+  padding: 8px 15px; border-radius: 999px;
   color: var(--site-muted); text-decoration: none; font-size: 13.5px; font-weight: 600;
-  border: 1px solid var(--site-line); background: rgba(255, 255, 255, .03);
+  background: rgba(255, 255, 255, .03); border: 1px solid var(--site-line);
   transition: color .15s, background .15s;
 }
 .login-back:hover { color: var(--site-ink); background: rgba(255, 255, 255, .07); }
@@ -452,11 +392,11 @@
 .login-card {
   position: relative; z-index: 1;
   width: 100%; max-width: 430px; padding: 38px 32px 30px;
-  border-radius: 26px; text-align: center;
-  background: rgba(14, 20, 40, .84);
-  backdrop-filter: blur(26px); -webkit-backdrop-filter: blur(26px);
+  border-radius: 28px; text-align: center;
+  background: rgba(14, 20, 40, .7);
+  backdrop-filter: blur(30px) saturate(.6); -webkit-backdrop-filter: blur(30px) saturate(.6);
   border: 1px solid var(--site-line);
-  box-shadow: 0 26px 70px rgba(0, 0, 0, .6);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, .6), inset 0 1px 1px rgba(255, 255, 255, .12);
   color: var(--site-ink);
 }
 .login-sun { display: flex; justify-content: center; margin-bottom: 14px; filter: drop-shadow(0 0 18px rgba(139, 92, 246, .5)); }
@@ -466,7 +406,7 @@
 
 .auth-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
 .auth-switch-btn { padding: 10px; border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--site-muted); transition: background .16s, color .16s; }
-.auth-switch-btn.on { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; box-shadow: 0 4px 14px rgba(139, 92, 246, .35); }
+.auth-switch-btn.on { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; }
 .auth-hint { font-size: 13px; color: var(--site-muted); margin: 14px 0 20px; line-height: 1.8; }
 
 .login-card .field { text-align: start; margin-bottom: 15px; }
@@ -474,10 +414,10 @@
 .login-card .field .opt { font-size: 11px; color: var(--site-muted); font-weight: 500; }
 .login-card .input {
   width: 100%; padding: 12px 14px; border-radius: 12px;
-  background: rgba(255, 255, 255, .06); border: 1px solid var(--site-line);
+  background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line);
   color: var(--site-ink); font-size: 15px;
 }
-.login-card .input:focus { outline: none; border-color: var(--site-accent); background: rgba(255, 255, 255, .09); box-shadow: 0 0 0 3px rgba(139, 92, 246, .22); }
+.login-card .input:focus { outline: none; border-color: var(--site-accent); background: rgba(255, 255, 255, .08); box-shadow: 0 0 0 3px rgba(139, 92, 246, .22); }
 .login-card .input::placeholder { color: var(--site-muted); opacity: .55; }
 
 .pw-wrap { position: relative; }
@@ -490,17 +430,16 @@
   background: rgba(248, 113, 113, .1); border: 1px solid rgba(248, 113, 113, .3);
   color: #fca5a5; font-size: 13.5px; line-height: 1.7;
 }
-.auth-submit { width: 100%; padding: 13px 20px; font-size: 15px; border-radius: 13px; }
+.auth-submit { width: 100%; padding: 13px 20px; font-size: 15px; border-radius: 999px; }
 .auth-submit:disabled { opacity: .65; cursor: not-allowed; }
 .login-foot { margin-top: 20px; font-size: 12px; color: var(--site-muted); }
 .login-foot a { color: var(--site-accent-2); text-decoration: none; }
-.login-foot a:hover { text-decoration: underline; }
 
 /* ---------------- سوییچ زبان ---------------- */
-.lang-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
-.lang-opt { padding: 7px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 700; color: var(--site-muted); transition: background .16s, color .16s; }
+.lang-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
+.lang-opt { padding: 7px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--site-muted); transition: background .16s, color .16s; }
 .lang-opt:hover { color: var(--site-ink); }
-.lang-opt.sel { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; box-shadow: 0 3px 12px rgba(139, 92, 246, .35); }
+.lang-opt.sel { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; }
 .lang-switch.mini .lang-opt { padding: 6px 12px; font-size: 12.5px; }
 
 /* ---------------- فرم تغییر رمز ---------------- */
@@ -513,7 +452,6 @@
 .pw-form-btns .btn { padding: 9px 18px; font-size: 13.5px; }
 .preline { white-space: pre-line; }
 
-html.lang-en body { letter-spacing: 0; }
 html.lang-en .field label { text-transform: none !important; letter-spacing: 0 !important; }
 html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
 
@@ -522,9 +460,8 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .site-nav {
     position: absolute; top: 100%; inset-inline: 0;
     flex-direction: column; align-items: stretch; gap: 2px;
-    padding: 12px 18px 18px;
-    background: rgba(7, 11, 24, .97);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    padding: 12px 18px 18px; border-radius: 0 0 22px 22px;
+    background: rgba(7, 11, 24, .95);
     border-bottom: 1px solid var(--site-line);
     display: none;
   }
@@ -542,11 +479,12 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
 @media (max-width: 560px) {
   :root { --hm-cell: 11px; --hm-gap: 3px; }
   .site-section { padding-inline: 16px; }
-  .site-hero { padding-inline: 16px; }
+  .site-hero { padding-inline: 16px; min-height: 88vh; }
   .dl-card { padding: 24px 20px; }
   .login-card { padding: 32px 22px 26px; }
   .login-top { top: 16px; inset-inline: 16px; }
   .site-hero-cta .site-btn { width: 100%; }
+  .site-hero-points li { padding: 6px 12px; font-size: 12px; }
   .live-card { padding: 22px 18px 20px; border-radius: 22px; }
   .site-foot-in { grid-template-columns: 1fr; }
   .cmp-head, .cmp-row { grid-template-columns: 1fr 66px 66px; }

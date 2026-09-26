@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
-import { ICONS, IconCheck, IconDownload, IconArrow, IconX, IconMinus } from './Icons'
+import { ICONS, IconCheck, IconDownload, IconArrow, IconX } from './Icons'
 import Heatmap from './Heatmap'
 import Logo from './Logo'
+import KineticField from './KineticField'
+import ScrollText from './ScrollText'
 
 /* ------------------------------------------------------------------ */
 /*  هیرو                                                               */
@@ -11,41 +13,27 @@ import Logo from './Logo'
 export function Hero({ compact = false }) {
   return (
     <section className={'site-hero' + (compact ? ' compact' : '')}>
-      <div className="site-hero-glow" aria-hidden="true" />
+      {!compact && <KineticField />}
       <div className="site-hero-in">
-        <span className="site-eyebrow">
+        <Logo size={compact ? 40 : 58} tone="gradient" glow />
+        <span className="site-eyebrow glass">
           <span className="dot" /> {SITE.hero.eyebrow}
         </span>
         <h1 className="site-hero-title">{SITE.hero.title}</h1>
         <p className="site-hero-sub">{SITE.hero.subtitle}</p>
         <div className="site-hero-cta">
-          <Link className="btn site-btn big" to="/login">{SITE.hero.cta}</Link>
-          <Link className="btn site-btn ghost big" to="#live">
+          <Link className="btn site-btn big glass-strong" to="/login">{SITE.hero.cta}</Link>
+          <Link className="btn site-btn ghost big glass" to="/site#live">
             {SITE.hero.ctaSecondary}
           </Link>
         </div>
         <ul className="site-hero-points">
           {SITE.hero.points.map((p) => (
-            <li key={p}><IconCheck size={16} /> {p}</li>
+            <li key={p} className="glass">
+              <IconCheck size={16} /> {p}
+            </li>
           ))}
         </ul>
-      </div>
-    </section>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  درباره                                                             */
-/* ------------------------------------------------------------------ */
-export function About() {
-  return (
-    <section className="site-section" id="about">
-      <div className="site-sec-head">
-        <span className="site-kicker">{SITE.about.kicker}</span>
-        <h2 className="site-sec-title">{SITE.about.title}</h2>
-      </div>
-      <div className="about-body">
-        {SITE.about.body.map((p, i) => <p key={i}>{p}</p>)}
       </div>
     </section>
   )
@@ -63,9 +51,9 @@ export function Live() {
         <p className="site-sec-sub">{SITE.live.subtitle}</p>
       </div>
 
-      <div className="live-card">
+      <div className="live-card glass">
         <div className="live-head">
-          <Logo size={30} tone="gradient" />
+          <Logo size={32} tone="gradient" />
           <div>
             <div className="live-title">روند</div>
             <div className="live-sub">سه ماه گذشته</div>
@@ -89,6 +77,29 @@ export function Live() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  درباره — با متن حرف‌به‌حرف                                         */
+/* ------------------------------------------------------------------ */
+export function About() {
+  return (
+    <section className="site-section" id="about">
+      <div className="site-sec-head">
+        <span className="site-kicker">{SITE.about.kicker}</span>
+        <h2 className="site-sec-title">{SITE.about.title}</h2>
+      </div>
+      <div className="about-body">
+        {SITE.about.body.map((p, i) => (
+          i === 0
+            ? <p key={i} className="about-lead glass">{p}</p>
+            : <p key={i} className="glass">
+                <ScrollText text={p} />
+              </p>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  امکانات                                                            */
 /* ------------------------------------------------------------------ */
 export function Features() {
@@ -102,8 +113,8 @@ export function Features() {
         {SITE.features.map((f) => {
           const Icon = ICONS[f.icon] || null
           return (
-            <article className="feat-card" key={f.title}>
-              <span className="feat-icon">{Icon ? <Icon size={24} /> : null}</span>
+            <article className="feat-card glass" key={f.title}>
+              <span className="feat-icon glass">{Icon ? <Icon size={24} /> : null}</span>
               <h3>{f.title}</h3>
               <p>{f.text}</p>
             </article>
@@ -126,7 +137,7 @@ export function Compare() {
         <h2 className="site-sec-title">{C.title}</h2>
         <p className="site-sec-sub">{C.subtitle}</p>
       </div>
-      <div className="cmp">
+      <div className="cmp glass">
         <div className="cmp-head">
           <span className="cmp-feat" />
           <span className="cmp-col us">{C.usLabel}</span>
@@ -160,8 +171,8 @@ export function Audience() {
       </div>
       <div className="aud-grid">
         {SITE.audience.map((a, i) => (
-          <div className="aud-item" key={a.title}>
-            <span className="aud-num">{String(i + 1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
+          <div className="aud-item glass" key={a.title}>
+            <span className="aud-num glass">{String(i + 1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
             <div>
               <h3>{a.title}</h3>
               <p>{a.text}</p>
@@ -187,7 +198,7 @@ export function Testimonials() {
       </div>
       <div className="voice-grid">
         {T.items.map((v) => (
-          <figure className="voice" key={v.name}>
+          <figure className="voice glass" key={v.name}>
             <p className="voice-text">{v.text}</p>
             <figcaption>
               <span className="voice-avatar">{v.name.charAt(0)}</span>
@@ -217,8 +228,8 @@ export function Pricing() {
       </div>
       <div className="price-grid">
         {P.plans.map((pl) => (
-          <article className={'price-card' + (pl.primary ? ' primary' : '')} key={pl.id}>
-            {pl.primary && <span className="price-badge">پیشنهاد ما</span>}
+          <article className={'price-card glass' + (pl.primary ? ' primary' : '')} key={pl.id}>
+            {pl.primary && <span className="price-badge">{pl.primary ? 'پیشنهاد ما' : ''}</span>}
             <h3 className="price-name">{pl.name}</h3>
             <div className="price-amount">
               {pl.price !== '—'
@@ -234,7 +245,9 @@ export function Pricing() {
           </article>
         ))}
       </div>
-      <p className="price-promise"><IconCheck size={16} /> {P.promise}</p>
+      <p className="price-promise">
+        <span className="glass price-promise-in"><IconCheck size={16} /> {P.promise}</span>
+      </p>
     </section>
   )
 }
@@ -249,9 +262,9 @@ export function DownloadCards({ compact = false }) {
         const Icon = ICONS[p.icon]
         const isWeb = p.id === 'web'
         return (
-          <article className={'dl-card' + (p.primary ? ' primary' : '')} key={p.id}>
+          <article className={'dl-card glass' + (p.primary ? ' primary' : '')} key={p.id}>
             <div className="dl-card-top">
-              <span className="dl-icon"><Icon size={26} /></span>
+              <span className="dl-icon glass">{Icon ? <Icon size={26} /> : null}</span>
               <div>
                 <h3 className="dl-name">{p.name}</h3>
                 <span className="dl-latin">{p.latin}{p.ext ? ' · ' + p.ext : ''}</span>
@@ -262,9 +275,9 @@ export function DownloadCards({ compact = false }) {
               {p.points.map((pt) => <li key={pt}><IconCheck size={15} /> {pt}</li>)}
             </ul>
             {isWeb ? (
-              <Link className="btn site-btn ghost full" to={p.href}>باز کردن وب‌اپ <IconArrow size={17} /></Link>
+              <Link className="btn site-btn ghost full glass" to={p.href}>باز کردن وب‌اپ <IconArrow size={17} /></Link>
             ) : (
-              <a className="btn site-btn full" href={p.href} download>
+              <a className="btn site-btn full glass-strong" href={p.href} download>
                 <IconDownload size={18} /> دانلود {p.ext} <span className="dl-size">{p.size}</span>
               </a>
             )}
@@ -300,7 +313,7 @@ export function Steps() {
       </div>
       <ol className="steps-grid">
         {SITE.steps.map((s) => (
-          <li className="step" key={s.n}>
+          <li className="step glass" key={s.n}>
             <span className="step-n">{String(s.n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
             <h3>{s.t}</h3>
             <p>{s.d}</p>
@@ -326,7 +339,7 @@ export function Faq() {
         {SITE.faq.map((item, i) => {
           const isOpen = open === i
           return (
-            <div className={'faq-item' + (isOpen ? ' open' : '')} key={item.q}>
+            <div className={'faq-item glass' + (isOpen ? ' open' : '')} key={item.q}>
               <button className="faq-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? -1 : i)}>
                 <span>{item.q}</span>
                 <span className="faq-sign" aria-hidden="true">{isOpen ? '−' : '+'}</span>
@@ -346,8 +359,8 @@ export function Faq() {
 export function CtaBand() {
   return (
     <section className="site-cta-band">
-      <div className="site-cta-in">
-        <Logo size={44} tone="gradient" glow />
+      <div className="site-cta-in glass-strong">
+        <Logo size={48} tone="gradient" glow />
         <h2>آماده‌ای روندت را شروع کنی؟</h2>
         <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
         <div className="site-cta-btns">

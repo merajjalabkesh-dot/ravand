@@ -38,7 +38,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav className={'site-nav' + (open ? ' open' : '')} aria-label="منوی اصلی">
+        <nav className={'site-nav glass' + (open ? ' open' : '')} aria-label="منوی اصلی">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} className="site-nav-link">{l.label}</NavLink>
           ))}

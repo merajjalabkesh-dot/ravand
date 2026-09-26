@@ -1,0 +1,202 @@
+/* ============================================================
+   شیشهٔ مایع — تکنیک مرز گرادیانی با ماسک CSS
+   به‌جای border واقعی، یک لایهٔ padding‌دار پشت ماسک می‌سازیم
+   تا فقط حاشیه دیده شود، نه داخل کادر.
+   ============================================================ */
+
+.glass,
+.glass-strong {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  background: rgba(255, 255, 255, .015);
+  background-blend-mode: luminosity;
+  -webkit-backdrop-filter: blur(6px) saturate(.5);
+  backdrop-filter: blur(6px) saturate(.5);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .1);
+}
+
+/* نسخهٔ پررنگ‌تر — بلور و درخشش بیشتر */
+.glass-strong {
+  background: rgba(255, 255, 255, .03);
+  -webkit-backdrop-filter: blur(28px) saturate(.6);
+  backdrop-filter: blur(28px) saturate(.6);
+  box-shadow:
+    4px 4px 4px rgba(0, 0, 0, .05),
+    inset 0 1px 1px rgba(255, 255, 255, .15);
+}
+
+/* حاشیهٔ گرادیانی — روشن بالا و پایین، محو در وسط */
+.glass::before,
+.glass-strong::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(139, 92, 246, .55) 0%,
+    rgba(139, 92, 246, .2) 20%,
+    rgba(139, 92, 246, 0) 40%,
+    rgba(139, 92, 246, 0) 60%,
+    rgba(67, 232, 168, .2) 80%,
+    rgba(67, 232, 168, .55) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.glass-strong::before {
+  background: linear-gradient(
+    180deg,
+    rgba(139, 92, 246, .8) 0%,
+    rgba(139, 92, 246, .3) 20%,
+    rgba(139, 92, 246, 0) 40%,
+    rgba(139, 92, 246, 0) 60%,
+    rgba(67, 232, 168, .3) 80%,
+    rgba(67, 232, 168, .8) 100%
+  );
+}
+
+/* ============================================================
+   پس‌زمینهٔ لکنتیک — سه خانهٔ لوگو که بی‌نهایت بالا می‌روند
+   همان ایدهٔ جدول روزها: خانه‌هایی که پر می‌شوند و بالا می‌روند.
+   ============================================================ */
+
+.rv-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* سه خانهٔ بزرگ که آرام بالا می‌روند و محو می‌شوند */
+.rv-step {
+  position: absolute;
+  width: clamp(120px, 22vw, 300px);
+  height: clamp(120px, 22vw, 300px);
+  border-radius: clamp(24px, 5vw, 60px);
+  will-change: transform, opacity;
+}
+
+.rv-step-1 {
+  background: rgba(139, 92, 246, .1);
+  box-shadow: inset 0 0 90px rgba(139, 92, 246, .22);
+  animation: rv-rise-1 17s linear infinite;
+}
+.rv-step-2 {
+  background: rgba(139, 92, 246, .13);
+  box-shadow: inset 0 0 90px rgba(139, 92, 246, .3);
+  animation: rv-rise-2 21s linear infinite;
+  animation-delay: -3s;
+}
+.rv-step-3 {
+  background: rgba(67, 232, 168, .09);
+  box-shadow: inset 0 0 90px rgba(67, 232, 168, .2);
+  animation: rv-rise-3 25s linear infinite;
+  animation-delay: -7s;
+}
+
+@keyframes rv-rise-1 {
+  0%   { transform: translate3d(0, 108vh, 0) scale(.85); opacity: 0; }
+  12%  { opacity: .5; }
+  85%  { opacity: .35; }
+  100% { transform: translate3d(0, -22vh, 0) scale(1.12); opacity: 0; }
+}
+@keyframes rv-rise-2 {
+  0%   { transform: translate3d(0, 112vh, 0) scale(.9); opacity: 0; }
+  15%  { opacity: .55; }
+  82%  { opacity: .3; }
+  100% { transform: translate3d(0, -26vh, 0) scale(1.16); opacity: 0; }
+}
+@keyframes rv-rise-3 {
+  0%   { transform: translate3d(0, 106vh, 0) scale(.82); opacity: 0; }
+  18%  { opacity: .4; }
+  80%  { opacity: .22; }
+  100% { transform: translate3d(0, -20vh, 0) scale(1.1); opacity: 0; }
+}
+
+/* هالهٔ مرکزی — همان نقطهٔ سفید داغ در ویدیوهای مرجع */
+.rv-core {
+  position: absolute;
+  left: 50%; top: 46%;
+  width: min(70vw, 780px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(160, 130, 250, .2) 0%,
+    rgba(139, 92, 246, .09) 34%,
+    transparent 66%);
+  animation: rv-breathe 11s ease-in-out infinite;
+}
+
+@keyframes rv-breathe {
+  0%, 100% { opacity: .5; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1;  transform: translate(-50%, -50%) scale(1.13); }
+}
+
+/* پردهٔ تیره — متن روی ویدیوی پرنور خوانا می‌مونه */
+.rv-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 55% at 50% 42%,
+      rgba(7, 11, 24, .3) 0%, rgba(7, 11, 24, .12) 52%, transparent 100%),
+    linear-gradient(180deg, rgba(7, 11, 24, .18) 0%, transparent 34%, rgba(7, 11, 24, .42) 100%);
+}
+
+/* ستون‌های نور — یادآور رشته‌های نور در ویدیوهای مرجع */
+.rv-streak {
+  position: absolute;
+  top: -20%; height: 140%;
+  width: 1px;
+  background: linear-gradient(180deg,
+    transparent 0%, rgba(139, 92, 246, .22) 30%,
+    rgba(139, 92, 246, .08) 60%, transparent 100%);
+  animation: rv-sway 15s ease-in-out infinite;
+}
+
+@keyframes rv-sway {
+  0%, 100% { transform: translateX(0) rotate(-2deg); opacity: .3; }
+  50%      { transform: translateX(18px) rotate(2deg); opacity: .6; }
+}
+
+/* ============================================================
+   متن حرف‌به‌حرف با اسکرول
+   ============================================================ */
+
+.rv-char {
+  display: inline-block;
+  white-space: pre;
+  will-change: opacity;
+}
+
+.rv-char-inv { visibility: hidden; }
+
+/* ============================================================
+   کارت‌های چسبان — موقع اسکرول روی هم جمع می‌شوند
+   ============================================================ */
+
+.rv-stack { position: relative; }
+
+.rv-stack-card {
+  position: sticky;
+  transition: transform .1s linear;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-step, .rv-core, .rv-streak { animation: none !important; }
+  .rv-step-1 { opacity: .3; transform: translateY(30vh); }
+  .rv-step-2 { opacity: .25; transform: translateY(10vh); }
+  .rv-step-3 { opacity: .2; transform: translateY(-10vh); }
+  .rv-stack-card { transition: none; }
+}
