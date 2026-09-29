@@ -8,40 +8,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="روند" />
+    <meta name="apple-mobile-web-app-title" content="roznegar" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" /></noscript>
+    <link rel="stylesheet" href="/src/styles/app-shell.css" />
   </head>
   <body>
     <div id="root"></div>
     <script>
-      console.info('[PWA boot]', {
-        href: location.href,
-        online: navigator.onLine,
-        controller: navigator.serviceWorker?.controller?.scriptURL ?? null
-      });
-      navigator.serviceWorker?.getRegistration().then(reg => {
-        console.info('[PWA registration]', {
-          scope: reg?.scope, active: reg?.active?.scriptURL, state: reg?.active?.state
-        });
-      });
+      window.__IS_NATIVE_APP__ = true;
+      localStorage.setItem('theme', 'midnight');
     </script>
-    <script type="module" src="./src/main.jsx"></script>
-    <script>
-      // Register the generated service worker (created after vite build).
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          const swUrl = new URL('service-worker.js', document.baseURI).pathname;
-          const scope = new URL('./', document.baseURI).pathname;
-          navigator.serviceWorker.register(swUrl, { scope: scope }).catch(function (e) {
-            console.warn('SW registration failed', e)
-          })
-        })
-      }
-    </script>
+    <script type="module" src="./src/main-app.jsx"></script>
   </body>
 </html>

@@ -74,6 +74,8 @@ export default function GlyphPortal({
     const pin = section.querySelector("[data-gp-pin]");
     const field = section.querySelector("[data-gp-field]");
     const art = section.querySelector("[data-gp-art]");
+    const inkLayer = section.querySelector("[data-gp-ink]");
+    const inkText = section.querySelector("[data-gp-ink-text]");
     const clip = section.querySelector(`#${clipId}`);
     const glyph = section.querySelector("[data-gp-glyph]");
     const marks = section.querySelector("[data-gp-marks]");
@@ -236,6 +238,13 @@ export default function GlyphPortal({
       const dx = W / 2 / scale, dy = (baseY + H * .04 * eased) / scale;
       clip.setAttribute("transform", `scale(${scale}) rotate(${roll})`);
       glyph.setAttribute("transform", `translate(${Math.cos(radians) * dx + Math.sin(radians) * dy - cx} ${-Math.sin(radians) * dx + Math.cos(radians) * dy - cy})`);
+      /* حروف توپر دقیقاً مثل کلیپ حرکت می‌کنند و همیشه کامل پررنگ
+         می‌مانند. opacity عمداً inline نیست تا setAttribute کار کند. */
+      if (inkText) {
+        inkText.setAttribute("transform", glyph.getAttribute("transform"));
+        inkLayer.setAttribute("transform", `scale(${scale}) rotate(${roll})`);
+        inkLayer.setAttribute("opacity", "1");
+      }
       marks.setAttribute("transform", transform);
       marks.style.opacity = String(1 - smooth(0.015, 0.17, p));
       choosing = interactive && !isStatic && p < .04;
@@ -411,6 +420,12 @@ export default function GlyphPortal({
               <text data-gp-glyph textAnchor="middle" x="0" y="0" style={{ fontFamily, fontWeight: weight, fontSize: 100, fontKerning: "none", fontVariantLigatures: "none", letterSpacing: 0, direction: isRtl(text) ? "rtl" : "ltr", unicodeBidi: "isolate" }}>{text}</text>
             </clipPath>
           </defs>
+          {/* رنگ توپر خود حروف (--gp-ink). زیرِ لایهٔ کلیپ‌شده می‌نشیند
+              و همیشه پررنگ است — نه محو می‌شود، نه با زوم کم‌رنگ.
+              بدون این لایه، حروف در ابتدا هم‌رنگ زمینه‌اند و کلمه دیده نمی‌شود. */}
+          <g data-gp-ink>
+            <text data-gp-ink-text textAnchor="middle" x="0" y="0" fill="var(--gp-ink)" style={{ fontFamily, fontWeight: weight, fontSize: 100, fontKerning: "none", fontVariantLigatures: "none", letterSpacing: 0, direction: isRtl(text) ? "rtl" : "ltr", unicodeBidi: "isolate" }}>{text}</text>
+          </g>
           <g data-gp-marks style={{ visibility: annotations ? "visible" : "hidden" }}><path /></g>
         </svg>
         <div data-gp-choices role="radiogroup" aria-label="Choose the letter to enter through">
@@ -423,7 +438,7 @@ export default function GlyphPortal({
         {front && <div data-gp-front>{front}</div>}
         <span data-gp-fallback aria-hidden="true" style={{ fontFamily, fontWeight: weight }}>{text}</span>
         <div data-gp-caption>
-          <span data-gp-hint aria-hidden="true">{interactive ? "Scroll to enter." : annotations ? "A passage through type" : ""}</span>
+          <span data-gp-hint aria-hidden="true">{interactive ? "" : annotations ? "A passage through type" : ""}</span>
           {enterLabel ? <a data-gp-enter href={`#${uid}-content`}>{enterLabel}<span aria-hidden="true">↘</span></a> : null}
         </div>
       </div>

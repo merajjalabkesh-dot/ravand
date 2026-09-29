@@ -1,41 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react'
-import Starfield from './Starfield'
-import PortalVideo from './PortalVideo'
+import React from 'react'
 
-// On phones use a lightweight navypage with the brand; on desktop keep the portal video.
-// Keeps the landing light on mobile and still beautiful.
+/*
+ * پس‌زمینهٔ صفحهٔ اول — یک آبی روشن یکدست.
+ *
+ * نه گرادیان تیره، نه هالهٔ سفید: یک هالهٔ سفیدِ بزرگ داخل این لایه
+ * وقتی زمینه سورمه‌ای می‌شد، خودش را به‌شکل یک «باکس روشن» پشت
+ * هیرو نشان می‌داد و صفحه دو تکه می‌شد. برای همین کلاً حذف شد و
+ * زمینه یک رنگ یکدست است.
+ *
+ * رنگ از متغیر --lp-bg خوانده می‌شود که Landing با اسکرول مقدارش را
+ * از آبی روشن به سورمه‌ای می‌برد؛ پس این لایه هم با بقیهٔ صفحه یکی می‌ماند.
+ */
 export default function PortalBackground({ className, style }) {
-  const [isMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches)
-
-  if (isMobile) {
-    return (
-      <div
-        className={className}
-        style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
-          background: 'radial-gradient(circle at 50% 30%, #0e1b32 0%, #080d1a 50%, #03050b 100%)',
-          overflow: 'hidden', ...style,
-        }}
-      >
-        {/* soft glow accents — kept subtle so the bright brand pops */}
-        <div style={{ position: 'absolute', left: '-14%', top: '6%', width: '64%', height: '36%', background: 'radial-gradient(circle, rgba(90,130,255,.16), transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', right: '-16%', bottom: '8%', width: '60%', height: '38%', background: 'radial-gradient(circle, rgba(130,90,255,.12), transparent 70%)', borderRadius: '50%' }} />
-        {/* bright spotlight directly behind the word — the letters clip this and glow */}
-        <div style={{ position: 'absolute', left: '50%', top: '48%', transform: 'translate(-50%,-50%)', width: '78%', height: '34%', background: 'radial-gradient(ellipse at center, rgba(235,244,255,.95) 0%, rgba(150,190,255,.6) 28%, rgba(110,140,255,.22) 52%, transparent 76%)', filter: 'blur(6px)' }} />
-        {/* ambient glow behind the brand word so "Ravand" pops on mobile */}
-        <div style={{
-          position: 'absolute', left: '50%', top: '48%', transform: 'translate(-50%, -50%)',
-          pointerEvents: 'none', fontFamily: 'var(--font)', fontWeight: 700,
-          fontSize: 'clamp(64px, 18vw, 128px)', letterSpacing: '-.04em',
-          color: 'rgba(255,255,255,.08)', filter: 'blur(18px)',
-          textShadow: '0 0 60px rgba(120,170,255,.45), 0 0 100px rgba(130,90,255,.3)',
-          whiteSpace: 'nowrap',
-        }}>Ravand</div>
-      </div>
-    )
-  }
-
-  return <PortalVideo className={className} style={style} />
+  return (
+    <div
+      className={className}
+      style={{
+        position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
+        overflow: 'hidden',
+        background: 'var(--lp-bg, #a9cdf7)',
+        ...style,
+      }}
+    />
+  )
 }
-
-export { Starfield }

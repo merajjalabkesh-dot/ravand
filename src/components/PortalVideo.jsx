@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Starfield from './Starfield'
 
+// ویدیوی پورتال — مستقیم از CDN (فایل محلی portal2 حذف شد).
 const REMOTE_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260606_170109_f96e01a5-b0db-4274-b24d-8d97e99ec928.mp4'
-const LOCAL2_URL = import.meta.env.BASE_URL + 'portal2.mp4'
 
-// Play the portal video. Priority: /portal2.mp4 → CDN → starfield fallback.
-// (portal.mp4 was removed — it was a 55MB dead-weight.)
-// The video plays on ALL devices (the scroll-starts animation must stay intact);
-// heavy-file performance is handled via preload=metadata + the stall watchdog below.
+// ویدیو روی همهٔ دستگاه‌ها پخش می‌شود (انیمیشن اسکرول باید سالم بماند)؛
+// سنگینی فایل با preload=metadata و نگهبان زیر مدیریت می‌شود.
 export default function PortalVideo({ className, style }) {
-  const [which, setWhich] = useState('local2') // local2 → remote → failed
+  const [failed, setFailed] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -26,7 +24,7 @@ export default function PortalVideo({ className, style }) {
     }
     const onError = () => {
       if (cancelled) return
-      setWhich((w) => w === 'local2' ? 'remote' : 'failed')
+      setFailed(true)
     }
     const onCanPlay = () => tryPlay()
     const onPlaying = () => { started = true }
@@ -76,15 +74,13 @@ export default function PortalVideo({ className, style }) {
       v.removeEventListener('stalled', onStalled)
       v.removeEventListener('error', onError)
     }
-  }, [which])
+  }, [failed])
 
-  if (which === 'failed') return <Starfield className={className} style={style} />
+  if (failed) return <Starfield className={className} style={style} />
 
-  const src = which === 'local2' ? LOCAL2_URL : REMOTE_URL
   return (
     <video
       ref={ref}
-      key={which}
       autoPlay
       muted
       loop
@@ -92,7 +88,7 @@ export default function PortalVideo({ className, style }) {
       preload="metadata"
       className={(className ? className + ' ' : '') + 'portal-video'}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', background: '#040610', ...style }}
-      src={src}
+      src={REMOTE_URL}
     />
   )
 }

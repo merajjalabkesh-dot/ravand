@@ -323,6 +323,14 @@ export function AppProvider({ children }) {
     root.style.setProperty('--glass-border', t.glassBorder)
     root.style.setProperty('--glass-hover', t.mode === 'light' ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.09)')
     root.style.setProperty('--sidebar-bg', t.mode === 'light' ? 'rgba(255,255,255,.72)' : 'rgba(20,22,36,.9)')
+    // در تم روشن، خطوط سفید نیمه‌شفاف و متن «#fff» روی پس‌زمینهٔ کرم
+    // یا صورتی نامرئی می‌شوند. این دو متغیر برای همان موارد است و با
+    // تعویض تم عوض می‌شوند.
+    root.style.setProperty('--hairline', t.mode === 'light' ? 'rgba(27,32,48,.10)' : 'rgba(255,255,255,.06)')
+    root.style.setProperty('--ring-track', t.mode === 'light' ? 'rgba(27,32,48,.34)' : 'rgba(255,255,255,.14)')
+    root.style.setProperty('--surface', t.mode === 'light' ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.04)')
+    root.style.setProperty('--surface-hover', t.mode === 'light' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,.07)')
+    root.style.setProperty('--on-accent', t.mode === 'light' ? '#ffffff' : '#fff')
     root.style.setProperty('--ink', t.ink)
     root.style.setProperty('--ink-mid', t.inkMid)
     root.style.setProperty('--muted', t.muted)

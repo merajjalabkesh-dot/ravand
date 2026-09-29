@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AppProvider, useApp } from './lib/store'
 import { I18nProvider } from './lib/i18n'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // ============================================================
 // مسیرها
@@ -105,8 +106,12 @@ export default function App() {
   return (
     <I18nProvider>
       <AppProvider>
-        <AppRoutes />
-        <Toast />
+        {/* ErrorBoundary قبلاً ساخته شده بود ولی هیچ‌جا وصل نبود، برای همین
+            هر خطایی کل اپ را صفحهٔ سفید می‌کرد بدون هیچ پیامی. */}
+        <ErrorBoundary>
+          <AppRoutes />
+          <Toast />
+        </ErrorBoundary>
       </AppProvider>
     </I18nProvider>
   )

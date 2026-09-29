@@ -29,8 +29,60 @@
 
 .site { min-height: 100vh; background: #070b18; color: var(--site-ink); }
 .site-main { display: block; }
-.landing-page { min-height: 100vh; background: #070b18; }
-.gp-rail { position: relative; z-index: 2; background: #070b18; }
+/* لندینگ: بالای صفحه آبی روشن، پایینش آبی تیره — یکدست */
+/*
+ * پس‌زمینهٔ wrapper هم از --lp-bg می‌خواند تا همان رنگی باشد که پورتال
+ * دارد. اگر #0a1733 ثابت بود، دو نوار باریک سورمه‌ای در دو طرفِ بالای
+ * صفحه از آن فاصلهٔ چندپیکسلی دیده می‌شد — چون پورتال کمی پایین‌تر از
+ * بالای ویوپورت شروع می‌شود. --lp-bg با اسکرول از آبی روشن به سورمه‌ای
+ * می‌رود، پس در هر دو حالت یکدست می‌ماند.
+ */
+.landing-page { min-height: 100vh; background: #0a1733; --lp-bg: #a9cdf7; --lp-rail: #a9cdf7; --lp-tint: 0; }
+/* هدر لندینگ: تا اول صفحه پنهان، بعد از اسکرول می‌آید */
+.landing-bar {
+  position: fixed; inset: 0 0 auto 0; z-index: 70;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(-100%);
+  transition: opacity .3s ease, transform .3s ease, visibility .3s;
+}
+.landing-bar.show { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
+.landing-bar .site-header { position: static; }
+/* متن پایین صفحهٔ اول — با تیره شدن زمینه محو می‌شود */
+.landing-front {
+  opacity: calc(1 - var(--lp-tint, 0) * 1.4);
+  transition: opacity .12s linear;
+}
+.landing-front-lead {
+  margin: 0 auto; font-size: clamp(20px, 3vw, 30px); font-weight: 600; line-height: 1.5;
+  color: #0b2545; text-shadow: 0 1px 14px rgba(255, 255, 255, .75); max-width: 420px;
+}
+.landing-front-hint { margin: 12px auto 0; font-size: 14px; line-height: 1.5; color: #123a63; max-width: 420px; }
+
+/*
+ * فهرست کشوی انتخاب حرف روی موبایل لازم نیست — لمس روی خودِ حرف
+ * همان حرف را انتخاب می‌کند. این قاعده آن را پنهان می‌کند بدون
+ * اینکه به خودِ کامپوننت دست بزنیم.
+ */
+.landing-page [data-gp-touch-picker] { display: none !important; }
+/*
+ * باندِ باند فرود.
+ *
+ * glyph-portal به [data-gp-content] یک margin-top بزرگ می‌دهد
+ * (اندازهٔ کل مسیر اسکرول) تا قبل از رسیدن محتوا، حرف n فرصت زوم
+ * داشته باشد. آن عنصر در حالت انیمیشن شفاف است، پس فضای خالیِ
+ * باند، پورتالِ روشن را نشان می‌داد — یک نوار روشن بین دو بخش تیره.
+ *
+ * راه‌حل: متغیر --lp-rail را از onProgress پر می‌کنیم (همان‌جا که
+ * رنگ‌های دیگر را می‌نویسیم). تا وقتی پورتال روشن است ریل هم روشن
+ * است، و از لحظه‌ای که رنگ تیره می‌شود ریل هم سورمه‌ای می‌شود —
+ * پس باند هیچ‌وقت با بقیهٔ صفحه اختلاف رنگ نشان نمی‌دهد.
+ *
+ * پدینگ افقیِ content صفر شده تا از چپ و راست نوار روشن نماند،
+ * و ریل تمام‌عرض است تا کل عرض را بپوشاند.
+ */
+.landing-page > section { background: var(--lp-rail, #a9cdf7); }
+.landing-page [data-gp-content] { padding-inline: 0; }
+.gp-rail { position: relative; z-index: 2; width: 100%; background: #0a1733; }
 .gp-rail-foot { padding: 40px 24px; }
 
 /* ---------------- نشانهٔ برند ---------------- */
@@ -47,6 +99,12 @@
   transition: border-color .2s, background .2s;
 }
 .site-header.is-scrolled { border-bottom-color: var(--site-line); background: rgba(7, 11, 24, .8); }
+/* روی لندینگ: فقط بعد از اسکرول می‌آید، روی ریل تیره می‌نشیند */
+.site-header.is-floating {
+  background: rgba(10, 23, 51, .72);
+  border-bottom: 1px solid var(--site-line);
+  backdrop-filter: blur(20px) saturate(.7); -webkit-backdrop-filter: blur(20px) saturate(.7);
+}
 .site-header-in {
   max-width: var(--site-max); margin: 0 auto;
   display: flex; align-items: center; gap: 18px; padding: 13px 22px;
@@ -111,6 +169,8 @@
   display: flex; flex-direction: column; align-items: center;
 }
 .site-hero-in .rg-logo { margin-bottom: 26px; }
+/* بدون لوگو، تیتر بالاتر می‌نشیند تا فضای خالی نماند */
+.site-hero.compact .site-hero-title { margin-top: 0; }
 .site-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 7px 16px; border-radius: 999px;
@@ -128,6 +188,8 @@
 }
 .site-hero-sub { margin: 0 auto; max-width: 620px; font-size: clamp(15px, 1.6vw, 17.5px); line-height: 1.95; color: var(--site-ink-mid); }
 .site-hero-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+/* دو دکمهٔ هیرو هم‌اندازه باشند، حتی وقتی متن‌هایشان فرق دارد */
+.site-hero-cta .site-btn { min-width: 190px; }
 .site-hero-points {
   margin: 34px 0 0; padding: 0; list-style: none;
   display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
@@ -141,12 +203,14 @@
 
 /* ---------------- بخش‌ها ---------------- */
 .site-section { max-width: var(--site-max); margin: 0 auto; padding: clamp(44px, 6.5vw, 80px) 22px; scroll-margin-top: 78px; }
+/* بخش‌های لنگری زیر هدر چسبان نروند */
+#features, #compare, #pricing, #faq, #download, #channels { scroll-margin-top: 84px; }
 .site-sec-head { text-align: center; margin-bottom: 40px; }
 .site-kicker {
-  display: inline-block; font-size: 12px; font-weight: 700;
-  letter-spacing: .14em; color: var(--site-accent-2); margin-bottom: 12px;
+  display: inline-block; font-size: clamp(17px, 1.9vw, 22px); font-weight: 800;
+  letter-spacing: .04em; color: var(--site-accent-2); margin-bottom: 14px; line-height: 1.6;
 }
-.site-sec-title { font-size: clamp(23px, 3.3vw, 34px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
+.site-sec-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
 .site-sec-sub { margin: 14px auto 0; max-width: 600px; color: var(--site-muted); font-size: 15px; line-height: 1.9; }
 .site-inline-link { color: var(--site-accent-2); text-decoration: none; border-bottom: 1px solid rgba(67, 232, 168, .35); }
 
@@ -160,33 +224,53 @@
   font-size: 17px; color: var(--site-ink); font-weight: 600;
 }
 
+/*
+ * متن کلمه‌به‌کلمه: رنگ مستقیم روی خودِ کلمه است، پس چیزی روی هم
+ * نمی‌افتد. display:inline-block لازم است تا رنگ هر کلمه مستقل باشد.
+ */
+.rv-scroll { line-height: inherit; }
+.rv-scroll .rv-w {
+  display: inline-block;
+  transition: color .18s linear;
+  /* نیم‌فاصله و فاصله داخل متن فارسی حفظ شود */
+  white-space: pre;
+}
+
 /* ============================================================
    جدول هر روز
    ============================================================ */
-.site-live { padding-bottom: clamp(30px, 4vw, 48px); }
+.site-live { padding-bottom: clamp(30px, 4vw, 48px); scroll-margin-top: 84px; }
 .live-card {
   max-width: 900px; margin: 0 auto;
   padding: 28px 30px 24px; border-radius: 26px;
 }
 .live-head { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; flex-wrap: wrap; }
-.live-title { font-size: 17px; font-weight: 800; }
-.live-sub { font-size: 12.5px; color: var(--site-muted); }
+.live-title { font-size: 30px; font-weight: 800; color: var(--site-accent-2); line-height: 1.2; }
+.live-sub { font-size: 14px; color: var(--site-muted); margin-top: 2px; }
 .live-stats { display: flex; gap: 26px; margin-inline-start: auto; flex-wrap: wrap; }
 .live-stat { display: flex; flex-direction: column; align-items: flex-start; }
 .live-stat b { font-size: 21px; font-weight: 800; color: var(--site-accent-2); line-height: 1.2; }
 .live-stat span { font-size: 11.5px; color: var(--site-muted); }
 
-.hm-wrap { --hm-cell: 13px; --hm-gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.hm-wrap { --hm-cell: 20px; --hm-gap: 5px; overflow-x: auto; padding-bottom: 4px; }
 .hm-wrap::-webkit-scrollbar { height: 6px; }
 .hm-wrap::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, .3); border-radius: 3px; }
 
-.hm-months { display: grid; gap: var(--hm-gap); margin-bottom: 6px; padding-inline-start: 22px; font-size: 11px; color: var(--site-muted); }
-.hm-months span { white-space: nowrap; }
-.hm-body { display: flex; gap: 6px; }
-.hm-days { display: grid; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); width: 16px; font-size: 10px; color: var(--site-muted); line-height: 1; }
+/* برچسب ماه: هم‌ارتفاع با ردیف خودش، بالای ستون */
+/* همهٔ ماه‌ها در یک ردیف بالای جدول، مثل گیت‌هاب */
+.hm-body { display: flex; gap: 8px; }
+/* برچسب ماه حذف شد؛ جدول از بالا شروع می‌شود */
+.hm-days { display: grid; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); width: 66px; font-size: 11.5px; color: var(--site-muted); line-height: 1; }
 .hm-days span { display: flex; align-items: center; }
 .hm-grid { position: relative; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); }
-.hm-cell { width: var(--hm-cell); height: var(--hm-cell); border-radius: 3.5px; background: var(--hm-0); transition: transform .12s, box-shadow .12s; }
+/* خانه‌ها دکمه‌اند تا با کلیک، جزئیات روز باز شود */
+.hm-cell {
+  width: var(--hm-cell); height: var(--hm-cell); border-radius: 5px;
+  background: var(--hm-0); transition: transform .12s, box-shadow .12s;
+  border: none; padding: 0; font: inherit; -webkit-appearance: none; appearance: none;
+}
+.hm-grid .hm-cell { cursor: pointer; }
+.hm-legend .hm-cell { cursor: default; }
 .hm-cell.lv0 { background: var(--hm-0); }
 .hm-cell.lv1 { background: var(--hm-1); }
 .hm-cell.lv2 { background: var(--hm-2); }
@@ -194,7 +278,7 @@
 .hm-cell.lv4 { background: var(--hm-4); box-shadow: 0 0 10px rgba(245, 166, 35, .35); }
 .hm-cell.future { background: rgba(255, 255, 255, .025); }
 .hm-cell.today { outline: 1.5px solid var(--site-accent-2); outline-offset: 1px; }
-.hm-grid .hm-cell:hover { transform: scale(1.35); box-shadow: 0 3px 12px rgba(139, 92, 246, .5); z-index: 2; position: relative; cursor: pointer; }
+.hm-grid .hm-cell:hover { transform: scale(1.35); box-shadow: 0 3px 12px rgba(139, 92, 246, .5); z-index: 2; position: relative; }
 
 .hm-tip {
   position: absolute; transform: translate(-50%, -100%);
@@ -212,20 +296,81 @@
   font-size: 12.5px; color: var(--site-muted); line-height: 1.8; text-align: center;
 }
 
+/* ---------------- جزئیات یک روز (درجا، زیر جدول) ---------------- */
+.hm-cell:focus-visible { outline: 2px solid var(--site-accent-2); outline-offset: 2px; }
+
+.hm-detail {
+  margin-top: 18px; padding: 20px 22px;
+  border-radius: 20px; text-align: start;
+  background: rgba(139, 92, 246, .07);
+  border: 1px solid rgba(139, 92, 246, .3);
+  animation: hm-open .22s cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes hm-open { from { opacity: 0; transform: translateY(-6px) } to { opacity: 1; transform: none } }
+
+.hm-detail-head {
+  display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 14px; margin-bottom: 16px;
+  border-bottom: 1px solid var(--site-line);
+}
+.hm-detail-title { font-size: 19px; font-weight: 800; line-height: 1.5; }
+.hm-detail-sub { display: flex; flex-wrap: wrap; gap: 7px; flex: 1; min-width: 0; }
+.hm-chip {
+  display: inline-flex; align-items: center;
+  padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); color: var(--site-ink-mid);
+  white-space: nowrap;
+}
+.hm-close {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--site-line);
+  background: rgba(255, 255, 255, .05); color: var(--site-ink-mid);
+  font-size: 21px; line-height: 1; cursor: pointer; transition: background .15s, color .15s;
+}
+.hm-close:hover { background: rgba(255, 255, 255, .12); color: var(--site-ink); }
+
+/* دو ستون کنار هم: عادت‌ها | کارها و ژورنال */
+.hm-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.hm-detail-col h4 { font-size: 12.5px; font-weight: 800; color: var(--site-accent-2); margin-bottom: 10px; }
+.hm-row { display: flex; align-items: center; gap: 11px; padding: 7px 0; border-bottom: 1px solid rgba(140, 170, 230, .07); }
+.hm-row:last-child { border-bottom: none; }
+.hm-box {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 19px; height: 19px; border-radius: 6px; border: 1.5px solid;
+}
+.hm-row-text { flex: 1; font-size: 13.5px; line-height: 1.6; }
+.hm-row-text.done { text-decoration: line-through; opacity: .5; }
+.hm-empty { font-size: 13.5px; color: var(--site-muted); margin: 0; }
+.hm-journal {
+  margin: 0; padding: 12px 14px; border-radius: 13px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--site-line);
+  font-size: 13.5px; line-height: 1.95; color: var(--site-ink-mid);
+}
+
+@media (max-width: 640px) {
+  .hm-detail { padding: 16px 15px; }
+  .hm-detail-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
 /* ---------------- امکانات ---------------- */
 .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 16px; }
-.feat-card { padding: 26px 24px; border-radius: 22px; transition: transform .2s; }
+.feat-card { padding: 26px 24px; border-radius: 22px; transition: transform .2s; text-align: center; }
 .feat-card:hover { transform: translateY(-4px); }
+/*
+ * کلاس .rv-glass در glass.css padding/margin خودش را می‌آورد که روی
+ * این کادر کوچک آیکون را نامتقارن می‌نشاند. اینجا صفرشان می‌کنیم تا
+ * آیکون دقیقاً وسط بایستد.
+ */
 .feat-icon {
-  display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 16px;
-  border-radius: 15px; color: var(--site-accent-2);
+  display: grid; place-items: center;
+  width: 52px; height: 52px; padding: 0; margin: 0 auto 16px;
+  border-radius: 16px; color: var(--site-accent-2);
 }
 .feat-card h3 { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
 .feat-card p { font-size: 14px; line-height: 1.95; color: var(--site-muted); }
 
 /* ---------------- مقایسه ---------------- */
-.cmp { max-width: 760px; margin: 0 auto; border-radius: 22px; overflow: hidden; }
-.cmp-head, .cmp-row { display: grid; grid-template-columns: 1fr 130px 130px; align-items: center; }
+.cmp { max-width: 900px; margin: 0 auto; border-radius: 22px; overflow: hidden; }
+.cmp-head, .cmp-row { display: grid; grid-template-columns: 1fr 150px 150px; align-items: center; }
 .cmp-head { padding: 16px 0; border-bottom: 1px solid var(--site-line); }
 .cmp-head .cmp-col { text-align: center; font-size: 13.5px; font-weight: 800; }
 .cmp-head .cmp-col.us { color: var(--site-accent-2); }
@@ -234,7 +379,7 @@
 .cmp-row:last-child { border-bottom: none; }
 .cmp-row:nth-child(odd) { background: rgba(255, 255, 255, .015); }
 .cmp-feat { padding: 0 22px; font-size: 14px; color: var(--site-ink-mid); line-height: 1.7; }
-.cmp-cell { display: grid; place-items: center; font-size: 12.5px; color: var(--site-muted); text-align: center; padding: 0 10px; }
+.cmp-cell { display: grid; place-items: center; font-size: 12.5px; color: var(--site-muted); text-align: center; padding: 0 10px; line-height: 1.6; }
 .cmp-cell.yes { color: var(--site-accent-2); }
 .cmp-cell.no { color: rgba(248, 113, 113, .5); }
 
@@ -243,7 +388,7 @@
 .aud-item { display: flex; gap: 14px; align-items: flex-start; padding: 22px; border-radius: 20px; }
 .aud-num {
   flex-shrink: 0; display: grid; place-items: center;
-  width: 38px; height: 38px; border-radius: 12px;
+  width: 38px; height: 38px; padding: 0; margin: 0; border-radius: 12px;
   color: var(--site-accent); font-weight: 800; font-size: 15px;
 }
 .aud-item h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
@@ -264,30 +409,27 @@
 .voice figcaption i { font-style: normal; font-size: 12px; color: var(--site-muted); }
 
 /* ---------------- تعرفه ---------------- */
-.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; max-width: 720px; margin: 0 auto; align-items: start; }
-.price-card { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 30px 26px 26px; border-radius: 26px; }
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 18px; max-width: 940px; margin: 0 auto; align-items: stretch; }
+.price-card { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 30px 24px 24px; border-radius: 26px; }
 .price-card.primary { box-shadow: 0 20px 60px rgba(139, 92, 246, .18), inset 0 1px 1px rgba(255, 255, 255, .18); }
 .price-badge {
-  position: absolute; top: -11px; inset-inline-start: 26px;
-  padding: 4px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
+  position: absolute; top: 14px; inset-inline-end: 20px;
+  padding: 5px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 800;
   background: linear-gradient(135deg, #8b5cf6, #43e8a8); color: #08111f;
 }
 .price-name { font-size: 17px; font-weight: 800; }
-.price-amount { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
-.price-amount b { font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -.02em; }
+.price-card.primary .price-name { padding-inline-end: 104px; }
+.price-amount { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.price-amount b { font-size: 38px; font-weight: 900; line-height: 1; letter-spacing: -.02em; }
 .price-amount span { font-size: 13px; color: var(--site-muted); }
+/* قیمت قبلی — فعلاً ۰ تومان، خط‌خورده */
+.price-old { font-size: 15px; color: var(--site-muted); opacity: .7; text-decoration-color: rgba(248, 113, 113, .8); }
 .price-soon { color: var(--site-muted); }
 .price-period { font-size: 12.5px; color: var(--site-muted); }
 .price-text { font-size: 14px; color: var(--site-ink-mid); line-height: 1.9; margin: 14px 0 4px; }
 .price-feats { list-style: none; padding: 0; margin: 10px 0 22px; display: grid; gap: 9px; font-size: 13.5px; color: var(--site-muted); }
 .price-feats li { display: flex; align-items: center; gap: 8px; }
 .price-feats svg { color: var(--site-accent-2); flex-shrink: 0; }
-.price-promise { display: flex; justify-content: center; margin: 28px 0 0; }
-.price-promise-in {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 20px; border-radius: 999px; font-size: 13.5px; color: var(--site-muted);
-}
-.price-promise-in svg { color: var(--site-accent-2); }
 
 /* ---------------- دانلود ---------------- */
 .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 18px; align-items: stretch; }
@@ -295,7 +437,7 @@
 .dl-card { display: flex; flex-direction: column; gap: 14px; padding: 28px 24px; border-radius: 24px; transition: transform .2s; }
 .dl-card:hover { transform: translateY(-4px); }
 .dl-card-top { display: flex; align-items: center; gap: 14px; }
-.dl-icon { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; color: var(--site-accent-2); }
+.dl-icon { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; margin: 0; flex-shrink: 0; border-radius: 16px; color: var(--site-accent-2); }
 .dl-name { font-size: 19px; font-weight: 800; }
 .dl-latin { font-size: 12px; color: var(--site-muted); direction: ltr; letter-spacing: .04em; }
 .dl-text { font-size: 14px; line-height: 1.95; color: var(--site-ink-mid); }
@@ -318,7 +460,7 @@
 .steps-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr)); gap: 16px; }
 .step { padding: 26px 22px; border-radius: 22px; }
 .step-n {
-  display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 14px;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0; margin: 0 0 14px;
   border-radius: 13px; font-weight: 900; font-size: 16px;
   background: linear-gradient(135deg, #8b5cf6, #43e8a8); color: #08111f;
 }
@@ -341,6 +483,25 @@
 }
 .faq-a { padding: 0 22px 20px; }
 .faq-a p { font-size: 14.5px; line-height: 2.05; color: var(--site-ink-mid); }
+
+/* ---------------- کانال‌ها ---------------- */
+.chan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; max-width: 860px; margin: 0 auto; }
+.chan-card {
+  display: flex; align-items: center; gap: 16px;
+  padding: 24px 22px; border-radius: 22px; text-decoration: none;
+  color: inherit; transition: transform .22s;
+}
+.chan-card:hover { transform: translateY(-4px); }
+.chan-card.soon { cursor: default; }
+.chan-icon {
+  display: grid; place-items: center; width: 52px; height: 52px; padding: 0; margin: 0; flex-shrink: 0;
+  border-radius: 16px; color: var(--site-accent-2);
+}
+.chan-body { flex: 1; min-width: 0; }
+.chan-name { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+.chan-soon { font-size: 11px; font-weight: 700; color: var(--site-muted); background: rgba(139, 92, 246, .14); padding: 3px 9px; border-radius: 999px; }
+.chan-latin { font-size: 12px; color: var(--site-muted); margin-top: 2px; }
+.chan-text { font-size: 13.5px; color: var(--site-muted); margin-top: 7px; line-height: 1.7; }
 
 /* ---------------- فراخوان ---------------- */
 .site-cta-band { max-width: var(--site-max); margin: 20px auto 0; padding: 0 22px clamp(56px, 8vw, 92px); }
@@ -373,7 +534,7 @@
 }
 
 /* ---------------- صفحه ورود ---------------- */
-.login-page { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 26px 20px; background: #070b18; }
+.login-page { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 26px 20px; background: #070b18; }
 .login-page-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .login-glow { position: absolute; border-radius: 50%; filter: blur(90px); }
 .login-glow-1 { width: 480px; height: 480px; top: -140px; right: -110px; background: rgba(139, 92, 246, .3); }
@@ -489,7 +650,6 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .site-foot-in { grid-template-columns: 1fr; }
   .cmp-head, .cmp-row { grid-template-columns: 1fr 66px 66px; }
   .cmp-feat { padding: 0 14px; font-size: 13px; }
-  .hm-months { padding-inline-start: 18px; }
   .price-amount b { font-size: 34px; }
 }
 

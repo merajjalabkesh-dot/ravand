@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import SiteHeader from '../../components/site/SiteHeader'
 import SiteFooter from '../../components/site/SiteFooter'
 import {
-  Hero, About, Live, Features, Compare, Audience, Testimonials, Pricing, DownloadSection, Faq, CtaBand,
+  Hero, About, Live, Features, Compare, Audience, Testimonials, Pricing, DownloadSection, Faq, Channels, CtaBand,
 } from '../../components/site/Sections'
 import { setPageMeta, softwareAppJsonLd, faqJsonLd } from '../../lib/seo'
 import { SITE } from '../../config/site.config'
@@ -14,12 +14,12 @@ export default function SiteHome() {
   useEffect(() => {
     setPageMeta({
       title: 'روند — جدول روزهایت | اپ عادت و برنامهٔ روزانه برای ویندوز و اندروید',
-      description: 'روند به‌جای لیست تیک، یک جدول تصویری از روزهایت می‌سازد. پیگیری عادت، کارهای روزانه با تقویم جلالی، ژورنال و محاسبهٔ خواب. رایگان، بدون تبلیغ و با کار آفلاین.',
+      description: 'روند کارهای روزانه، عادت و ژورنالت را در یک جدول تصویری جمع می‌کند. الگوی هفته‌ای، ماهانه و سه‌ماهه، تقویم جلالی و محاسبهٔ خواب. رایگان، بدون تبلیغ و با کار آفلاین.',
       path: '/site',
       jsonLd: [
         softwareAppJsonLd({
           name: 'روند — Ravand',
-          description: 'اپ پیگیری عادت و برنامهٔ روزانه با جدول تصویری و تقویم جلالی',
+          description: 'اپ پیگیری کارهای روزانه، عادت و ژورنال با جدول تصویری و تقویم جلالی',
         }),
         faqJsonLd(SITE.faq),
       ],
@@ -47,6 +47,7 @@ export default function SiteHome() {
         <Pricing />
         <DownloadSection />
         <Faq />
+        <Channels />
         <CtaBand />
       </main>
       <SiteFooter />

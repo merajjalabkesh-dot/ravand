@@ -1,35 +1,44 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
 import { ICONS, IconCheck, IconDownload, IconArrow, IconX } from './Icons'
 import Heatmap from './Heatmap'
-import Logo from './Logo'
 import KineticField from './KineticField'
 import ScrollText from './ScrollText'
+import AppLink from './AppLink'
 
 /* ------------------------------------------------------------------ */
 /*  هیرو                                                               */
 /* ------------------------------------------------------------------ */
-export function Hero({ compact = false }) {
+/*
+ * دکمهٔ «چطور کار می‌کند» فقط کاربر را به نمونهٔ واقعی می‌برد — همون
+ * بخشی که همین پایین‌تر در همین صفحه هست. پس لینک ساده نیست و خودمان
+ * اسکرول نرم می‌کنیم (چون لندینگ بعد از پورتال یک صفحهٔ بلند است).
+ */
+function scrollToLive(e) {
+  e.preventDefault()
+  const el = document.getElementById('live')
+  if (!el) return
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+}
+
+export function Hero({ compact = false, showField = true }) {
   return (
     <section className={'site-hero' + (compact ? ' compact' : '')}>
-      {!compact && <KineticField />}
+      {showField && <KineticField />}
       <div className="site-hero-in">
-        <Logo size={compact ? 40 : 58} tone="gradient" glow />
-        <span className="site-eyebrow glass">
-          <span className="dot" /> {SITE.hero.eyebrow}
-        </span>
         <h1 className="site-hero-title">{SITE.hero.title}</h1>
         <p className="site-hero-sub">{SITE.hero.subtitle}</p>
         <div className="site-hero-cta">
-          <Link className="btn site-btn big glass-strong" to="/login">{SITE.hero.cta}</Link>
-          <Link className="btn site-btn ghost big glass" to="/site#live">
+          <AppLink className="btn site-btn big ghost rv-glass" to="/login">{SITE.hero.cta}</AppLink>
+          <a className="btn site-btn ghost big rv-glass" href="#live" onClick={scrollToLive}>
             {SITE.hero.ctaSecondary}
-          </Link>
+          </a>
         </div>
         <ul className="site-hero-points">
           {SITE.hero.points.map((p) => (
-            <li key={p} className="glass">
+            <li key={p} className="rv-glass">
               <IconCheck size={16} /> {p}
             </li>
           ))}
@@ -40,7 +49,7 @@ export function Hero({ compact = false }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  نمایش زندهٔ جدول                                                    */
+/*  نمونه زندهٔ جدول                                                    */
 /* ------------------------------------------------------------------ */
 export function Live() {
   return (
@@ -51,9 +60,8 @@ export function Live() {
         <p className="site-sec-sub">{SITE.live.subtitle}</p>
       </div>
 
-      <div className="live-card glass">
+      <div className="live-card rv-glass">
         <div className="live-head">
-          <Logo size={32} tone="gradient" />
           <div>
             <div className="live-title">روند</div>
             <div className="live-sub">سه ماه گذشته</div>
@@ -65,10 +73,10 @@ export function Live() {
           </div>
         </div>
 
-        <Heatmap weeks={18} labels={SITE.live} />
+        <Heatmap weeks={20} labels={SITE.live} />
 
         <p className="live-note">
-          این داده واقعی نیست — نمونه‌ای است با الگویی شبیه زندگی واقعی.
+          این دادهٔ واقعی نیست — نمونه‌ای است با الگویی شبیه زندگی واقعی.
           تو در اپ خودت همین جدول را از صفر می‌سازی.
         </p>
       </div>
@@ -89,8 +97,8 @@ export function About() {
       <div className="about-body">
         {SITE.about.body.map((p, i) => (
           i === 0
-            ? <p key={i} className="about-lead glass">{p}</p>
-            : <p key={i} className="glass">
+            ? <p key={i} className="about-lead rv-glass">{p}</p>
+            : <p key={i} className="rv-glass">
                 <ScrollText text={p} />
               </p>
         ))}
@@ -113,8 +121,8 @@ export function Features() {
         {SITE.features.map((f) => {
           const Icon = ICONS[f.icon] || null
           return (
-            <article className="feat-card glass" key={f.title}>
-              <span className="feat-icon glass">{Icon ? <Icon size={24} /> : null}</span>
+            <article className="feat-card rv-glass" key={f.title}>
+              <span className="feat-icon rv-glass">{Icon ? <Icon size={24} /> : null}</span>
               <h3>{f.title}</h3>
               <p>{f.text}</p>
             </article>
@@ -137,7 +145,7 @@ export function Compare() {
         <h2 className="site-sec-title">{C.title}</h2>
         <p className="site-sec-sub">{C.subtitle}</p>
       </div>
-      <div className="cmp glass">
+      <div className="cmp rv-glass">
         <div className="cmp-head">
           <span className="cmp-feat" />
           <span className="cmp-col us">{C.usLabel}</span>
@@ -171,8 +179,8 @@ export function Audience() {
       </div>
       <div className="aud-grid">
         {SITE.audience.map((a, i) => (
-          <div className="aud-item glass" key={a.title}>
-            <span className="aud-num glass">{String(i + 1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
+          <div className="aud-item rv-glass" key={a.title}>
+            <span className="aud-num rv-glass">{String(i + 1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
             <div>
               <h3>{a.title}</h3>
               <p>{a.text}</p>
@@ -198,7 +206,7 @@ export function Testimonials() {
       </div>
       <div className="voice-grid">
         {T.items.map((v) => (
-          <figure className="voice glass" key={v.name}>
+          <figure className="voice rv-glass" key={v.name}>
             <p className="voice-text">{v.text}</p>
             <figcaption>
               <span className="voice-avatar">{v.name.charAt(0)}</span>
@@ -228,12 +236,16 @@ export function Pricing() {
       </div>
       <div className="price-grid">
         {P.plans.map((pl) => (
-          <article className={'price-card glass' + (pl.primary ? ' primary' : '')} key={pl.id}>
-            {pl.primary && <span className="price-badge">{pl.primary ? 'پیشنهاد ما' : ''}</span>}
+          <article className={'price-card rv-glass' + (pl.primary ? ' primary' : '')} key={pl.id}>
+            {pl.primary && <span className="price-badge">{pl.badge || 'پیشنهاد ما'}</span>}
             <h3 className="price-name">{pl.name}</h3>
             <div className="price-amount">
               {pl.price !== '—'
-                ? <><b>{pl.price}</b><span>{pl.unit}</span></>
+                ? <>
+                    {pl.oldPrice && <s className="price-old">{pl.oldPrice}</s>}
+                    <b>{pl.price}</b>
+                    <span>{pl.unit}</span>
+                  </>
                 : <b className="price-soon">—</b>}
             </div>
             <div className="price-period">{pl.period}</div>
@@ -241,13 +253,10 @@ export function Pricing() {
             <ul className="price-feats">
               {pl.features.map((f) => <li key={f}><IconCheck size={15} /> {f}</li>)}
             </ul>
-            <Link className={'btn site-btn full' + (pl.primary ? '' : ' ghost')} to="/login">{pl.cta}</Link>
+            <AppLink className={'btn site-btn full' + (pl.primary ? '' : ' ghost')} to="/login">{pl.cta}</AppLink>
           </article>
         ))}
       </div>
-      <p className="price-promise">
-        <span className="glass price-promise-in"><IconCheck size={16} /> {P.promise}</span>
-      </p>
     </section>
   )
 }
@@ -262,9 +271,9 @@ export function DownloadCards({ compact = false }) {
         const Icon = ICONS[p.icon]
         const isWeb = p.id === 'web'
         return (
-          <article className={'dl-card glass' + (p.primary ? ' primary' : '')} key={p.id}>
+          <article className={'dl-card rv-glass' + (p.primary ? ' primary' : '')} key={p.id}>
             <div className="dl-card-top">
-              <span className="dl-icon glass">{Icon ? <Icon size={26} /> : null}</span>
+              <span className="dl-icon rv-glass">{Icon ? <Icon size={26} /> : null}</span>
               <div>
                 <h3 className="dl-name">{p.name}</h3>
                 <span className="dl-latin">{p.latin}{p.ext ? ' · ' + p.ext : ''}</span>
@@ -275,10 +284,10 @@ export function DownloadCards({ compact = false }) {
               {p.points.map((pt) => <li key={pt}><IconCheck size={15} /> {pt}</li>)}
             </ul>
             {isWeb ? (
-              <Link className="btn site-btn ghost full glass" to={p.href}>باز کردن وب‌اپ <IconArrow size={17} /></Link>
+              <AppLink className="btn site-btn ghost full rv-glass" to={p.href}>باز کردن وب‌اپ <IconArrow size={17} /></AppLink>
             ) : (
-              <a className="btn site-btn full glass-strong" href={p.href} download>
-                <IconDownload size={18} /> دانلود {p.ext} <span className="dl-size">{p.size}</span>
+              <a className="btn site-btn full rv-glass-strong" href={p.href} download>
+                <IconDownload size={18} /> دانلود
               </a>
             )}
           </article>
@@ -313,7 +322,7 @@ export function Steps() {
       </div>
       <ol className="steps-grid">
         {SITE.steps.map((s) => (
-          <li className="step glass" key={s.n}>
+          <li className="step rv-glass" key={s.n}>
             <span className="step-n">{String(s.n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
             <h3>{s.t}</h3>
             <p>{s.d}</p>
@@ -339,7 +348,7 @@ export function Faq() {
         {SITE.faq.map((item, i) => {
           const isOpen = open === i
           return (
-            <div className={'faq-item glass' + (isOpen ? ' open' : '')} key={item.q}>
+            <div className={'faq-item rv-glass' + (isOpen ? ' open' : '')} key={item.q}>
               <button className="faq-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? -1 : i)}>
                 <span>{item.q}</span>
                 <span className="faq-sign" aria-hidden="true">{isOpen ? '−' : '+'}</span>
@@ -354,17 +363,56 @@ export function Faq() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  کانال‌ها                                                           */
+/* ------------------------------------------------------------------ */
+export function Channels() {
+  const C = SITE.channels
+  return (
+    <section className="site-section" id="channels">
+      <div className="site-sec-head">
+        <span className="site-kicker">{C.kicker}</span>
+        <h2 className="site-sec-title">{C.title}</h2>
+        <p className="site-sec-sub">{C.subtitle}</p>
+      </div>
+      <div className="chan-grid">
+        {C.items.map((c) => {
+          const Icon = ICONS[c.id] || null
+          const inner = (
+            <>
+              <span className="chan-icon rv-glass">{Icon ? <Icon size={24} /> : null}</span>
+              <div className="chan-body">
+                <div className="chan-name">
+                  {c.name}
+                  {c.href ? null : <span className="chan-soon">به‌زودی</span>}
+                </div>
+                <div className="chan-latin">{c.latin}</div>
+                <p className="chan-text">{c.text}</p>
+              </div>
+              {c.href ? <IconArrow size={18} /> : null}
+            </>
+          )
+          return c.href ? (
+            <a className="chan-card rv-glass" href={c.href} key={c.id}>{inner}</a>
+          ) : (
+            <div className="chan-card rv-glass soon" key={c.id}>{inner}</div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  فراخوان پایانی                                                     */
 /* ------------------------------------------------------------------ */
 export function CtaBand() {
   return (
     <section className="site-cta-band">
-      <div className="site-cta-in glass-strong">
-        <Logo size={48} tone="gradient" glow />
+      <div className="site-cta-in rv-glass-strong">
         <h2>آماده‌ای روندت را شروع کنی؟</h2>
         <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
         <div className="site-cta-btns">
-          <Link className="btn site-btn big" to="/login">ساخت حساب رایگان</Link>
+          <AppLink className="btn site-btn big" to="/login">ساخت حساب رایگان</AppLink>
           <Link className="btn site-btn ghost big" to="/download">دانلود برنامه</Link>
         </div>
       </div>

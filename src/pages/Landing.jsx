@@ -1,25 +1,51 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import GlyphPortal from '../components/ui/glyph-portal'
 import PortalBackground from '../components/PortalBackground'
+import SiteHeader from '../components/site/SiteHeader'
 import {
-  Hero, About, Live, Features, Compare, Audience, Testimonials, Pricing, DownloadCards, Faq,
+  Hero, About, Live, Features, Compare, Testimonials, Pricing, DownloadCards, Faq, Channels,
 } from '../components/site/Sections'
 import { setPageMeta } from '../lib/seo'
+import AppLink from '../components/site/AppLink'
 
-const family = '"Vazirmatn", Arial, sans-serif'
+// صفحهٔ اول آبی روشن است و با اسکرول به سورمه‌ای ریلِ محتوا می‌رسد.
+const SKY = [0xa9, 0xcd, 0xf7]
+const NAVY = [0x0a, 0x17, 0x33]
+const mix = (a, b, t) =>
+  'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')'
+// رنگ حروف: روی زمینهٔ روشن سورمه‌ای، روی زمینهٔ تیره سفید
+const INK_DARK = '#0a1733'
+const INK_LIGHT = '#ffffff'
+const SKY_CSS = 'rgb(169,205,247)'
+const INK_CSS = INK_DARK
 
 export default function Landing() {
-  const [isMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches)
   const [face, setFace] = useState(null)
+  // هدر بعد از شروع اسکرول ظاهر می‌شود، نه از همان اول
+  const [showBar, setShowBar] = useState(false)
+  const shellRef = useRef(null)
 
   useEffect(() => {
     setPageMeta({
       title: 'روند — عادت‌هایت را بساز، روندت را ببین',
-      description: 'روند: خانهٔ شیشه‌ای عادت‌ها، کارهای روزانه و ژورنال. تقویم جلالی، کار آفلاین و بدون تبلیغ. دانلود برای ویندوز، اندروید و وب.',
+      description: 'روند: کارهای روزانه، عادت و ژورنال در یک جدول. تقویم جلالی، کار آفلاین و بدون تبلیغ. دانلود برای ویندوز، اندروید و وب.',
       path: '/',
     })
   }, [])
+
+  /* هدر موقع شیرجهٔ پورتال نباید بیاید؛ فقط وقتی اسکرول تمام شد و
+     کاربر وارد ریلِ محتوا شد، بالای صفحه می‌نشیند و همان‌جا می‌ماند. */
+  useEffect(() => {
+    const rail = document.querySelector('.gp-rail')
+    if (!rail) return
+    const io = new IntersectionObserver(
+      ([e]) => setShowBar(e.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px', threshold: 0 }
+    )
+    io.observe(rail)
+    return () => io.disconnect()
+  }, [face])
 
   // باید صبر کنیم تا فونت Vazirmatn لود شود، وگرنه کامپوننت پورتال درست کار نمی‌کند
   const fontFaceName = 'Vazirmatn'
@@ -44,24 +70,55 @@ export default function Landing() {
     return () => { settled = true }
   }, [])
 
+  /*
+   * رنگ پس‌زمینه با اسکرول از آبی روشن به سورمه‌ای می‌رود تا
+   * پورتال باز شود و ریلِ محتوا دقیقاً روی همان رنگ بنشیند.
+   * --gp-field و --gp-paper هر دو با همین رنگ می‌روند تا پس‌زمینه
+   * و حرفی که از آن دیده می‌شود هم‌رنگ نمانند.
+   */
+  const onPortalProgress = useCallback((p) => {
+    const el = shellRef.current
+    if (!el) return
+    const t = Math.max(0, Math.min(1, p / 0.75))
+    const color = mix(SKY, NAVY, t)
+    el.style.setProperty('--lp-bg', color)
+    el.style.setProperty('--lp-rail', color)
+    el.style.setProperty('--gp-paper', color)
+    el.style.setProperty('--gp-field', color)
+    /* حروف یک‌باره عوض می‌شوند، نه تدریجی: تا وقتی زمینه روشن است
+       سورمه‌ای می‌مانند و یک‌باره سفید می‌شوند. اگر تدریجی کنیم، در
+       وسط گرادیان هم‌رنگ زمینه می‌شوند و کلمه «محو» به نظر می‌رسد. */
+    el.style.setProperty('--gp-ink', t < 0.36 ? INK_DARK : INK_LIGHT)
+    el.style.setProperty('--lp-tint', t.toFixed(4))
+  }, [])
+
   return (
-    <div className="landing-page">
+    <div className="landing-page" ref={shellRef}>
+      {/* هدر فقط بعد از اسکرول — تا اول صفحه تمیز و خالی بماند */}
+      <div className={'landing-bar' + (showBar ? ' show' : '')}>
+        <SiteHeader floating />
+      </div>
       {face ? (
         <GlyphPortal
           word="Ravand"
           fontFamily={face}
           fontWeight={700}
           scrollLength={3.2}
-          interactive={false}
+          interactive
           focusChar="n"
           annotations={false}
           enterLabel=""
+          onProgress={onPortalProgress}
           background={<PortalBackground />}
-          style={{ '--gp-paper': '#0a0f1f', '--gp-ink': isMobile ? '#ffffff' : '#cfe0ff', '--gp-field': '#0a0f1f' }}
+          style={{
+            '--gp-paper': SKY_CSS,
+            '--gp-ink': INK_CSS,
+            '--gp-field': SKY_CSS,
+          }}
           front={
-            <div style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
-              <p style={{ margin: '0 auto', fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 600, lineHeight: 1.5, color: isMobile ? 'rgba(255,255,255,.94)' : 'rgba(207,224,255,.9)', textShadow: isMobile ? '0 0 22px rgba(120,170,255,.6), 0 2px 14px rgba(5,8,20,.8)' : '0 2px 18px rgba(10,15,31,.8)', maxWidth: 420 }}>عادت‌هایت را بساز، روندت را ببین.</p>
-              <p style={{ margin: '12px auto 0', fontSize: 14, lineHeight: 1.5, color: isMobile ? 'rgba(220,235,255,.85)' : 'rgba(160,175,205,.7)', maxWidth: 420 }}>اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
+            <div className="landing-front" style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
+              <p className="landing-front-lead">عادت‌هایت را بساز، روندت را ببین.</p>
+              <p className="landing-front-hint">اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
             </div>
           }
         >
@@ -85,12 +142,13 @@ export default function Landing() {
               <DownloadCards compact />
             </section>
             <Faq />
+            <Channels />
             <section className="site-cta-band">
               <div className="site-cta-in">
                 <h2>آماده‌ای روندت را شروع کنی؟</h2>
                 <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
                 <div className="site-cta-btns">
-                  <Link className="btn site-btn big" to="/login">ساخت حساب رایگان</Link>
+                  <AppLink className="btn site-btn big" to="/login">ساخت حساب رایگان</AppLink>
                   <Link className="btn site-btn ghost big" to="/download">دانلود برنامه</Link>
                 </div>
               </div>
@@ -104,7 +162,7 @@ export default function Landing() {
           </div>
         </GlyphPortal>
       ) : (
-        <div role="status" style={{ height: '100vh', display: 'grid', placeItems: 'center', background: '#0a0f1f', color: '#9fb7e0', fontSize: 14 }}>
+        <div role="status" style={{ height: '100vh', display: 'grid', placeItems: 'center', background: '#a9cdf7', color: '#0b2545', fontSize: 14 }}>
           در حال آماده‌سازی…
         </div>
       )}

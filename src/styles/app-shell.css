@@ -1,0 +1,4 @@
+/* pre-React dark theme to prevent flash in native apps */
+:root { --bg: #0a0f1f; --bg-2: #070b18; }
+html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: #f0eff4; }
+#root { height: 100%; }

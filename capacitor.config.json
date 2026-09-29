@@ -1,0 +1,21 @@
+{
+  "appId": "app.ravand.app",
+  "appName": "روند",
+  "webDir": "dist",
+  "bundledWebRuntime": true,
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#070b18"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    }
+  }
+}

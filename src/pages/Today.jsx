@@ -53,17 +53,21 @@ export default function Today() {
     })
   }
   const toggleTask = (id) => {
-    const t = (d.tasks || []).find((x) => x.id === id)
-    if (!t) return
+    // نام محلی «task» نه «t» — نام t تابع ترجمهٔ useI18n است و اگر
+    // همین‌جا سایه می‌افتاد، فراخوانی t('today.allTasksDoneToast') هنگام
+    // تیک زدن آخرین کار اپ را کرش می‌داد و صفحه سفید می‌شد.
+    const existing = (d.tasks || []).find((x) => x.id === id)
+    if (!existing) return
     if (db.settings.sound) playTick()
     mutate((s) => {
       const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } })
+      day.tasks = day.tasks || []
       const task = day.tasks.find((x) => x.id === id)
       if (task) task.done = !task.done
       if (task && task.done && day.tasks.length > 0 && day.tasks.every((x) => x.done)) toast(t('today.allTasksDoneToast'))
     })
   }
-  const delTask = (id) => { mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks.filter((x) => x.id !== id) }); toast(t('today.taskDeletedToast')) }
+  const delTask = (id) => { mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = (day.tasks || []).filter((x) => x.id !== id) }); toast(t('today.taskDeletedToast')) }
   const moveTask = (id, dir) => {
     mutate((s) => {
       const day = s.days[iso]
@@ -134,15 +138,15 @@ export default function Today() {
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> {isToday ? 'کارهای روزانه' : 'کارهای این روز'}</div>
         {tC === 0 ? <p className="glass-hint">{isToday ? t('today.emptyTasksToday') : t('today.emptyTasksOtherDay')}</p>
-          : (d.tasks || []).map((t, idx) => (
-            <div className={'task-row' + (t.done ? ' done' : '')} key={t.id}>
-              <span className="task-box" onClick={() => toggleTask(t.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-              <span className="ttext">{t.text}</span>
+          : (d.tasks || []).map((task, idx) => (
+            <div className={'task-row' + (task.done ? ' done' : '')} key={task.id}>
+              <span className="task-box" onClick={() => toggleTask(task.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span className="ttext">{task.text}</span>
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-                <button className="task-move" onClick={() => moveTask(t.id, -1)} disabled={idx === 0} title={t('today.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-                <button className="task-move" onClick={() => moveTask(t.id, 1)} disabled={idx === tC - 1} title={t('today.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+                <button className="task-move" onClick={() => moveTask(task.id, -1)} disabled={idx === 0} title={t('today.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                <button className="task-move" onClick={() => moveTask(task.id, 1)} disabled={idx === tC - 1} title={t('today.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
               </span>
-              <button className="task-del" onClick={() => delTask(t.id)} title={t('today.deleteTask')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              <button className="task-del" onClick={() => delTask(task.id)} title={t('today.deleteTask')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
             </div>
           ))}
         <div className="add-row">
@@ -155,14 +159,18 @@ export default function Today() {
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> {t('today.dayReportTitle')}</div>
         <div className="ring-wrap">
-          <svg className="ring" width="112" height="112" viewBox="0 0 112 112">
-            <circle className="bg" cx="56" cy="56" r="53" />
-            <motion.circle className="fg" cx="56" cy="56" r="53"
-              strokeDasharray={2 * Math.PI * 53}
-              initial={{ strokeDashoffset: 2 * Math.PI * 53 }}
-              animate={{ strokeDashoffset: 2 * Math.PI * 53 * (1 - pct / 100) }}
+          {/* شعاع از روی ضخامتِ خط حساب می‌شود (نه عدد ثابت) تا لبهٔ
+              بیرونیِ حلقه از کادر SVG بیرون نزند و بریده نشود. */}
+          {(() => { const stroke = 11, pad = 1, size = 112; const r = (size - stroke - pad * 2) / 2, c = 2 * Math.PI * r; return (
+          <svg className="ring" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+            <circle className="bg" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} />
+            <motion.circle className="fg" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke}
+              strokeDasharray={c}
+              initial={{ strokeDashoffset: c }}
+              animate={{ strokeDashoffset: c * (1 - pct / 100) }}
               transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} />
           </svg>
+          ) })()}
           <div className="kpis">
             <div className="kpi"><div className="n">{toFa(pct)}<span style={{ fontSize: 13, color: 'var(--muted)' }}>{t('today.percentKpiSuffix')}</span></div><div className="l">{t('today.habitsKpiLabel')}</div></div>
             <div className="kpi"><div className="n">{toFa(tD)} / {toFa(tC)}</div><div className="l">{t('today.tasksKpiLabel')}</div></div>

@@ -3,6 +3,9 @@ import React, { Component } from 'react'
 export default class ErrorBoundary extends Component {
   state = { error: null }
   static getDerivedStateFromError(error) { return { error } }
+  // بدون این، خطا فقط نمایش داده می‌شد و در کنسول چیزی ثبت نمی‌شد،
+  // پس پیدا کردنش سخت بود.
+  componentDidCatch(error, info) { console.error('[ErrorBoundary]', error, info?.componentStack) }
   render() {
     if (this.state.error) {
       return (

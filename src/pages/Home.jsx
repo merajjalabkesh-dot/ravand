@@ -50,13 +50,17 @@ const CheckSvg = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="non
 const FireSvg = ({ style }) => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M12 22c4.4 0 7-2.6 7-6.5 0-3-2-5-4.2-6.6C13.9 7.6 13 5.7 13 3c-4.2 1.6-6.5 5.6-6.5 9.5 0 .9.1 1.7.4 2.4-1.6-1.2-2.4-2.9-2.4-4.7-1.7 2-2.5 4-2.5 6 0 3.9 2.8 5.8 7 5.8z"/><path d="M12 22c2.2 0 3.5-1.3 3.5-3 0-1.3-1-2.3-1.8-3.1-.6.6-1 1.3-1 2 .7-.4 1.2-.9 1.5-1.5"/></svg>
 
 const Ring = ({ pct, size = 112 }) => {
-  const r = (size - 6) / 2, c = 2 * Math.PI * r
+  // شعاع باید از روی ضخامتِ خط حساب شود، نه از یک عدد ثابت. قبلاً با
+  // پیش‌فرض ۶ حساب می‌شد ولی خط ۱۱ پیکسلی است، پس لبهٔ بیرونیِ حلقه
+  // از کادر SVG بیرون می‌زد و مرورگر می‌بریدش — دایره ناقص دیده می‌شد.
+  const stroke = 11, pad = 1
+  const r = (size - stroke - pad * 2) / 2, c = 2 * Math.PI * r
   return (
     <svg className="ring" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle className="bg" cx={size / 2} cy={size / 2} r={r} />
+      <circle className="bg" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} />
       <motion.circle
         className="fg"
-        cx={size / 2} cy={size / 2} r={r}
+        cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke}
         strokeDasharray={c}
         initial={{ strokeDashoffset: c }}
         animate={{ strokeDashoffset: c * (1 - Math.min(100, Math.max(0, pct)) / 100) }}
@@ -129,6 +133,13 @@ export default function Home() {
   const todayHabits = db.habits.filter(isScheduledToday)
   const todayTasks = (db.days[iso] && db.days[iso].tasks) || []
 
+  // دایرهٔ «حرکت در روز» کل روز را نشان می‌دهد: عادت‌ها و کارها با هم.
+  // وزن هر دسته برابر تعدادش است، پس اگر کارها بیشتر باشند سهم بیشتری
+  // می‌گیرند؛ و اگر فقط عادت باشد، همان درصد عادت‌ها می‌شود.
+  const hTotal = todayHabits.length
+  const hDone = todayHabits.filter((h) => H.dayIds(iso).has(h.id)).length
+  const dayAllPct = (hTotal + todayTasks.length) ? Math.round(((hDone + tD) / (hTotal + todayTasks.length)) * 100) : 0
+
   const [wakeTime, setWakeTime] = useState('')
   const wakeUp = () => {
     const now = new Date()
@@ -138,19 +149,24 @@ export default function Home() {
     setWakeTime('')
     toast(wakeTime ? t('home.wakeLoggedToast', { time: toFa(wakeTime) }) : t('home.morningToast'))
   }
-  const logSleep = (t) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = t }); toast(t('home.sleepLoggedToast')) }
+  const logSleep = (time) => { mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.sleep = time }); toast(t('home.sleepLoggedToast')) }
 
   const habitNext = (db.events || []).map((ev) => ({ ...ev, nextISO: nextEventISO(ev) })).filter((e) => e.nextISO).sort((a, b) => (a.nextISO < b.nextISO ? -1 : 1))[0]
 
+  // این لیست باید یک عنصرِ واقعی باشد نه fragment: قانون
+  // .home-sections > .glass > *:last-child فقط یک فرزندِ واقعی را
+  // می‌بیند، و fragment (یعنی <>...</>) در DOM اصلاً وجود ندارد.
+  // برای همین وقتی فقط یک کار بود، آن کل ارتفاع را می‌گرفت و وسط
+  // می‌نشست. با div واقعی، قوانین درست رویش اعمال می‌شود.
   const habitsHtml = (todayHabits.length === 0 && todayTasks.length === 0)
     ? <div className="empty-state"><div className="big">✦</div><p className="preline">{t('home.emptyTasks')}</p></div>
-    : <>
+    : <div className="home-task-list">
         {todayHabits.map((h, habitIdx) => {
           const done = H.dayIds(iso).has(h.id)
           const isBad = h.type === 'bad'
           return (
             <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
-              <span className="task-box" style={{ background: done ? h.color : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
+              <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
               {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
               <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
               {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? t('home.badDoneStat') : t('home.cleanStat')}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
@@ -161,20 +177,20 @@ export default function Home() {
             </div>
           )
         })}
-        {todayTasks.map((t, taskIdx) => (
-          <div className="task-row" key={'t-' + t.id} onClick={() => toggleTask(t.id)} style={{ cursor: 'pointer' }}>
-            <span className="task-box" style={{ background: t.done ? 'var(--accent-2)' : 'rgba(255,255,255,.12)' }}><span style={{ color: '#fff' }}><CheckSvg /></span></span>
-            <span className="ttext" style={{ textDecoration: t.done ? 'line-through' : 'none', opacity: t.done ? .55 : 1 }}>{t.text}</span>
+        {todayTasks.map((task, taskIdx) => (
+          <div className="task-row" key={'t-' + task.id} onClick={() => toggleTask(task.id)} style={{ cursor: 'pointer' }}>
+            <span className="task-box" style={{ background: task.done ? 'var(--accent-2)' : 'var(--surface-hover)' }} />
+            <span className="ttext" style={{ textDecoration: task.done ? 'line-through' : 'none', opacity: task.done ? .55 : 1 }}>{task.text}</span>
             <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, -1) }} disabled={taskIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(t.id, 1) }} disabled={taskIdx === todayTasks.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(task.id, -1) }} disabled={taskIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(task.id, 1) }} disabled={taskIdx === todayTasks.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
             </span>
           </div>
         ))}
-      </>
+      </div>
 
   return (
-    <motion.div variants={stagger} initial="initial" animate="animate" exit="exit">
+    <motion.div variants={stagger} initial="initial" animate="animate" exit="exit" className="home-page">
       <motion.div variants={fadeUp}>
         <div className="glass" style={{ background: 'linear-gradient(150deg,rgba(18,20,28,.95) 0%,rgba(124,92,252,.2) 65%,rgba(67,232,168,.1) 100%)', border: '1px solid var(--glass-border)', borderRadius: 24, padding: '28px 32px', marginBottom: 22, position: 'relative', overflow: 'hidden' }}>
           {!wake ? (
@@ -226,11 +242,11 @@ export default function Home() {
         <motion.div variants={fadeUp} className="glass">
           <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> {t('home.dayActivityTitle')}</div>
           <div className="ring-wrap">
-            <Ring pct={pct} />
-            <div>
-              <div className="ring-label">{t('home.habitProgressLabel')}</div>
-              <div className="ring-num">{toFa(pct)}{t('home.percentSign')}</div>
-              {j.mood > 0 && <div className="ring-label" style={{ marginTop: 8 }}>{t('home.todaysFeeling')} <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{t(['home.moodNone', 'home.moodTired', 'home.moodLazy', 'home.moodNormal', 'home.moodGood', 'home.moodGreat'][j.mood])}</span></div>}
+            <Ring pct={dayAllPct} />
+            <div className="kpis">
+              <div className="kpi"><div className="n">{toFa(pct)}<span className="kpi-suffix">{t('home.percentSign')}</span></div><div className="l">{t('today.habitsKpiLabel')}</div></div>
+              <div className="kpi"><div className="n">{toFa(tD)} / {toFa(tC)}</div><div className="l">{t('today.tasksKpiLabel')}</div></div>
+              {j.mood > 0 && <div className="kpi"><div className="n mood-face">{t(['home.moodNone', 'home.moodTired', 'home.moodLazy', 'home.moodNormal', 'home.moodGood', 'home.moodGreat'][j.mood])}</div><div className="l">{t('home.todaysFeeling')}</div></div>}
             </div>
           </div>
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.06)' }}>

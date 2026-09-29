@@ -2,9 +2,21 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
 import Logo from './Logo'
+import AppLink from './AppLink'
 
 export default function SiteFooter() {
   const year = new Date().getFullYear()
+
+  // لینک‌های داخلی: فقط اسکرول نرم، بدون عوض شدن صفحه
+  const jump = (e) => {
+    e.preventDefault()
+    const id = e.currentTarget.getAttribute('href')
+    const el = id && id.length > 1 ? document.getElementById(id.slice(1)) : null
+    if (!el) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  }
+
   return (
     <footer className="site-footer">
       <div className="site-foot-in">
@@ -20,25 +32,25 @@ export default function SiteFooter() {
 
         <nav className="site-foot-col" aria-label="محصول">
           <h3>محصول</h3>
-          <Link to="/site#live">نمایش زنده</Link>
-          <Link to="/site#features">امکانات</Link>
-          <Link to="/site#compare">مقایسه</Link>
-          <Link to="/site#pricing">تعرفه</Link>
+          <a href="#live" onClick={jump}>نمونه زنده</a>
+          <a href="#features" onClick={jump}>امکانات</a>
+          <a href="#compare" onClick={jump}>مقایسه</a>
+          <a href="#pricing" onClick={jump}>تعرفه</a>
         </nav>
 
         <nav className="site-foot-col" aria-label="دانلود">
           <h3>دانلود</h3>
-          <Link to="/download#platforms">ویندوز</Link>
-          <Link to="/download#platforms">اندروید</Link>
-          <Link to="/download#platforms">وب‌اپ</Link>
-          <Link to="/site#faq">سوالات متداول</Link>
+          <a href="#download" onClick={jump}>ویندوز</a>
+          <a href="#download" onClick={jump}>اندروید</a>
+          <a href="#download" onClick={jump}>وب‌اپ</a>
+          <a href="#faq" onClick={jump}>سوالات متداول</a>
         </nav>
 
         <nav className="site-foot-col" aria-label="حساب">
           <h3>حساب</h3>
-          <Link to="/login">ورود</Link>
-          <Link to="/login">ساخت حساب</Link>
-          <Link to="/app">ورود به اپ</Link>
+          <AppLink to="/login">ورود</AppLink>
+          <AppLink to="/login">ساخت حساب</AppLink>
+          <AppLink to="/app">ورود به اپ</AppLink>
         </nav>
       </div>
 

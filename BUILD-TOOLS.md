@@ -1,20 +1,36 @@
-# ساخت نسخه ویندوز (exe) و اندروید (apk)
+# ساخت نسخهٔ ویندوز (exe) و اندروید (apk)
 
-این راهنما را کنار پروژه نگه دار. هر ابزار فقط **یک بار** نصب می‌شود و بعد از آن ساخت فایل‌ها خودکار است.
+این راهنما را کنار پروژه نگه دار. **تنظیمات هر دو ساخت (Tauri و Capacitor) از قبل در پروژه نوشته شده** — کاری که تو باید بکنی فقط نصب ابزارها (یک بار) و گرفتن خروجی است.
 
 ---
 
-## چرا این کار را من (Claude) انجام نمی‌دهم؟
+## چرا ساخت را من (Claude) انجام نمی‌دهم؟
 
-محیطی که در آن کار می‌کنم یک لینوکس ایزوله بدون گرافیک است و ابزارهای ساخت ویندوز و اندروید روی آن نصب نمی‌شوند (اندروید SDK حدود ۱۰ گیگابایت و Windows SDK هم هستند، ولی در محیط من قابل نصب نیستند).
+محیطی که در آن کار می‌کنم یک لینوکس ایزوله بدون گرافیک است و ابزارهای ساخت ویندوز و اندروید روی آن نصب نمی‌شوند (Android SDK حدود ۱۰ گیگابایت و Windows SDK هم هستند، ولی در محیط من قابل نصب نیستند). ضمناً `npx vite build` هم در این محیط شکست می‌خورد چون باینری‌ها فقط نسخهٔ ویندوز دارند.
 
 پس تقسیم کار این‌طور است: **من کد و تنظیمات کامل را می‌نویسم، تو یک بار خروجی می‌گیری.**
 
 ---
 
-# بخش ۱ — نسخه ویندوز با Tauri
+# بخش ۰ — کار مشترک (فقط یک بار)
+
+در ترمینال، داخل پوشهٔ پروژه:
+
+```bash
+npm install
+```
+
+> **این مرحله را رد نکن.** دستورهای `npm run tauri:build` و `npm run cap:sync` به ابزارهایی
+> وابسته‌اند که `@tauri-apps/cli` و `@capacitor/cli` در `package.json` اضافه شده‌اند و با همین
+> `npm install` نصب می‌شوند. بدون آن، هر دو دستور با پیام «command not found» می‌شکنند.
+
+---
+
+# بخش ۱ — نسخهٔ ویندوز با Tauri
 
 Tauri فایل exe خیلی کوچکی می‌سازد (حدود ۵ مگابایت) چون از موتور وب سیستم استفاده می‌کند، نه یک مرورگر کامل مثل Electron.
+
+> **توجه:** فایل‌های `src-tauri/` از قبل ساخته شده‌اند (شامل `tauri.conf.json`، `Cargo.toml`، کد Rust و آیکون‌ها). **دیگر `npx tauri init` را نزن** — تنظیمات آماده است و آن دستور ممکن است روی فایل‌های موجود بیفتد.
 
 ## ۱.۱ نصب Rust
 
@@ -44,30 +60,31 @@ Rust برای کامپایل کردن به کامپایلر C نیاز دارد.
 
 > اگر حافظه یا اینترنت محدود داری بگو تا به‌جای Tauri بریم سراغ **Electron** که فقط Node.js می‌خواهد و exe بزرگ‌تری می‌دهد ولی نصبش خیلی ساده‌تر است.
 
-## ۱.۳ نصب Tauri روی پروژه
-
-ترمینال را در پوشهٔ پروژه باز کن و این دستورها را اجرا کن:
+## ۱.۳ گرفتن خروجی
 
 ```bash
-npm install
-npm install -D @tauri-apps/cli
-npx tauri init
+npm run tauri:build
 ```
 
-در `tauri init` این مقادیر را بده:
+خروجی در این مسیر ساخته می‌شود:
 
-| سؤال | جواب |
-|---|---|
-| App name | `Ravand` |
-| Window title | `روند` |
-| Web assets location | `../dist` |
-| Frontend dev URL | `http://localhost:5173` |
-| Frontend build command | `npm run build` |
-| Dev host | *(خالی بگذار)* |
+```
+src-tauri/target/release/bundle/nsis/Ravand_0.1.0_x64-setup.exe
+```
+
+> بار اول ۱۰ تا ۲۰ دقیقه طول می‌کشد چون کتابخانه‌های Rust کامپایل می‌شوند. بارهای بعدی خیلی سریع‌تر است.
+
+برای تست بدون ساخت نصب‌کننده:
+
+```bash
+npm run tauri:dev
+```
 
 ---
 
-# بخش ۲ — نسخه اندروید با Capacitor
+# بخش ۲ — نسخهٔ اندروید با Capacitor
+
+> **توجه:** فایل `capacitor.config.json` از قبل ساخته شده. **دیگر `npx cap init` را نزن.** فقط `npx cap add android` لازم است که پوشهٔ `android/` را تولید می‌کند (این پوشه در `.gitignore` است و عمداً commit نمی‌شود).
 
 ## ۲.۱ نصب Android Studio
 
@@ -82,56 +99,58 @@ npx tauri init
 اگر JDK روی سیستم نصب نیست:
 
 ۱. به آدرس <https://adoptium.net> برو.
-۲. **JDK 17** را دانلود و نصب کن (نسخه LTS).
+۲. **JDK 21** را دانلود و نصب کن (نسخهٔ LTS که Capacitor 7 می‌خواهد).
 ۳. متغیر محیطی `JAVA_HOME` را تنظیم کن:
    - کلید ویندوز را بزن، `Environment Variables` را جستجو کن.
    - در `System variables` روی **New** بزن.
    - نام: `JAVA_HOME`
-   - مقدار: مسیر نصب JDK، مثلاً `C:\Program Files\Eclipse Adoptium\jdk-17.0.11`
+   - مقدار: مسیر نصب JDK، مثلاً `C:\Program Files\Eclipse Adoptium\jdk-21.0.5`
    - در `Path` هم `%JAVA_HOME%\bin` را اضافه کن.
 ۴. ترمینال را ببند و دوباره باز کن و بزن:
    ```
    java -version
    ```
 
-## ۲.۳ نصب Capacitor
+## ۲.۳ ساخت پوشهٔ اندروید
 
 در پوشهٔ پروژه:
 
 ```bash
-npm install
-npm install -D @capacitor/cli
-npx cap init "Ravand" "app.ravand.ios" --web-dir=dist
 npx cap add android
 ```
 
+این دستور یک بار اجرا می‌شود و پوشهٔ `android/` را می‌سازد.
+
+## ۲.۴ گذاشتن آیکون واقعی روی لانچر
+
+آیکون‌های روند در پوشهٔ `android-res/` آماده‌اند. بعد از ساخت `android/` این‌ها را کپی کن:
+
+```bash
+cp android-res/mipmap-mdpi/ic_launcher.png     android/app/src/main/res/mipmap-mdpi/
+cp android-res/mipmap-hdpi/ic_launcher.png     android/app/src/main/res/mipmap-hdpi/
+cp android-res/mipmap-xhdpi/ic_launcher.png    android/app/src/main/res/mipmap-xhdpi/
+cp android-res/mipmap-xxhdpi/ic_launcher.png   android/app/src/main/res/mipmap-xxhdpi/
+cp android-res/mipmap-xxxhdpi/ic_launcher.png  android/app/src/main/res/mipmap-xxxhdpi/
+```
+
+جزئیات بیشتر (adaptive icon و رنگ پس‌زمینه) در `android-res/README.md` است.
+
 ---
 
-# بخش ۳ — ساخت خروجی
+# بخش ۳ — ساخت فایل apk
 
-## ساخت exe ویندوز
+هر بار که کد وب تغییر کرد، اول باید خروجی وب ساخته و کپی شود:
 
 ```bash
-npm run tauri build
+npm run cap:sync
 ```
 
-خروجی در این مسیر ساخته می‌شود:
-```
-src-tauri/target/release/bundle/nsis/Ravand_1.0.0_x64-setup.exe
-```
-
-## ساخت apk اندروید
-
-اول باید dist ساخته بشه:
-```bash
-npm run build
-npx cap copy
-npx cap sync
-```
+این دستور خودش `npm run build` را اجرا می‌کند، بعد `cap sync` می‌زند (یعنی `copy` + `update`).
 
 بعد پروژهٔ اندروید را باز کن:
+
 ```bash
-npx cap open android
+npm run cap:android
 ```
 
 در Android Studio:
@@ -143,7 +162,7 @@ npx cap open android
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-برای نسخهٔ نهایی که روی سایت می‌گذاریم، بهتر است **release** بسازی که نیاز به امضا دارد. راهنمای امضا را بعداً می‌دهم.
+نسخهٔ **debug** با کلید خودکار که Android Studio می‌سازد امضا شده و برای نصب مستقیم روی گوشی کافی است. برای نسخهٔ نهایی که در فروشگاه منتشر می‌شود **release** می‌خواهد که کلید امضای اختصاصی لازم دارد — راهنمای امضا را بعداً می‌دهم.
 
 ---
 
@@ -158,6 +177,8 @@ public/downloads/Ravand.apk
 
 سپس `npm run build` بزن. سایت به‌صورت خودکار لینک دانلود را نشان می‌دهد.
 
+تا وقتی این فایل‌ها ساخته نشده‌اند، کارت دانلود در صفحهٔ `/download` نمایش داده می‌شود ولی کلیک روی آن خطای ۴۰۴ می‌دهد — این طبیعی است و در خود صفحه هم نوشته شده.
+
 ---
 
 # مشکلات رایج
@@ -166,8 +187,26 @@ public/downloads/Ravand.apk
 
 **`link.exe not found`** → Visual Studio Build Tools درست نصب نشده. دوباره باز کن و کامپوننت MSVC را تیک بزن.
 
-**`JAVA_HOME is not set`** → مرحله ۲.۲ را کامل کن.
+**`JAVA_HOME is not set`** → مرحلهٔ ۲.۲ را کامل کن.
 
 **`SDK location not found`** → در Android Studio از منوی `File → Settings → Languages & Frameworks → Android SDK` مسیر SDK را بررسی کن.
 
+**`Capacitor requires JDK 21`** → نسخهٔ JDK را از 17 به 21 ارتقا بده.
+
 **خروجی خیلی دیر آماده می‌شود** → بار اول همیشه کند است چون باید کتابخانه‌ها کامپایل شوند. بارهای بعدی خیلی سریع‌تر است.
+
+**اپ در apk سفید می‌ماند** → `npm run cap:sync` را نزدیکی. این دستور هم `vite build` می‌کند هم خروجی را به `android/` کپی می‌کند.
+
+---
+
+# خلاصهٔ دستورها
+
+| کار | دستور |
+|---|---|
+| نصب وابستگی‌ها (یک بار) | `npm install` |
+| تست اپ روی دسکتاپ | `npm run tauri:dev` |
+| ساخت exe ویندوز | `npm run tauri:build` |
+| ساخت پوشهٔ اندروید (یک بار) | `npx cap add android` |
+| همگام‌سازی وب با اندروید | `npm run cap:sync` |
+| باز کردن Android Studio | `npm run cap:android` |
+| بیلد سایت برای انتشار | `npm run build` |

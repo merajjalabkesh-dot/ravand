@@ -6,7 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/generate-sw.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "cap:sync": "npm run build && cp dist/index-app.html dist/index.html && cap sync",
+    "cap:copy": "npm run build && cp dist/index-app.html dist/index.html && cap copy",
+    "cap:android": "cap open android",
+    "cap:apk": "npm run build && cp dist/index-app.html dist/index.html && cap sync && cap open android",
+    "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder"
   },
   "dependencies": {
     "firebase": "^12.19.0",

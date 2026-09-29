@@ -109,12 +109,17 @@ export default function Settings() {
           <div className="setting-title"><b>{t('settings.theme')}</b><span>{t('settings.themeHint')}</span></div>
           <div className="theme-picker">
             {THEMES.map((th) => (
-              <button key={th.id} className={'theme-card' + (s.theme === th.id ? ' sel' : '')} onClick={() => setTheme(th.id)}>
-                <span className="theme-swatch-row">
-                  <span className="theme-swatch" style={{ background: th.bg }} />
-                  <span className="theme-swatch" style={{ background: th.glass !== 'rgba(255,255,255,.05)' ? th.glass : (th.mode === 'light' ? 'rgba(255,255,255,.6)' : 'rgba(255,255,255,.08)') }} />
-                  <span className="theme-swatch accent" style={{ background: th.accent }} />
-                </span>
+              <button
+                key={th.id}
+                className={'theme-card' + (s.theme === th.id ? ' sel' : '')}
+                onClick={() => setTheme(th.id)}
+                title={THEME_KEYS[th.id] ? t(THEME_KEYS[th.id]) : th.name}
+                aria-label={THEME_KEYS[th.id] ? t(THEME_KEYS[th.id]) : th.name}
+                aria-pressed={s.theme === th.id}
+              >
+                {/* یک باکس به‌جای دو خط: کل رنگ‌های تم در یک طیف گرادیانی
+                    کنار هم، تا انتخاب با یک نگاه و بر اساس سلیقه باشد. */}
+                <span className="theme-spectrum" style={{ background: `linear-gradient(135deg, ${th.bg} 0%, ${th.bg2} 34%, ${th.accent} 68%, ${th.accent2} 100%)` }} />
                 <span className="theme-name">{THEME_KEYS[th.id] ? t(THEME_KEYS[th.id]) : th.name}</span>
               </button>
             ))}

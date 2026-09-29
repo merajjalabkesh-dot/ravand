@@ -34,8 +34,12 @@ export default function KineticField() {
       <span className="rv-step rv-step-2" style={{ insetInlineStart: '38%' }} />
       <span className="rv-step rv-step-3" style={{ insetInlineStart: '70%' }} />
 
-      <span className="rv-core" />
-      <span className="rv-veil" />
+      {/*
+        rv-core و rv-veil عمداً رندر نمی‌شوند. هر دو یک هاله/پردهٔ
+        روشن وسط صفحه می‌سازند که روی زمینهٔ سورمه‌ای خودش را نشان
+        می‌داد و هیرو را به شکل یک «باکس روشن» درمی‌آورد. خودِ خانه‌های
+        متحرک بالا می‌مانند چون محو و نامرئی هستند.
+      */}
     </div>
   )
 }
