@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useApp, ACCENTS, notifySupported, notifyPermission, requestNotifyPermission } from '../lib/store'
 import { useI18n } from '../lib/i18n'
@@ -14,6 +14,21 @@ const THEME_KEYS = { midnight: 'settings.theme_midnight', ocean: 'settings.theme
 
 const FONT_STEPS = [['settings.fontSize_small', 0.9], ['settings.fontSize_normal', 1], ['settings.fontSize_large', 1.2], ['settings.fontSize_xlarge', 1.4]]
 
+/**
+ * آیا راهنمای «افزودن به صفحهٔ اصلی» به کار می‌آید؟
+ * فقط iOS در وب — روی اندروید و دسکتاپ چیزی برای گفتن نیست،
+ * چون مرورگر خودش دکمهٔ نصب دارد.
+ */
+function canShowInstallGuide() {
+  if (typeof window === 'undefined') return false
+  if (window.__IS_NATIVE_APP__) return false
+  if (window.matchMedia('(display-mode: standalone)').matches) return false
+  if (window.navigator.standalone === true) return false
+  const ua = window.navigator.userAgent || ''
+  return /iphone|ipad|ipod/i.test(ua) ||
+    (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)
+}
+
 export default function Settings() {
   const { db, mutate, toast } = useApp()
   const { t, lang, setLang } = useI18n()
@@ -27,6 +42,10 @@ export default function Settings() {
   const [pwBusy, setPwBusy] = useState(false)
   const [pwErr, setPwErr] = useState('')
   const [showPw, setShowPw] = useState(false)
+
+  /* راهنمای نصب صفحهٔ اصلی — فقط روی آیفون/آیپد در وب */
+  const [canInstall, setCanInstall] = useState(false)
+  useEffect(() => { setCanInstall(canShowInstallGuide()) }, [])
 
   const setAccent = (v) => { mutate((d) => { d.settings.accent = v }); toast(t('settings.toastAccent')) }
   const setFont = (v) => { mutate((d) => { d.settings.fontScale = v }); toast(t('settings.toastFont')) }
@@ -220,6 +239,19 @@ export default function Settings() {
           <div className="setting-title"><b>{t('settings.wakeNotify')}</b><span>{t('settings.wakeNotifyHint')}</span></div>
           <button className={'switch' + (s.wakeNotify ? ' on' : '')} onClick={() => toggle('wakeNotify')} role="switch" aria-checked={!!s.wakeNotify} />
         </div>
+
+        {/* آموزش نصب روی صفحهٔ اصلی — فقط روی iOS و فقط در وب */}
+        {canInstall && (
+          <div className="setting-row">
+            <div className="setting-title"><b>{t('settings.installGuide')}</b></div>
+            <button
+              className="btn ghost"
+              onClick={() => window.dispatchEvent(new Event('rg:open-install-guide'))}
+            >
+              {t('settings.installGuide')}
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* ---------- داده‌ها ---------- */}
