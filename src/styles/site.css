@@ -252,7 +252,17 @@
 .live-stat b { font-size: 21px; font-weight: 800; color: var(--site-accent-2); line-height: 1.2; }
 .live-stat span { font-size: 11.5px; color: var(--site-muted); }
 
-.hm-wrap { --hm-cell: 20px; --hm-gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+/*
+ * اندازهٔ خانه‌های جدول هر روز.
+ *
+ * این مقدار عمداً روی :root (نه روی همین کلاس) می‌نشیند تا media query
+ * پایین‌تر بتواند آن را در موبایل بازنویسی کند. اگر روی خودِ کلاس
+ * بنشیند، specificity کلاس از شبه‌کلاس :root بیشتر است و قانون
+ * موبایل هرگز اجرا نمی‌شود — همان اشتباهی که قبلاً سرریز افقی می‌ساخت.
+ */
+:root { --hm-cell: 20px; --hm-gap: 5px; }
+/* اسکرول افقی فقط داخل خودِ جدول — تا هیچ‌وقت صفحه را پهن نکند */
+.hm-wrap { overflow-x: auto; padding-bottom: 4px; }
 .hm-wrap::-webkit-scrollbar { height: 6px; }
 .hm-wrap::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, .3); border-radius: 3px; }
 
@@ -638,7 +648,15 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
 }
 
 @media (max-width: 560px) {
-  :root { --hm-cell: 11px; --hm-gap: 3px; }
+  /*
+   * اندازهٔ خانهٔ جدول در موبایل. این قانون باید روی :root بنشیند تا
+   * بتواند مقدار پیش‌فرض بالا را بازنویسی کند — وگرنه قانون کلاس
+   * قوی‌تر است و جدول از عرض صفحه بیرون می‌زند.
+   */
+  :root { --hm-cell: 10px; --hm-gap: 3px; }
+  /* روزهای هفته هم در موبایل باریک‌تر می‌شود تا مجموعشان جا شود */
+  .hm-days { width: 38px; font-size: 10px; }
+  .hm-body { gap: 5px; }
   .site-section { padding-inline: 16px; }
   .site-hero { padding-inline: 16px; min-height: 88vh; }
   .dl-card { padding: 24px 20px; }
