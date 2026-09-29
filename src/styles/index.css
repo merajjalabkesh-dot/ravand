@@ -40,7 +40,6 @@ body {
   font-size: 15px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
   touch-action: pan-y;
 }
 body::before {
@@ -748,4 +747,62 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 /* ---------- Task reorder ---------- */
 .task-move { color: var(--muted); padding: 5px 6px; border-radius: 8px; transition: color .15s, background .15s; flex-shrink: 0; }
 .task-move:hover:not(:disabled) { color: var(--accent); background: rgba(124,92,252,.12); }
+
+/* ============================================================
+   نوار پایین موبایل
+   ------------------------------------------------------------
+   روی دسکتاپ پنهان است و سایدبار چپ کار می‌کند. روی موبایل سایدبار
+   پنهان می‌شود و همین نوار پایین صفحه جایش را می‌گیرد.
+   ============================================================ */
+.app-tabbar { display: none; }
+
+@media (max-width: 700px) {
+  /* سایدبار در موبایل جایی ندارد — نوار پایین جایگزینش است */
+  .sidebar { display: none; }
+
+  /* محتوا بالای نوار با فاصله بماند تا زیر نوار نرود */
+  .main { padding: 20px 16px calc(78px + env(safe-area-inset-bottom)); }
+
+  .app-tabbar {
+    display: flex;
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 90;
+    background: var(--sidebar-bg, rgba(18, 20, 28, .92));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--glass-border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .app-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 0;
+    transition: color .18s, background .18s;
+  }
+  .app-tab svg { width: 21px; height: 21px; flex-shrink: 0; opacity: .8; transition: opacity .18s, color .18s; }
+  .app-tab:hover { color: var(--ink-mid); }
+  .app-tab.active { color: #fff; background: linear-gradient(135deg, rgba(124, 92, 252, .22), rgba(67, 232, 168, .10)); }
+  .app-tab.active svg { color: var(--accent); opacity: 1; }
+  /* در عرض خیلی کم، متن زیر آیکون حذف می‌شود تا هفت آیکون جا شوند */
+  .app-tab-label { display: none; }
+  @media (min-width: 400px) { .app-tab-label { display: block; } }
+  .app-tab-out { color: var(--muted); }
+  .app-tab-out:hover { color: #f87171; background: rgba(248, 113, 113, .12); }
+  .app-tab-out:active { background: rgba(248, 113, 113, .2); }
+}
+
+/* روی نمایشگرهای خیلی بلند (iPad عمودی) هم نوار پایین بماند */
+@media (min-width: 701px) {
+  .app-tabbar { display: none !important; }
+}
 .task-move:disabled { opacity: .25; cursor: not-allowed; }

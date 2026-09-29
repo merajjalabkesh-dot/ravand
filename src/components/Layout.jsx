@@ -66,6 +66,25 @@ export default function Layout({ children }) {
       </aside>
 
       <main className="main">{children}</main>
+
+      {/*
+       * نوار پایین موبایل. روی دسکتاپ پنهان است و سایدبار کار می‌کند.
+       * همان هفت آیکون سایدبار، ولی بدون متن و در یک ردیف افقی.
+       */}
+      <nav className="app-tabbar" aria-label={t('nav.brand')}>
+        {NAV.map((n) => (
+          <Link key={n.to} to={n.to} className={'app-tab' + (loc.pathname === n.to ? ' active' : '')} aria-label={t(n.key)}>
+            <Svg d={n.icon} />
+            <span className="app-tab-label">{t(n.key)}</span>
+          </Link>
+        ))}
+        <button className="app-tab app-tab-out" onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" />
+          </svg>
+          <span className="app-tab-label">{t('nav.logout')}</span>
+        </button>
+      </nav>
     </div>
   )
 }
