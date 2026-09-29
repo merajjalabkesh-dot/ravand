@@ -81,8 +81,16 @@
  * و ریل تمام‌عرض است تا کل عرض را بپوشاند.
  */
 .landing-page > section { background: var(--lp-rail, #a9cdf7); }
-.landing-page [data-gp-content] { padding-inline: 0; }
-.gp-rail { position: relative; z-index: 2; width: 100%; background: #0a1733; }
+/*
+ * جلوگیری از «grid blowout» در موبایل: ستون autoِ این گرید به اندازهٔ
+ * min-content ریل (~۸۰۰px) باز می‌شد و چون RTL بود، ~۴۰۰px از سمت چپ
+ * از صفحه بیرون می‌زد (متن‌ها بریده، سمت راست خالی). روی دسکتاپ چون
+ * عرض صفحه بیشتر از ۸۰۰ بود، ستون کل عرض را پر می‌کرد و ایراد پنهان می‌ماند.
+ * minmax(0,1fr) ستون را دقیقاً به عرض کانتینر می‌برد و min-width:0
+ * جلوی بزرگ‌شدن خودِ آیتم (automatic minimum) را می‌گیرد.
+ */
+.landing-page [data-gp-content] { padding-inline: 0; grid-template-columns: minmax(0, 1fr); }
+.gp-rail { position: relative; z-index: 2; width: 100%; min-width: 0; background: #0a1733; }
 .gp-rail-foot { padding: 40px 24px; }
 
 /* ---------------- نشانهٔ برند ---------------- */
@@ -160,7 +168,8 @@
 .site-hero {
   position: relative; overflow: hidden;
   padding: clamp(56px, 10vw, 110px) 22px clamp(44px, 6vw, 76px);
-  min-height: 92vh; display: flex; align-items: center; justify-content: center;
+  min-height: 92vh; height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 .site-hero.compact { padding-block: clamp(44px, 7vw, 84px) clamp(32px, 5vw, 54px); min-height: 0; }
 .site-hero-in {
@@ -649,26 +658,151 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
 
 @media (max-width: 560px) {
   /*
-   * اندازهٔ خانهٔ جدول در موبایل. این قانون باید روی :root بنشیند تا
-   * بتواند مقدار پیش‌فرض بالا را بازنویسی کند — وگرنه قانون کلاس
-   * قوی‌تر است و جدول از عرض صفحه بیرون می‌زند.
+   * === موبایل واقعی: تایپوگرافی، فاصله، گرید، کارت‌ها، هت‌مپ ===
+   * این بلاک جایگزین تمام قواعد موبایل سطحی قبلی است.
+   * هدف: در 393pxعرض، همه‌چیز راحت بخواند، دکمه‌ها لمسی باشند،
+   * گریدها یک‌ستونه شوند، و هیچ‌چیز از صفحه بیرون نزند.
    */
-  :root { --hm-cell: 10px; --hm-gap: 3px; }
-  /* روزهای هفته هم در موبایل باریک‌تر می‌شود تا مجموعشان جا شود */
-  .hm-days { width: 38px; font-size: 10px; }
-  .hm-body { gap: 5px; }
-  .site-section { padding-inline: 16px; }
-  .site-hero { padding-inline: 16px; min-height: 88vh; }
-  .dl-card { padding: 24px 20px; }
-  .login-card { padding: 32px 22px 26px; }
-  .login-top { top: 16px; inset-inline: 16px; }
-  .site-hero-cta .site-btn { width: 100%; }
-  .site-hero-points li { padding: 6px 12px; font-size: 12px; }
-  .live-card { padding: 22px 18px 20px; border-radius: 22px; }
-  .site-foot-in { grid-template-columns: 1fr; }
-  .cmp-head, .cmp-row { grid-template-columns: 1fr 66px 66px; }
-  .cmp-feat { padding: 0 14px; font-size: 13px; }
-  .price-amount b { font-size: 34px; }
+
+  /* ریشه‌ها: هت‌مپ و گپ */
+  :root {
+    --hm-cell: 10px;
+    --hm-gap: 3px;
+    --site-max: 100%;
+  }
+
+  /* ========== لایوت پایه ========== */
+  .site-section { padding: clamp(32px, 7vw, 48px) 16px; }
+  .site-hero { padding: clamp(40px, 8vw, 64px) 16px clamp(32px, 6vw, 48px); min-height: 0; height: auto; }
+  .site-hero-in { gap: 18px; }
+  .site-sec-head { margin-bottom: 28px; }
+  .site-kicker { font-size: clamp(14px, 3.5vw, 17px); margin-bottom: 10px; }
+  .site-sec-title { font-size: clamp(22px, 5.5vw, 30px); line-height: 1.35; }
+  .site-sec-sub { font-size: 14px; line-height: 1.8; max-width: 100%; margin-top: 10px; }
+
+  /* ========== هیرو ========== */
+  .site-hero-title { font-size: clamp(26px, 7.5vw, 40px); margin: 18px 0 12px; letter-spacing: -.02em; }
+  .site-hero-sub { font-size: clamp(14px, 3.5vw, 16px); line-height: 1.8; margin: 0; max-width: 100%; }
+  .site-hero-cta { flex-direction: column; gap: 10px; margin-top: 24px; width: 100%; }
+  .site-hero-cta .site-btn { width: 100%; min-width: 0; padding: 14px 20px; font-size: 15px; }
+  .site-hero-points { gap: 8px; margin-top: 24px; font-size: 12px; }
+  .site-hero-points li { padding: 8px 14px; font-size: 12px; border-radius: 999px; }
+
+  /* ========== متن پیش‌اسکرول (landing-front) ========== */
+  .landing-front-lead { font-size: clamp(18px, 4.5vw, 26px); max-width: 100%; padding: 0 8px; line-height: 1.4; }
+  .landing-front-hint { font-size: 13px; max-width: 100%; }
+
+  /* ========== کارت‌های شیشه‌ای (rv-glass) ========== */
+  .rv-glass, .rv-glass-strong { border-radius: 18px; }
+  .feat-card { padding: 20px 16px; border-radius: 18px; }
+  .feat-icon { width: 44px; height: 44px; margin-bottom: 12px; }
+  .feat-card h3 { font-size: 16px; margin-bottom: 6px; }
+  .feat-card p { font-size: 13.5px; line-height: 1.8; }
+
+  .live-card { padding: 20px 16px 18px; border-radius: 20px; }
+  .live-head { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+  .live-title { font-size: 24px; }
+  .live-stats { width: 100%; gap: 16px; justify-content: space-between; }
+  .live-stat { align-items: center; }
+  .live-stat b { font-size: 18px; }
+  .live-stat span { font-size: 10.5px; }
+
+  .cmp { border-radius: 18px; }
+  .cmp-head, .cmp-row { grid-template-columns: 1fr 56px 56px; gap: 8px; }
+  .cmp-head { padding: 12px 0; }
+  .cmp-row { padding: 12px 0; }
+  .cmp-feat { padding: 0 10px; font-size: 12.5px; line-height: 1.6; }
+  .cmp-cell { font-size: 11.5px; padding: 0 6px; }
+
+  .aud-grid { grid-template-columns: 1fr; gap: 12px; }
+  .aud-item { padding: 18px 16px; gap: 12px; }
+  .aud-num { width: 32px; height: 32px; font-size: 13px; }
+  .aud-item h3 { font-size: 15px; }
+  .aud-item p { font-size: 12.5px; line-height: 1.8; }
+
+  .voice-grid { grid-template-columns: 1fr; gap: 12px; }
+  .voice { padding: 20px 16px; gap: 14px; }
+  .voice-text { font-size: 13.5px; line-height: 1.9; }
+  .voice-avatar { width: 36px; height: 36px; font-size: 13px; }
+
+  .price-grid { grid-template-columns: 1fr; gap: 14px; max-width: 360px; }
+  .price-card { padding: 24px 18px 20px; border-radius: 20px; }
+  .price-name { font-size: 16px; }
+  .price-amount b { font-size: 32px; }
+  .price-text { font-size: 13.5px; line-height: 1.8; margin: 10px 0; }
+  .price-feats { gap: 7px; font-size: 12.5px; }
+  .price-feats li { gap: 7px; }
+  .price-card .site-btn { width: 100%; padding: 13px 18px; font-size: 14.5px; }
+
+  .dl-grid { grid-template-columns: 1fr; gap: 14px; }
+  .dl-grid.compact { grid-template-columns: 1fr; }
+  .dl-card { padding: 22px 18px; border-radius: 20px; gap: 12px; }
+  .dl-icon { width: 44px; height: 44px; border-radius: 14px; }
+  .dl-name { font-size: 17px; }
+  .dl-text { font-size: 13.5px; line-height: 1.85; }
+  .dl-points { gap: 6px; font-size: 12.5px; }
+  .dl-card .site-btn { width: 100%; padding: 13px 18px; font-size: 14.5px; }
+
+  .steps-grid { grid-template-columns: 1fr; gap: 12px; }
+  .step { padding: 20px 16px; border-radius: 18px; }
+  .step-n { width: 36px; height: 36px; font-size: 14px; margin-bottom: 10px; }
+  .step h3 { font-size: 15px; }
+  .step p { font-size: 12.5px; line-height: 1.8; }
+
+  .faq-list { gap: 8px; }
+  .faq-q { padding: 14px 16px; font-size: 14.5px; gap: 10px; }
+  .faq-sign { width: 24px; height: 24px; font-size: 15px; }
+  .faq-a { padding: 0 16px 16px; }
+  .faq-a p { font-size: 13.5px; line-height: 1.9; }
+
+  .chan-grid { grid-template-columns: 1fr; gap: 12px; max-width: 100%; }
+  .chan-card { padding: 18px 16px; gap: 12px; }
+  .chan-icon { width: 44px; height: 44px; border-radius: 14px; }
+  .chan-name { font-size: 15.5px; }
+  .chan-text { font-size: 12.5px; line-height: 1.7; margin-top: 5px; }
+
+  .site-cta-band { padding: 0 16px clamp(40px, 8vw, 64px); }
+  .site-cta-in { padding: clamp(28px, 6vw, 44px) 20px; border-radius: 22px; }
+  .site-cta-in h2 { font-size: clamp(20px, 5vw, 26px); margin-bottom: 10px; }
+  .site-cta-in p { font-size: 14px; margin-bottom: 20px; }
+  .site-cta-btns { flex-direction: column; width: 100%; gap: 10px; }
+  .site-cta-btns .site-btn { width: 100%; padding: 14px 20px; font-size: 15px; }
+
+  /* ========== هت‌مپ ========== */
+  .hm-days { width: 34px; font-size: 9px; }
+  .hm-body { gap: 4px; }
+  .hm-wrap { padding-bottom: 2px; }
+  .hm-foot { flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 14px; }
+  .hm-legend { gap: 2px; }
+  .hm-legend-label { font-size: 10px; }
+  .hm-detail { padding: 16px 14px; border-radius: 16px; }
+  .hm-detail-head { gap: 10px; padding-bottom: 10px; margin-bottom: 12px; }
+  .hm-detail-title { font-size: 16.5px; }
+  .hm-chip { padding: 3px 9px; font-size: 11px; border-radius: 999px; }
+  .hm-close { width: 28px; height: 28px; font-size: 18px; border-radius: 8px; }
+  .hm-detail-grid { grid-template-columns: 1fr; gap: 16px; }
+  .hm-detail-col h4 { font-size: 12px; margin-bottom: 8px; }
+  .hm-row { gap: 9px; padding: 6px 0; }
+  .hm-box { width: 16px; height: 16px; border-width: 1.2px; }
+  .hm-row-text { font-size: 12.5px; line-height: 1.5; }
+  .hm-journal { padding: 10px 12px; font-size: 12.5px; line-height: 1.8; border-radius: 11px; }
+
+  /* ========== فوتر ========== */
+  .site-foot-in { grid-template-columns: 1fr; gap: 24px; padding: 36px 16px 24px; }
+  .site-foot-tag { max-width: 100%; font-size: 12.5px; line-height: 1.85; }
+  .site-foot-col { gap: 9px; }
+  .site-foot-col h3 { font-size: 12.5px; margin-bottom: 1px; }
+  .site-foot-col a { font-size: 12.5px; }
+  .site-foot-bar { flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 14px 16px; font-size: 11.5px; }
+
+  /* ========== درباره ========== */
+  .about-body { gap: 14px; }
+  .about-body p { padding: 18px 16px; font-size: 14.5px; line-height: 1.95; border-radius: 16px; }
+  .about-body .about-lead { font-size: 15.5px; padding: 18px 16px; }
+
+  /* ========== فوتر ریل (gp-rail-foot) ========== */
+  .gp-rail-foot { padding: 32px 16px; }
+  .site-foot-bar { padding: 14px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

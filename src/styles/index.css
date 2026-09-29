@@ -506,9 +506,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   .nav { flex-direction: row; gap: 2px; padding: 0; flex: 1; }
   .nav button, .nav a.navlink { flex-direction: column; gap: 3px; padding: 8px 2px; font-size: 10px; text-align: center; border-radius: 10px; }
   .nav button svg, .nav a.navlink svg { width: 20px; height: 20px; }
-  .home-page { flex: none; }
-  .home-sections { flex: none; }
-  .home-sections > .glass { display: block; }
+  /* روی تبلت: سایدبار بالا می‌نشیند، .main همچنان flex:1 است */
   .main { padding: 22px 16px 92px; }
   .home-sections { grid-template-columns: 1fr; }
 }
@@ -760,7 +758,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   /* سایدبار در موبایل جایی ندارد — نوار پایین جایگزینش است */
   .sidebar { display: none; }
 
-  /* محتوا بالای نوار با فاصله بماند تا زیر نوار نرود */
   .main { padding: 20px 16px calc(78px + env(safe-area-inset-bottom)); }
 
   .app-tabbar {
