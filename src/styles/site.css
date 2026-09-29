@@ -37,7 +37,11 @@
  * بالای ویوپورت شروع می‌شود. --lp-bg با اسکرول از آبی روشن به سورمه‌ای
  * می‌رود، پس در هر دو حالت یکدست می‌ماند.
  */
-.landing-page { min-height: 100vh; background: #0a1733; --lp-bg: #a9cdf7; --lp-rail: #a9cdf7; --lp-tint: 0; }
+.landing-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eaf3ff 0%, #dbe9fc 26%, #e8f1fd 100%) !important;
+  --lp-bg: #a9cdf7; --lp-rail: #a9cdf7; --lp-tint: 0;
+}
 /* هدر لندینگ: تا اول صفحه پنهان، بعد از اسکرول می‌آید */
 .landing-bar {
   position: fixed; inset: 0 0 auto 0; z-index: 70;
@@ -81,16 +85,8 @@
  * و ریل تمام‌عرض است تا کل عرض را بپوشاند.
  */
 .landing-page > section { background: var(--lp-rail, #a9cdf7); }
-/*
- * جلوگیری از «grid blowout» در موبایل: ستون autoِ این گرید به اندازهٔ
- * min-content ریل (~۸۰۰px) باز می‌شد و چون RTL بود، ~۴۰۰px از سمت چپ
- * از صفحه بیرون می‌زد (متن‌ها بریده، سمت راست خالی). روی دسکتاپ چون
- * عرض صفحه بیشتر از ۸۰۰ بود، ستون کل عرض را پر می‌کرد و ایراد پنهان می‌ماند.
- * minmax(0,1fr) ستون را دقیقاً به عرض کانتینر می‌برد و min-width:0
- * جلوی بزرگ‌شدن خودِ آیتم (automatic minimum) را می‌گیرد.
- */
-.landing-page [data-gp-content] { padding-inline: 0; grid-template-columns: minmax(0, 1fr); }
-.gp-rail { position: relative; z-index: 2; width: 100%; min-width: 0; background: #0a1733; }
+.landing-page [data-gp-content] { padding-inline: 0; }
+.gp-rail { position: relative; z-index: 2; width: 100%; background: transparent; }
 .gp-rail-foot { padding: 40px 24px; }
 
 /* ---------------- نشانهٔ برند ---------------- */
@@ -670,6 +666,10 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
     --hm-gap: 3px;
     --site-max: 100%;
   }
+
+  /* جلوگیری از grid blowout در موبایل: ستون auto → minmax(0,1fr) + min-width:0 */
+  .landing-page [data-gp-content] { padding-inline: 0; grid-template-columns: minmax(0, 1fr); }
+  .gp-rail { position: relative; z-index: 2; width: 100%; min-width: 0; background: transparent; }
 
   /* ========== لایوت پایه ========== */
   .site-section { padding: clamp(32px, 7vw, 48px) 16px; }
