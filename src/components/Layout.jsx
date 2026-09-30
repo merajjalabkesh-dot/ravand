@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../lib/store'
 import { useI18n } from '../lib/i18n'
@@ -19,10 +19,57 @@ const Svg = ({ d }) => (
   </svg>
 )
 
+function AtsBanner({ onDismiss, t }) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+  const show = isIOS && isSafari && !isStandalone
+  
+  if (!show) return null
+  
+  return (
+    <div className="ats-banner rv-glass-strong" role="dialog" aria-live="polite">
+      <div className="ats-content">
+        <div className="ats-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <path d="M3 9h18"/>
+            <path d="M9 21V9"/>
+          </svg>
+        </div>
+        <div className="ats-text">
+          <div className="ats-title">روند را روی صفحهٔ اصلی نصب کن</div>
+          <div className="ats-sub">برای دسترسی سریع، از منوی اشتراک‌گذاری «افزودن به صفحهٔ اصلی» را بزن.</div>
+        </div>
+      </div>
+      <button className="ats-dismiss" onClick={onDismiss} aria-label="بستن">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 export default function Layout({ children }) {
   const { db, mutate, toast, signOutWithBackend } = useApp()
   const { t } = useI18n()
   const loc = useLocation()
+
+  const [showAtsBanner, setShowAtsBanner] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+    const dismissed = localStorage.getItem('ats-dismissed') === 'true'
+    return isIOS && isSafari && !isStandalone && !dismissed
+  })
+
+  const dismissAtsBanner = () => {
+    localStorage.setItem('ats-dismissed', 'true')
+    setShowAtsBanner(false)
+  }
 
   const logout = () => {
     if (!confirm(t('nav.logoutConfirm'))) return
@@ -32,8 +79,10 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="app">
-      <aside className="sidebar">
+      <div className="app">
+        {showAtsBanner && <AtsBanner onDismiss={dismissAtsBanner} t={t} />}
+      
+        <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg>
