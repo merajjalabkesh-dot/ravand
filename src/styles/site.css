@@ -569,6 +569,47 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .landing-front-lead { font-size: clamp(18px, 4.5vw, 26px); max-width: 100%; padding: 0 8px; line-height: 1.4; }
   .landing-front-hint { font-size: 13px; max-width: 100%; }
 
+  /* ========== GlyphPortal موبایل ========== */
+  /* طول اسکرول پورتال از prop جاوااسکریپت می‌آید (Landing.jsx) نه از CSS */
+  .gp-rail {
+    padding-top: 24px;
+  }
+  .landing-front {
+    inset: auto 16px 5% 16px !important;
+  }
+  .landing-front-lead {
+    font-size: clamp(16px, 4.5vw, 22px);
+    line-height: 1.35;
+  }
+  .landing-front-hint {
+    font-size: 12px;
+  }
+
+  /* ========== هت‌مپ موبایل — سلول‌های بزرگ‌تر لمسی ========== */
+  :root {
+    --hm-cell: 14px;
+    --hm-gap: 3px;
+  }
+  .hm-days { width: 34px; font-size: 9px; }
+  .hm-body { gap: 4px; }
+  .hm-wrap { overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+  .hm-months { min-width: max-content; }
+  .hm-foot { flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 14px; }
+  .hm-legend { gap: 3px; }
+  .hm-legend-label { font-size: 11px; }
+  .hm-detail { padding: 16px 14px; border-radius: 16px; }
+  .hm-detail-head { gap: 10px; padding-bottom: 10px; margin-bottom: 12px; }
+  .hm-detail-title { font-size: 16.5px; }
+  .hm-chip { padding: 3px 9px; font-size: 11px; border-radius: 999px; }
+  .hm-close { width: 34px; height: 34px; font-size: 19px; border-radius: 9px; }
+  .hm-detail-grid { grid-template-columns: 1fr; gap: 16px; }
+  .hm-detail-col h4 { font-size: 12px; margin-bottom: 8px; }
+  .hm-row { gap: 9px; padding: 7px 0; }
+  .hm-box { width: 17px; height: 17px; border-width: 1.2px; }
+  .hm-row-text { font-size: 12.5px; line-height: 1.5; }
+  .hm-journal { padding: 10px 12px; font-size: 12.5px; line-height: 1.8; border-radius: 11px; }
+  .hm-hint { font-size: 12px; }
+
   /* ========== کارت‌های شیشه‌ای (rv-glass) ========== */
   .rv-glass, .rv-glass-strong { border-radius: 18px; }
   .feat-card { padding: 20px 16px; border-radius: 18px; }

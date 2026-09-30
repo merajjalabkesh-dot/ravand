@@ -24,7 +24,17 @@ export default function Landing() {
   const [face, setFace] = useState(null)
   // هدر بعد از شروع اسکرول ظاهر می‌شود، نه از همان اول
   const [showBar, setShowBar] = useState(false)
+  // طول اسکرول پورتال: در موبایل کوتاه‌تر تا کاربر زودتر به ریل محتوا برسد
+  const [scrollLen, setScrollLen] = useState(3.2)
   const shellRef = useRef(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    const apply = () => setScrollLen(mq.matches ? 2.2 : 3.2)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
 
   useEffect(() => {
     setPageMeta({
@@ -103,7 +113,7 @@ export default function Landing() {
           word="Ravand"
           fontFamily={face}
           fontWeight={700}
-          scrollLength={3.2}
+          scrollLength={scrollLen}
           interactive
           focusChar="n"
           annotations={false}
