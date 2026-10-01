@@ -215,13 +215,13 @@ export const SITE = {
       id: 'windows', icon: 'windows', name: 'ویندوز', latin: 'Windows', ext: '',
       text: 'نصب‌کنندهٔ آماده برای ویندوز ۱۰ و بالاتر. روی دسکتاپ اجرا می‌شود و برای کار روزانه نیازی به اینترنت ندارد.',
       points: ['ویندوز ۱۰ و ۱۱', 'کارکرد آفلاین کامل', 'فشرده‌سازی و کارکرد سریع'],
-      href: '/downloads/Ravand-Setup.exe', primary: true,
+      href: 'https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/Ravand-Setup.exe', primary: true,
     },
     {
       id: 'android', icon: 'android', name: 'اندروید', latin: 'Android', ext: '',
       text: 'نصب مستقیم روی گوشی اندرویدی. فایل را دانلود کن، نصب کن و با همان حساب وارد شو.',
       points: ['اندروید ۸ به بالا', 'نصب مستقیم از فایل', 'اجرا در حالت آفلاین'],
-      href: '/downloads/ravand.apk', primary: true,
+      href: 'https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/ravand.apk', primary: true,
     },
     {
       id: 'web', icon: 'web', name: 'وب‌اپ', latin: 'Web App', ext: '',
