@@ -23,6 +23,17 @@
       // فقط در بیلد native (Tauri / Capacitor) true است؛ روی وب باید false بماند
       // تا راهنمای «افزودن به صفحهٔ اصلی» برای کاربران وب‌اپ نمایش داده شود.
       window.__IS_NATIVE_APP__ = !!(window.__TAURI_INTERNALS__ || window.Capacitor);
+      // در WebView کپاسیتور گاهی bridge کمی بعد از این اسکریپت تزریق می‌شود؛
+      // چند لحظه دوباره چک می‌کنیم تا بیلد APK/EXE درست تشخیص داده شود.
+      (function () {
+        var t = setInterval(function () {
+          if (window.__TAURI_INTERNALS__ || window.Capacitor) {
+            window.__IS_NATIVE_APP__ = true;
+            clearInterval(t);
+          }
+        }, 50);
+        setTimeout(function () { clearInterval(t); }, 5000);
+      })();
       localStorage.setItem('theme', 'midnight');
     </script>
     <script type="module" src="./src/main-app.jsx"></script>

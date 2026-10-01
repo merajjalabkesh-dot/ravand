@@ -10,6 +10,33 @@
 
 پس تقسیم کار این‌طور است: **من کد و تنظیمات کامل را می‌نویسم، تو یک بار خروجی می‌گیری.**
 
+> ## ✅ وضعیت فعلی (۲۰۲۶/۱۰/۰۱) — APK ساخته شد
+>
+> روی همین ویندوز **با موفقیت ساخته شد**؛ دیگر لازم نیست Android Studio را باز کنی. فقط بزن:
+>
+> ```bash
+> npm run cap:apk            # نسخه debug (۴.۴ مگابایت)
+> npm run cap:apk:release    # نسخه release امضاشده (۳.۳ مگابایت) ← این را روی گوشی نصب کن
+> ```
+>
+> خروجی‌ها:
+>
+> ```
+> android/app/build/outputs/apk/release/ravand-release-v1.0.apk   ← امضاشده، برای نصب
+> android/app/build/outputs/apk/debug/ravand-debug-v1.0.apk
+> ```
+>
+> سه مشکلی که قبلاً ساخت را می‌شکست اصلاح شد:
+>
+> 1. `@capacitor/cli` در `package.json` نبود → الان هست (بعد از `npm install` دستور `cap` کار می‌کند).
+> 2. اسکریپت‌های `cap:*` فایل ناموجود `dist/index-app.html` را کپی می‌کردند → حذف شد.
+> 3. سیستم فقط **Java 25** دارد که Gradle 8.14 با آن نمی‌چرخد (خطای `Unsupported class file major version 69`)
+>    → JDK 21 دانلود شد و در `android/gradle.properties` با `org.gradle.java.home` وصل شد.
+>
+> نکته: فایل‌های سنگین `public/downloads/` (نصب‌کنندهٔ ویندوز و APK قدیمی) قبلاً داخل APK می‌رفتند و
+> خروجی را به ~۱۰۰ مگابایت می‌رساندند؛ حالا `scripts/prune-cap-dist.mjs` قبل از هر `cap sync` آن‌ها را
+> از `dist` حذف می‌کند.
+
 ---
 
 # بخش ۰ — کار مشترک (فقط یک بار)
@@ -147,22 +174,28 @@ npm run cap:sync
 
 این دستور خودش `npm run build` را اجرا می‌کند، بعد `cap sync` می‌زند (یعنی `copy` + `update`).
 
-بعد پروژهٔ اندروید را باز کن:
+ساخت APK مستقیم از ترمینال (بدون Android Studio):
 
 ```bash
-npm run cap:android
+npm run cap:apk            # خروجی debug
+npm run cap:apk:release    # خروجی release امضاشده ← برای نصب روی گوشی و فروشگاه
 ```
 
-در Android Studio:
-۱. از منوی بالا **Build → Build Bundle(s) / APK(s) → Build APK(s)** را بزن.
-۲. صبر کن (اولین بیل ممکن است ۵-۱۰ دقیقه طول بکشد).
-۳. پیام سبز «APK(s) generated successfully» می‌بینی.
-۴. مسیر فایل خروجی در همان صفحه نوشته می‌شود، معمولاً:
+هر دو دستور خودشان به ترتیب `vite build` → `prune-cap-dist` → `cap sync` → `gradlew` را اجرا می‌کنند.
+اولین بار ۲-۳ دقیقه (دانلود کتابخانه‌ها) و بارهای بعدی حدود ۲۰ ثانیه طول می‌کشد. خروجی:
+
 ```
-android/app/build/outputs/apk/debug/app-debug.apk
+android/app/build/outputs/apk/release/ravand-release-v1.0.apk   ← امضاشده با کلید اختصاصی
+android/app/build/outputs/apk/debug/ravand-debug-v1.0.apk
 ```
 
-نسخهٔ **debug** با کلید خودکار که Android Studio می‌سازد امضا شده و برای نصب مستقیم روی گوشی کافی است. برای نسخهٔ نهایی که در فروشگاه منتشر می‌شود **release** می‌خواهد که کلید امضای اختصاصی لازم دارد — راهنمای امضا را بعداً می‌دهم.
+**امضای نسخهٔ release:** کلید در `android/app/ravand-release.jks` است و رمز/alias آن در
+`android/keystore.properties` (هر دو داخل `android/` که در `.gitignore` است). **این دو فایل را
+حتماً نگه دار** — اگر گم شوند دیگر نمی‌شود روی نسخهٔ قبلی اپ در گوشی‌ها آپدیت زد. چون زیر
+پوشهٔ OneDrive هستند، نسخهٔ ابری هم دارند؛ یک کپی دستی جدا هم بگیر.
+
+> برای تست سریع: `npm run cap:sync` بعد `npm run cap:android` (باز کردن Android Studio) همچنان
+> کار می‌کند، ولی برای گرفتن فایل APK لازم نیست.
 
 ---
 
@@ -189,6 +222,18 @@ public/downloads/Ravand.apk
 
 **`JAVA_HOME is not set`** → مرحلهٔ ۲.۲ را کامل کن.
 
+**`Unsupported class file major version 69`** → سیستم Java 25 دارد ولی Gradle 8.14 تا Java 24 را می‌شناسد.
+`android/gradle.properties` را ببین؛ باید `org.gradle.java.home` به یک **JDK 21** اشاره کند
+(الان روی `C:/Users/meraj/.jdks/jdk-21.0.12.1+1` تنظیم است — JDK 21 را جداگانه دانلود کردم).
+
+**`Unable to delete directory ... outputs/apk/debug`** → یک پروسه هنوز فایل APK قدیمی را باز نگه داشته
+(معمولاً همگام‌ساز OneDrive یا یک پروسهٔ پایتون قدیمی). فایل `app-debug.apk` را پیدا و پاک کن، یا
+یک ری‌استارت کافی است. نسخهٔ release این مشکل را ندارد.
+
+**APK حدود ۱۰۰ مگابایت شده** → داری با `cap sync` خام می‌زنی و `dist/downloads/` (نصب‌کنندهٔ ویندوز)
+داخل APK رفته. از `npm run cap:apk` / `npm run cap:apk:release` استفاده کن که `prune-cap-dist` را
+قبلش اجرا می‌کند؛ خروجی باید حدود ۳-۴ مگابایت باشد.
+
 **`SDK location not found`** → در Android Studio از منوی `File → Settings → Languages & Frameworks → Android SDK` مسیر SDK را بررسی کن.
 
 **`Capacitor requires JDK 21`** → نسخهٔ JDK را از 17 به 21 ارتقا بده.
@@ -210,3 +255,6 @@ public/downloads/Ravand.apk
 | همگام‌سازی وب با اندروید | `npm run cap:sync` |
 | باز کردن Android Studio | `npm run cap:android` |
 | بیلد سایت برای انتشار | `npm run build` |
+| **ساخت APK (debug)** | `npm run cap:apk` |
+| **ساخت APK امضاشده (release)** | `npm run cap:apk:release` |
+| فایل خروجی نصب‌پذیر | `android/app/build/outputs/apk/release/ravand-release-v1.0.apk` |
