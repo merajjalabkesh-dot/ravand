@@ -828,6 +828,115 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   transform: scale(1.05);
 }
 
+
+/* ============================================================
+   Add to Home Tutorial Modal (for iOS Safari)
+   ============================================================ */
+.tutorial-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tutorial-fade-in 0.3s ease;
+}
+@keyframes tutorial-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tutorial-card {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 20px;
+  animation: tutorial-scale-up 0.4s cubic-bezier(.34, 1.56, .64, 1);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  overflow: hidden;
+}
+@keyframes tutorial-scale-up {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.tutorial-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #10B981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.tutorial-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.tutorial-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--site-muted), transparent);
+  margin: 12px 0;
+}
+.tutorial-steps {
+  list-style: none;
+  padding: 0 16px;
+  margin: 0;
+}
+.tutorial-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.tutorial-step:last-child {
+  margin-bottom: 0;
+}
+.tutorial-step .tutorial-btn {
+  flex-shrink: 0;
+  min-width: 80px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), .1);
+  border-radius: 10px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.tutorial-dismiss {
+  margin-top: 24px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: #10B981;
+  cursor: pointer;
+  transition: background .2s;
+}
+.tutorial-dismiss:hover {
+  background: #059669;
+}
+/* Responsive adjustments */
+@media (max-width: 350px) {
+  .tutorial-card {
+    width: 95%;
+    margin: 0 8px;
+  }
+}
 /* نوار پایین موبایل
 
 @media (max-width: 700px) {

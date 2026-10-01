@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../lib/store'
 import { useI18n } from '../lib/i18n'
+import AddToHomeTutorial from './AddToHomeTutorial'
 
 const NAV = [
   { to: '/app', key: 'nav.home', icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>' },
@@ -19,56 +20,23 @@ const Svg = ({ d }) => (
   </svg>
 )
 
-function AtsBanner({ onDismiss, t }) {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
-  const show = isIOS && isSafari && !isStandalone
-  
-  if (!show) return null
-  
-  return (
-    <div className="ats-banner rv-glass-strong" role="dialog" aria-live="polite">
-      <div className="ats-content">
-        <div className="ats-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <path d="M3 9h18"/>
-            <path d="M9 21V9"/>
-          </svg>
-        </div>
-        <div className="ats-text">
-          <div className="ats-title">روند را روی صفحهٔ اصلی نصب کن</div>
-          <div className="ats-sub">برای دسترسی سریع، از منوی اشتراک‌گذاری «افزودن به صفحهٔ اصلی» را بزن.</div>
-        </div>
-      </div>
-      <button className="ats-dismiss" onClick={onDismiss} aria-label="بستن">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-  )
-}
 
 export default function Layout({ children }) {
   const { db, mutate, toast, signOutWithBackend } = useApp()
   const { t } = useI18n()
   const loc = useLocation()
 
-  const [showAtsBanner, setShowAtsBanner] = useState(() => {
+  const dismissTutorial = () => {
+    localStorage.setItem('addHomeTutorialDismissed', 'true')
+  }
+
+  const showTutorial = () => {
     if (typeof window === 'undefined') return false
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
-    const dismissed = localStorage.getItem('ats-dismissed') === 'true'
+    const dismissed = localStorage.getItem('addHomeTutorialDismissed') === 'true'
     return isIOS && isSafari && !isStandalone && !dismissed
-  })
-
-  const dismissAtsBanner = () => {
-    localStorage.setItem('ats-dismissed', 'true')
-    setShowAtsBanner(false)
   }
 
   const logout = () => {
@@ -79,10 +47,10 @@ export default function Layout({ children }) {
   }
 
   return (
-      <div className="app">
-        {showAtsBanner && <AtsBanner onDismiss={dismissAtsBanner} t={t} />}
-      
-        <aside className="sidebar">
+    <div className="app">
+      {showTutorial() && <AddToHomeTutorial onDismiss={dismissTutorial} />}
+
+      <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg>
@@ -116,7 +84,7 @@ export default function Layout({ children }) {
 
       <main className="main">{children}</main>
 
-      {/*
+      {/* 
        * نوار پایین موبایل. روی دسکتاپ پنهان است و سایدبار کار می‌کند.
        * همان هفت آیکون سایدبار، ولی بدون متن و در یک ردیف افقی.
        */}
@@ -128,9 +96,7 @@ export default function Layout({ children }) {
           </Link>
         ))}
         <button className="app-tab app-tab-out" onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}>
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" />
-          </svg>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></svg>
           <span className="app-tab-label">{t('nav.logout')}</span>
         </button>
       </nav>
