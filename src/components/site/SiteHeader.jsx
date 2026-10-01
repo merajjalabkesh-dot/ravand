@@ -32,14 +32,18 @@ export default function SiteHeader({ floating = false }) {
   }
 
   // روی لندینگ همه‌چیز در همین صفحه است، پس لینک‌ها لنگر داخلی‌اند
-  // تا با کلیک، صفحه عوض نشود و فقط اسکرول نرم انجام شود.
-  const links = [
-    { to: '#live', label: 'نمونه' },
-    { to: '#features', label: 'امکانات' },
-    { to: '#compare', label: 'مقایسه' },
-    { to: '#pricing', label: 'تعرفه' },
-    { to: '/download', label: 'دانلود' },
-  ]
+    // تا با کلیک، صفحه عوض نشود و فقط اسکرول نرم انجام شود.
+    // اما در صفحات دیگر (مثل /download) باید به /site برویم.
+    const isSitePage = loc.pathname === '/site'
+    const makeHref = (anchor) => isSitePage ? anchor : `/site${anchor}`
+
+    const links = [
+      { to: makeHref('#live'), label: 'نمونه' },
+      { to: makeHref('#features'), label: 'امکانات' },
+      { to: makeHref('#compare'), label: 'مقایسه' },
+      { to: makeHref('#pricing'), label: 'تعرفه' },
+      { to: '/download', label: 'دانلود' },
+    ]
 
   return (
     <header className={'site-header' + (scrolled ? ' is-scrolled' : '') + (floating ? ' is-floating' : '')}>
