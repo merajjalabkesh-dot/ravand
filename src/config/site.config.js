@@ -221,7 +221,7 @@ export const SITE = {
       id: 'android', icon: 'android', name: 'اندروید', latin: 'Android', ext: '',
       text: 'نصب مستقیم روی گوشی اندرویدی. فایل را دانلود کن، نصب کن و با همان حساب وارد شو.',
       points: ['اندروید ۸ به بالا', 'نصب مستقیم از فایل', 'اجرا در حالت آفلاین'],
-      href: '/downloads/Ravand.apk', primary: true,
+      href: '/downloads/ravand.apk', primary: true,
     },
     {
       id: 'web', icon: 'web', name: 'وب‌اپ', latin: 'Web App', ext: '',

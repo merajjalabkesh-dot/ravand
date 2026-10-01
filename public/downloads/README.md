@@ -5,7 +5,7 @@
 | فایل | مسیر در سایت |
 |---|---|
 | `Ravand-Setup.exe` | `/downloads/Ravand-Setup.exe` |
-| `Ravand.apk` | `/downloads/Ravand.apk` |
+| `ravand.apk` | `/downloads/ravand.apk` |
 | `Ravand.dmg` (اختیاری، مک) | `/downloads/Ravand.dmg` |
 
 تا وقتی این فایل‌ها ساخته نشده‌اند، کارت دانلود در سایت نمایش داده می‌شود
