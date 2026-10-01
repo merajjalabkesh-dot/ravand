@@ -31,9 +31,9 @@ export default function SiteHeader({ floating = false }) {
     setOpen(false)
   }
 
-  // روی لندینگ همه‌چیز در همین صفحه است، پس لینک‌ها لنگر داخلی‌اند
-    // تا با کلیک، صفحه عوض نشود و فقط اسکرول نرم انجام شود.
-    // اما در صفحات دیگر (مثل /download) باید به /site برویم.
+  // روی لندینگ (/) و /download بخش‌های live/features/... وجود ندارند،
+    // پس لینک‌ها باید به /site#anchor بروند.
+    // فقط در /site خود لنگر داخلی است.
     const isSitePage = loc.pathname === '/site'
     const makeHref = (anchor) => isSitePage ? anchor : `/site${anchor}`
 
