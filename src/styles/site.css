@@ -297,6 +297,7 @@
 .hm-cell.lv4 { background: var(--hm-4); box-shadow: 0 0 10px rgba(245, 166, 35, .35); }
 .hm-cell.future { background: rgba(255, 255, 255, .025); }
 .hm-cell.today { outline: 1.5px solid var(--site-accent-2); outline-offset: 1px; }
+.hm-cell.selected { outline: 2px solid var(--site-accent-2); outline-offset: 2px; }
 .hm-grid .hm-cell:hover { transform: scale(1.35); box-shadow: 0 3px 12px rgba(139, 92, 246, .5); z-index: 2; position: relative; }
 
 .hm-tip {

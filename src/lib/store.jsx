@@ -381,10 +381,10 @@ export function AppProvider({ children }) {
   }, [])
 
   /* helpers (pure) */
-  const dayOf = useCallback((iso) => {
-    if (!db.days[iso]) db.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }
-    return db.days[iso]
-  }, [db.days])
+    const dayOf = useCallback((iso) => {
+      if (!db.days[iso]) db.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '', good: '', img: null } }
+      return db.days[iso]
+    }, [db.days])
 
   /* wake reminder — if user hasn't logged today's wake by their usual time, notify */
   useEffect(() => {

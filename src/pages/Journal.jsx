@@ -102,13 +102,13 @@ export default function Journal() {
         <div className="glass-title"><span>{t('journal.moodMapTitle')}</span><button className="btn ghost small" onClick={() => setDate(todayISO())}>{t('journal.today')}</button></div>
         <div className="mood-map">
           {moodMap.map((c) => (
-            <button key={c.iso} className={'mood-cell' + (c.mood ? ' has' : '') + (c.iso === date ? ' sel' : '')}
-              style={c.mood ? { background: MOOD_HEX[c.mood] } : {}}
-              title={faDate(c.iso) + (c.mood ? ' · ' + moodWord(c.mood) : '') + (c.hasText ? t('journal.moodMapHasNoteSuffix') : '')}
-              onClick={() => { setDate(c.iso); setText((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.text || '' : ''); setGood((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.good || '' : '') }}>
-              <span className="mood-cell-day">{toFa(+(c.iso.slice(8, 10)))}</span>
-            </button>
-          ))}
+                      <button key={c.iso} className={'mood-cell' + (c.mood ? ' has' : '') + (c.iso === date ? ' sel' : '')}
+                        style={c.mood ? { background: MOOD_HEX[c.mood] } : {}}
+                        title={faDate(c.iso) + (c.mood ? ' · ' + moodWord(c.mood) : '') + (c.hasText ? t('journal.moodMapHasNoteSuffix') : '')}
+                        onClick={() => { setDate(c.iso); setText((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.text || '' : ''); setGood((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.good || '' : '') }}>
+                        <span className="mood-cell-day">{toFa(jalaliOf(c.iso).jd)}</span>
+                      </button>
+                    ))}
         </div>
         <div className="mood-map-legend">
           {[1, 2, 3, 4, 5].map((m) => <span key={m} className="mood-legend-item"><span className="mood-legend-dot" style={{ background: MOOD_HEX[m] }} />{moodWord(m)}</span>)}
@@ -120,7 +120,7 @@ export default function Journal() {
         <div className="glass-title">{t('journal.editorTitle')}</div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 18 }}>
           <label style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>{t('journal.dateLabel')}</label>
-          <JalaliDatePicker value={date} onChange={(v) => { if (!v) return; setDate(v); setText((db.days[v] && db.days[v].journal) ? db.days[v].journal.text || '' : ''); setGood((db.days[v] && db.days[v].journal) ? db.days[v].journal.good || '' : '') }} />
+          <JalaliDatePicker value={date} onChange={(v) => { if (!v) return; setDate(v); setText((db.days[v] && db.days[v].journal) ? db.days[v].journal.text || '' : ''); setGood((db.days[v] && db.days[v].journal) ? db.days[v].journal.good || '' : ''); setPreviewImg((db.days[v] && db.days[v].journal) ? db.days[v].journal.img || null : null) }} />
           {date === todayISO() && <span style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 600 }}>{t('journal.today')}</span>}
         </div>
         <div className="field">

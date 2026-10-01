@@ -254,17 +254,17 @@ export default function Heatmap({ weeks = 20, labels }) {
           {cols.map((col) => col.map((cell) => {
             const lvl = cell.future ? -1 : levelOf(story[cell.iso])
             return (
-              <button
-                type="button"
-                key={cell.iso}
-                className={'hm-cell lv' + (lvl < 0 ? ' future' : lvl) + (cell.iso === today ? ' today' : '')}
-                onMouseEnter={(e) => onEnter(cell, e)}
-                onMouseMove={(e) => onMove(cell, e)}
-                onMouseLeave={() => setActive(null)}
-                onFocus={(e) => onEnter(cell, e)}
-                onClick={() => !cell.future && setOpenDay(cell.iso)}
-                aria-label={faLong(cell.iso)}
-              />
+                        <button
+                            type="button"
+                            key={cell.iso}
+                            className={'hm-cell lv' + (lvl < 0 ? ' future' : lvl) + (cell.iso === today ? ' today' : '') + (cell.iso === openDay ? ' selected' : '')}
+                            onMouseEnter={(e) => onEnter(cell, e)}
+                            onMouseMove={(e) => onMove(cell, e)}
+                            onMouseLeave={() => setActive(null)}
+                            onFocus={(e) => onEnter(cell, e)}
+                            onClick={() => !cell.future && setOpenDay(cell.iso)}
+                            aria-label={faLong(cell.iso)}
+                          />
             )
           }))}
 

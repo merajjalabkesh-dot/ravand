@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useApp, toFa, todayISO, isoAddDays, faDate, minOf, fmtMin, nextEventISO } from '../lib/store'
 import EventCard from '../components/EventCard'
 import JalaliDatePicker from '../components/JalaliDatePicker'
+import PricingTable from '../components/app/PricingTable'
 import { useI18n } from '../lib/i18n'
 
 const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 10 }, transition: { duration: .35, ease: [0.22, 1, 0.36, 1] } }
@@ -36,7 +37,7 @@ export default function Reports() {
   }
   const ds = (() => { const n = rangeDays(); const a = []; for (let i = n - 1; i >= 0; i--) a.push(isoAddDays(todayISO(), -i)); return a })()
 
-  const tabs = [['overview', 'reports.tabOverview'], ['habits', 'reports.tabHabits'], ['day', 'reports.tabDay'], ['sleep', 'reports.tabSleep'], ['events', 'reports.tabEvents']]
+  const tabs = [['overview', 'reports.tabOverview'], ['habits', 'reports.tabHabits'], ['pricing', 'reports.tabPricing'], ['day', 'reports.tabDay'], ['sleep', 'reports.tabSleep'], ['events', 'reports.tabEvents']]
 
   // ---- overview computations ----
   const avgPct = (arr) => arr.length ? Math.round(arr.reduce((s, x) => s + dayPct(x), 0) / arr.length) : 0
@@ -135,7 +136,10 @@ export default function Reports() {
   }
 
   const body = (() => {
-    if (tab === 'day') {
+      if (tab === 'pricing') {
+        return <PricingTable mode="month" />
+      }
+      if (tab === 'day') {
       return (
         <div className="glass">
           <div className="glass-title">{t('reports.recentDaysTitle')}</div>

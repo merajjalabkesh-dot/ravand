@@ -820,3 +820,441 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   .app-tabbar { display: none !important; }
 }
 .task-move:disabled { opacity: .25; cursor: not-allowed; }
+
+/* ============================================================
+   Pricing Table (Monthly/Quarterly Calendar View)
+   ============================================================ */
+.pricing-table {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.pricing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pricing-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pricing-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.pricing-controls button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  transition: all .15s;
+}
+
+.pricing-controls button:hover {
+  color: var(--ink-mid);
+  background: var(--surface-hover);
+}
+
+.pricing-controls button.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.pricing-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.legend-color.low { background: rgba(67, 232, 168, .3); }
+.legend-color.mid { background: rgba(67, 232, 168, .5); }
+.legend-color.high { background: rgba(67, 232, 168, .7); }
+.legend-color.full { background: linear-gradient(135deg, var(--accent-warm), var(--accent)); }
+.legend-color.good { background: var(--accent-2); }
+.legend-color.bad { background: #f87171; }
+
+.pricing-months {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pricing-month {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.month-header {
+  padding: 14px 16px;
+  background: var(--glass);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.month-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 12px;
+}
+
+.dow-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 6px 0;
+}
+
+.pricing-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  position: relative;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.pricing-day:hover:not(.empty):not(.future):not(.disabled) {
+  transform: scale(1.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.pricing-day.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.pricing-day.today {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.pricing-day.selected {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+  box-shadow: 0 0 14px rgba(67, 232, 168, .5);
+}
+
+.pricing-day.future {
+  opacity: .35;
+  pointer-events: none;
+}
+
+.pricing-day.has-data {
+  /* Has some data indicator */
+}
+
+.pricing-day.low { background: rgba(67, 232, 168, .25); }
+.pricing-day.mid { background: rgba(67, 232, 168, .4); }
+.pricing-day.high { background: rgba(67, 232, 168, .55); }
+.pricing-day.full { background: linear-gradient(135deg, var(--accent-warm), var(--accent)); color: #fff; }
+
+.pricing-day .day-number {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  z-index: 1;
+}
+
+.pricing-day.full .day-number { color: #fff; }
+
+.habit-badges {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  z-index: 1;
+}
+
+.habit-badge {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.habit-badge.good {
+  border: 1px solid rgba(255,255,255,.3);
+}
+
+.habit-badge.bad {
+  background: #f87171;
+  border: 1px solid rgba(255,255,255,.3);
+}
+
+.today-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+}
+
+.selected-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  border: 2px solid var(--accent-2);
+  pointer-events: none;
+}
+
+.full-indicator {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  box-shadow: 0 0 6px var(--accent-warm);
+  pointer-events: none;
+}
+
+.week-view .pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.week-view .dow-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 6px 0;
+}
+
+.week-view .pricing-day {
+  aspect-ratio: 1;
+  min-height: 60px;
+}
+
+/* Day Modal - reused from Reports but with pricing table styles */
+.day-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.day-modal {
+  width: min(560px, 100%);
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+
+.day-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.day-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+}
+
+.day-modal-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn.small {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+.day-modal-section {
+  margin-top: 20px;
+}
+
+.day-modal-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  margin-bottom: 10px;
+}
+
+.day-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.day-modal-row .mini-name {
+  flex: 1;
+}
+
+.day-modal-status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.day-modal-status.on {
+  background: rgba(67, 232, 168, .16);
+  color: var(--accent-2);
+}
+
+.day-modal-status.off {
+  background: var(--surface-hover);
+  color: var(--muted);
+}
+
+.mini-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-name {
+  font-size: 15px;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-stat {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.task-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-box.todo {
+  background: var(--surface-hover);
+  border: 1px solid var(--glass-border);
+}
+
+.task-box.done {
+  background: var(--accent-2);
+}
+
+.ttext.done {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.day-modal-journal {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.journal-img-area {
+  margin-top: 6px;
+}
+
+.journal-img-area img {
+  max-width: 100%;
+  max-height: 260px;
+  border-radius: 14px;
+  display: block;
+  margin-bottom: 10px;
+  border: 1px solid var(--glass-border);
+  cursor: zoom-in;
+}
+
+.journal-img-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn.small {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 10px;
+}

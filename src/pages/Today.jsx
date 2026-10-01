@@ -94,13 +94,13 @@ export default function Today() {
       <motion.div variants={fadeUp} className="page-head">
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <button className="day-nav" onClick={() => setIso(isoAddDays(iso, -1))} title={t('today.prevDay')} aria-label={t('today.prevDay')}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-          <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: 26 }}>{faDate(iso, true)}</h1>
-            <div className="sub">{isToday ? t('today.todaySubtitle') : t('today.otherDaySubtitle')}</div>
-          </div>
-          <button className="day-nav" onClick={() => setIso(isoAddDays(iso, 1))} title={t('today.nextDay')} aria-label={t('today.nextDay')} disabled={isToday}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
-          <JalaliDatePicker value={iso} onChange={(v) => { if (v) { setIso(v); setTaskDate(v) } }} max={todayISO()} className="today-date-input" />
-          {!isToday && <button className="btn ghost small" onClick={() => { setIso(todayISO()); setTaskDate(todayISO()) }}>{t('today.backToToday')}</button>}
+                    <div style={{ minWidth: 0 }}>
+                      <h1 style={{ fontSize: 26 }}>{faDate(iso, true)}</h1>
+                      <div className="sub">{isToday ? t('today.todaySubtitle') : t('today.otherDaySubtitle')}</div>
+                    </div>
+                    <button className="day-nav" onClick={() => setIso(isoAddDays(iso, 1))} title={t('today.nextDay')} aria-label={t('today.nextDay')} disabled={isToday}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <JalaliDatePicker value={iso} onChange={(v) => { if (v) { setIso(v); setTaskDate(v) } }} max={todayISO()} className="today-date-input" style={{ zIndex: 50 }} />
+                    {!isToday && <button className="btn ghost small" onClick={() => { setIso(todayISO()); setTaskDate(todayISO()) }}>{t('today.backToToday')}</button>}
         </div>
       </motion.div>
 
