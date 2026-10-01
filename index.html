@@ -20,7 +20,9 @@
   <body>
     <div id="root"></div>
     <script>
-      window.__IS_NATIVE_APP__ = true;
+      // فقط در بیلد native (Tauri / Capacitor) true است؛ روی وب باید false بماند
+      // تا راهنمای «افزودن به صفحهٔ اصلی» برای کاربران وب‌اپ نمایش داده شود.
+      window.__IS_NATIVE_APP__ = !!(window.__TAURI_INTERNALS__ || window.Capacitor);
       localStorage.setItem('theme', 'midnight');
     </script>
     <script type="module" src="./src/main-app.jsx"></script>
