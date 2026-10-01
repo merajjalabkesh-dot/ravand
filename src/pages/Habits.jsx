@@ -34,9 +34,14 @@ export default function Habits() {
   const relapse = (id) => { if (!confirm(t('habits.relapseConfirm'))) return; mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.habits = day.habits || {}; delete day.habits[id]; const h = s.habits.find((y) => y.id === id); if (h) h.lastRelapse = todayISO() }); toast(t('habits.relapseToast')) }
 
   const list = db.habits.length === 0 ? <div className="empty-state"><div className="big">✦</div><p>{t('habits.emptyStateLine1')}<br />{t('habits.emptyStateLine2')}</p></div>
-    : db.habits.map((h) => {
-      const bad = h.type === 'bad'
-      if (bad) {
+      : db.habits.map((h) => {
+        const bad = h.type === 'bad'
+        const indicator = bad ? (
+          <span className="habit-indicator bad" title={t('habits.typeBad')}>✕</span>
+        ) : (
+          <span className="habit-indicator good" title={t('habits.typeGood')}>✓</span>
+        )
+        if (bad) {
         const cs = cleanStreak(h.id), bs = bestClean(h.id)
         const csFa = toFa(cs)
         const cleanParts = t('habits.cleanStreakLabel', { days: csFa }).split(csFa)
@@ -46,9 +51,10 @@ export default function Habits() {
         else if (cs >= 7) msg = t('habits.milestone7')
         else if (cs >= 1) msg = t('habits.milestone1')
         return (
-          <div className="habit-manage-row bad" key={h.id}>
-            <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
-            <span className="hname">{h.name}</span>
+                  <div className="habit-manage-row bad" key={h.id}>
+                    <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
+                    {indicator}
+                    <span className="hname">{h.name}</span>
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="badge" style={{ fontSize: 9, background: 'rgba(248,113,113,.16)', color: '#f87171' }}>{t('habits.badgeBad')}</span>
               <span style={{ fontSize: 13, color: 'var(--muted)' }}>{cleanParts[0]}<b style={{ color: 'var(--accent)' }}>{csFa}{cleanParts[1]}</b></span>
@@ -66,9 +72,10 @@ export default function Habits() {
       const streakParts = t('habits.currentStreakLabel', { days: stFa }).split(stFa)
       const streakTail = streakParts.length > 1 ? streakParts[1] : ''
       return (
-        <div className="habit-manage-row" key={h.id}>
-          <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
-          <span className="hname">{h.name}</span>
+              <div className="habit-manage-row" key={h.id}>
+                <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
+                {indicator}
+                <span className="hname">{h.name}</span>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="badge good-badge">{t('habits.badgeGood')}</span>
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>{st > 0 ? t('habits.streakConsecutivePrefix', { days: stFa }) : ''}<b>{stFa}</b>{streakTail}</span>

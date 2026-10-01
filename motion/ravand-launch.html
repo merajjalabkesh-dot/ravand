@@ -1,0 +1,715 @@
+<!--
+=====================================================================
+ روند — فیلم معرفی ۱۵ ثانیه‌ای (motion graphics)
+=====================================================================
+ ساخته‌شده بر اساس پرامپت ویدیوی @ik_builds از Skillry
+ (https://skillry.dev/ai-videos/opus-5-5/ik-builds-585923)
+ — «Create a 15s motion-graphics film explaining {{PRODUCT}}…»
+ پرامپت با داده‌های واقعی پروژه روند پر شده؛ نسخهٔ کامل
+ پرامپت در motion/PROMPT.md است.
+
+ استک: GSAP 3.12 (تایم‌لاین seek-safe) + SVG/DOM + WebAudio
+ (همهٔ صداها سینتیز شده — بدون فایل صوتی خارجی، بدون مجوز)
+ فونت: Vazirmatn (فونت برند) — لوگو: همان مارک سه‌مربعِ صعودی
+ رنگ‌ها: تم midnight واقعی پروژه (بنفش #8b5cf6 / نعنایی #43e8a8)
+=====================================================================
+-->
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>روند — فیلم معرفی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    background:#05060c; overflow:hidden;
+    font-family:'Vazirmatn', sans-serif; direction:rtl;
+    -webkit-font-smoothing:antialiased;
+  }
+  #frame { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+  #stagewrap { position:relative; width:1280px; height:720px; flex:none; transform-origin:center; }
+  #stage {
+    position:absolute; inset:0; overflow:hidden; border-radius:18px;
+    background:#f7f3ea; cursor:default;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 30px 80px rgba(0,0,0,.55);
+  }
+  #stage.done { cursor:pointer; }
+  /* ————— لایه‌های عمومی ————— */
+  .layer { position:absolute; inset:0; }
+  .abs { position:absolute; }
+
+  /* ————— صحنهٔ روشن (کاغذی) ————— */
+  #grain { position:absolute; inset:0; pointer-events:none; opacity:.5; }
+  #sc-light { background:#f7f3ea; }
+
+  #card {
+    position:absolute; left:50%; top:238px; width:560px;
+    transform:translateX(-50%) rotate(-1.2deg);
+    background:#fffdf7; border-radius:22px; padding:30px 34px 26px;
+    box-shadow:0 18px 40px rgba(23,26,43,.10), 0 2px 0 rgba(23,26,43,.05);
+    border:1px solid rgba(23,26,43,.08);
+  }
+  .crow { display:flex; align-items:center; gap:18px; padding:15px 4px; direction:rtl; }
+  .crow + .crow { border-top:1px dashed rgba(23,26,43,.14); }
+  .cbox { width:46px; height:46px; flex:none; border-radius:12px;
+    border:3px solid rgba(23,26,43,.28); position:relative; background:transparent; }
+  .cbox svg { position:absolute; inset:2px; }
+  .cbox svg path { stroke:#8b5cf6; stroke-width:7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ctext { font-size:27px; font-weight:500; color:#2a2d42; white-space:nowrap; }
+
+  .kinetic { font-weight:900; color:#171a2b; white-space:nowrap; letter-spacing:-.5px; }
+  #h1 { position:absolute; top:120px; left:0; right:0; text-align:center; font-size:58px; }
+  .w { display:inline-block; overflow:hidden; vertical-align:bottom; padding:0 .12em; margin:0 -.04em; }
+  .wi { display:inline-block; }
+
+  #q1, #q2 { position:absolute; left:0; right:0; text-align:center; font-size:76px; }
+  #q1 { top:210px; } #q2 { top:320px; }
+  #q2 em { font-style:normal; color:#8b5cf6; }
+  #q2 .q2w { display:inline-block; }
+
+  .daychip { position:absolute; border-radius:8px; background:#8b5cf6; }
+
+  #mark { position:absolute; /* دایرهٔ ماژیکی دور «بهتر» */ pointer-events:none; }
+  #mark path { stroke:#8b5cf6; stroke-width:6; fill:none; stroke-linecap:round; }
+
+  /* ————— صحنهٔ تیره ————— */
+  #sc-dark { background:#0d0f1c; }
+  #vignette { position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse 75% 65% at 50% 46%, transparent 55%, rgba(0,0,0,.4)); }
+  #flash { position:absolute; inset:0; background:#fff; }
+
+  .lsq { position:absolute; width:88px; height:88px; border-radius:17px; background:#8b5cf6; }
+  #wordmark { position:absolute; top:436px; left:0; right:0; text-align:center;
+    font-size:150px; font-weight:900; color:#f0eff4; line-height:1;
+    text-shadow:0 0 60px rgba(139,92,246,.35); }
+  #subline { position:absolute; top:628px; left:0; right:0; text-align:center;
+    font-size:29px; font-weight:500; color:#c8c7d6; }
+
+  #gridhead { position:absolute; top:96px; left:0; right:0; text-align:center;
+    font-size:64px; font-weight:900; color:#f0eff4; white-space:nowrap; }
+  #grid { position:absolute; left:50%; top:214px; width:550px; margin-left:-275px;
+    display:grid; grid-template-columns:repeat(10, 46px); grid-auto-rows:46px; gap:10px;
+    direction:rtl; }
+  .cell { border-radius:11px; transform:scale(.3); }
+  .l0 { background:rgba(240,239,244,.045); box-shadow:inset 0 0 0 1px rgba(240,239,244,.08); }
+  .l1 { background:rgba(139,92,246,.28); }
+  .l2 { background:rgba(139,92,246,.5); }
+  .l3 { background:rgba(139,92,246,.78); }
+  .l4 { background:#43e8a8; box-shadow:0 0 20px rgba(67,232,168,.5); }
+  #cellmark { position:absolute; pointer-events:none; }
+  #cellmark path { stroke:#43e8a8; stroke-width:5; fill:none; stroke-linecap:round; }
+  #cellchip { position:absolute; background:rgba(67,232,168,.14); color:#43e8a8;
+    border:1px solid rgba(67,232,168,.4); border-radius:999px; padding:8px 22px;
+    font-size:24px; font-weight:700; white-space:nowrap; }
+
+  #prows { position:absolute; right:96px; top:200px; width:600px; }
+  .prow { display:flex; align-items:center; gap:16px; padding:21px 0; white-space:nowrap;
+    font-size:30px; font-weight:700; color:#f0eff4; }
+  .prow .dot { width:14px; height:14px; border-radius:4px; flex:none; background:#8b5cf6; }
+  .prow:nth-child(4) .dot { background:#43e8a8; }
+  .prow .sep { color:#8a89a0; font-weight:500; }
+  #cnt { color:#43e8a8; font-weight:900; display:inline-block; min-width:64px; text-align:center; }
+
+  #chips { position:absolute; top:268px; left:0; right:0; display:flex; gap:28px;
+    justify-content:center; direction:rtl; }
+  .chip { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.12);
+    border-radius:24px; padding:26px 30px 22px; width:250px; text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.3); }
+  .chip svg { display:block; margin:0 auto 14px; }
+  .chip .cl { font-size:29px; font-weight:900; color:#f0eff4; white-space:nowrap; }
+  .chip .cs { font-size:21px; font-weight:500; color:#8a89a0; margin-top:6px; white-space:nowrap; }
+  #faline { position:absolute; top:490px; left:0; right:0; text-align:center;
+    font-size:38px; font-weight:700; color:#c8c7d6; white-space:nowrap; }
+  #faline b { color:#8b5cf6; font-weight:900; }
+
+  /* ————— فینال ————— */
+  #glow { position:absolute; left:50%; top:214px; width:560px; height:560px;
+    margin:-280px 0 0 -280px; border-radius:50%;
+    background:radial-gradient(circle, rgba(139,92,246,.32) 0%, transparent 62%);
+    pointer-events:none; }
+  .fsq { position:absolute; width:88px; height:88px; border-radius:17px; background:#8b5cf6; }
+  .fsq.full { background:#43e8a8; box-shadow:0 0 34px rgba(67,232,168,.55); }
+  .ghost { position:absolute; width:88px; height:88px; border-radius:17px;
+    background:#43e8a8; pointer-events:none; }
+  #stepm { position:absolute; pointer-events:none; }
+  #stepm path { stroke:rgba(240,239,244,.45); stroke-width:5; fill:none; stroke-linecap:round; }
+  #finword { position:absolute; top:172px; left:790px; width:260px; text-align:center;
+    font-size:110px; font-weight:900; color:#f0eff4; line-height:1; }
+  #fintag { position:absolute; top:432px; left:0; right:0; text-align:center;
+    font-size:46px; font-weight:900; color:#f0eff4; white-space:nowrap; }
+  #fintag em { font-style:normal; color:#43e8a8; }
+  #finurl { position:absolute; top:566px; left:0; right:0; text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:22px; direction:rtl; }
+  #finurl .url { font-size:30px; font-weight:700; color:#c8c7d6;
+    font-family:'Vazirmatn',sans-serif; letter-spacing:.5px; }
+  #finurl .free { background:rgba(67,232,168,.13); color:#43e8a8;
+    border:1px solid rgba(67,232,168,.45); padding:7px 20px; border-radius:999px;
+    font-size:23px; font-weight:700; white-space:nowrap; }
+  .dust { position:absolute; width:9px; height:9px; border-radius:50%;
+    background:rgba(240,239,244,.5); pointer-events:none; }
+
+  /* ————— پوستر شروع ————— */
+  #poster { position:absolute; inset:0; background:#f7f3ea; z-index:50;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:26px; cursor:pointer; }
+  #poster .plogo { display:flex; align-items:center; gap:20px; }
+  #poster .pmark { display:flex; }
+  #poster .pword { font-size:84px; font-weight:900; color:#171a2b; }
+  #poster .ppill { display:flex; align-items:center; gap:14px;
+    border:2px solid rgba(23,26,43,.2); border-radius:999px; padding:14px 34px;
+    font-size:26px; font-weight:700; color:#2a2d42; background:#fffdf7;
+    box-shadow:0 8px 24px rgba(23,26,43,.08); }
+  #poster .ppill .tri { width:0; height:0; border-top:11px solid transparent;
+    border-bottom:11px solid transparent; border-right:19px solid #8b5cf6; }
+  #poster .pnote { font-size:20px; color:#8a89a0; font-weight:500; }
+
+  /* ————— نوار بیرون قاب ————— */
+  #bar { display:flex; align-items:center; gap:18px; color:#8a89a0;
+    font-size:17px; font-weight:500; direction:rtl; }
+  #bar button { font-family:inherit; font-size:17px; font-weight:700; cursor:pointer;
+    background:rgba(139,92,246,.16); color:#b9a5f5; border:1px solid rgba(139,92,246,.45);
+    border-radius:999px; padding:8px 24px; }
+  #bar button:hover { background:rgba(139,92,246,.28); }
+</style>
+</head>
+<body>
+<div id="frame">
+  <div id="stagewrap">
+    <div id="stage">
+
+      <!-- ــــــــ صحنهٔ روشن ــــــــ -->
+      <div class="layer" id="sc-light">
+        <svg id="grain" width="100%" height="100%">
+          <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
+          <feColorMatrix type="saturate" values="0"/></filter>
+          <rect width="100%" height="100%" filter="url(#n)" opacity="0.05"/>
+        </svg>
+        <div id="h1" class="kinetic">می‌نویسی، تیک می‌زنی…</div>
+        <div id="card">
+          <div class="crow"><div class="cbox"><svg viewBox="0 0 40 40"><path d="M9 22 L17 30 L32 11"/></svg></div><div class="ctext">درس فیزیک</div></div>
+          <div class="crow"><div class="cbox"><svg viewBox="0 0 40 40"><path d="M9 22 L17 30 L32 11"/></svg></div><div class="ctext">ورزش صبح</div></div>
+          <div class="crow"><div class="cbox"><svg viewBox="0 0 40 40"><path d="M9 22 L17 30 L32 11"/></svg></div><div class="ctext">۱۵ دقیقه کتاب</div></div>
+          <div class="crow"><div class="cbox"><svg viewBox="0 0 40 40"><path d="M9 22 L17 30 L32 11"/></svg></div><div class="ctext">۸ لیوان آب</div></div>
+        </div>
+        <div id="q1" class="kinetic">فقط تیک می‌زنی،</div>
+        <div id="q2" class="kinetic">یا داری <em>بهتر</em> می‌شوی؟</div>
+        <svg id="mark" width="1280" height="720" viewBox="0 0 1280 720"></svg>
+        <!-- تراشه‌های روزِ پراکنده -->
+        <div class="daychip" style="left:150px; top:150px; width:30px; height:30px; opacity:.14"></div>
+        <div class="daychip" style="left:210px; top:520px; width:24px; height:24px; opacity:.10"></div>
+        <div class="daychip" style="left:1080px; top:130px; width:26px; height:26px; opacity:.12"></div>
+        <div class="daychip" style="left:1120px; top:540px; width:34px; height:34px; opacity:.16"></div>
+        <div class="daychip" style="left:90px;  top:330px; width:22px; height:22px; opacity:.09"></div>
+        <div class="daychip" style="left:1180px; top:340px; width:28px; height:28px; opacity:.12"></div>
+      </div>
+
+      <!-- ــــــــ صحنهٔ تیره ــــــــ -->
+      <div class="layer" id="sc-dark">
+        <div id="vignette"></div>
+
+        <!-- گروه ۳: برند -->
+        <div class="lsq" id="sq1" style="left:496px; top:264px; opacity:.32"></div>
+        <div class="lsq" id="sq2" style="left:592px; top:184px; opacity:.62"></div>
+        <div class="lsq" id="sq3" style="left:688px; top:104px"></div>
+        <div id="wordmark">روند</div>
+        <div id="subline">کار روزانه و عادت، در یک برنامه</div>
+
+        <!-- گروه ۴: جدول -->
+        <div id="gridhead">هر روزت، یک جدول می‌شود.</div>
+        <div id="grid"></div>
+        <svg id="cellmark" width="1280" height="720" viewBox="0 0 1280 720"></svg>
+        <div id="cellchip">روز کامل</div>
+
+        <!-- گروه ۵: الگوها -->
+        <div id="prows">
+          <div class="prow"><span class="dot"></span>هفته <span class="sep">— کدام روزها منظم بودی</span></div>
+          <div class="prow"><span class="dot"></span>ماه <span class="sep">— کدام عادت را رها کردی</span></div>
+          <div class="prow"><span class="dot"></span>سه‌ماهه <span class="sep">— داری چه شکلی پیش می‌روی</span></div>
+          <div class="prow"><span class="dot"></span>ترک عادت بد <span class="sep">— روزهای پاک: </span><span id="cnt">۰</span></div>
+        </div>
+
+        <!-- گروه ۶: تراشه‌ها -->
+        <div id="chips">
+          <div class="chip">
+            <svg width="46" height="46" viewBox="0 0 46 46"><rect x="4" y="8" width="38" height="34" rx="7" fill="none" stroke="#8b5cf6" stroke-width="3.4"/><path d="M4 19 h38" stroke="#8b5cf6" stroke-width="3.4"/><path d="M16 5 v8 M30 5 v8" stroke="#8b5cf6" stroke-width="3.4" stroke-linecap="round"/><rect x="16" y="26" width="6" height="6" rx="2" fill="#8b5cf6"/><rect x="26" y="26" width="6" height="6" rx="2" fill="#8b5cf6"/></svg>
+            <div class="cl">تقویم شمسی</div><div class="cs">از روز اول</div>
+          </div>
+          <div class="chip">
+            <svg width="46" height="46" viewBox="0 0 46 46"><path d="M30 6 a17 17 0 1 0 10 25 a13.5 13.5 0 0 1 -10 -25 z" fill="none" stroke="#8b5cf6" stroke-width="3.4" stroke-linejoin="round"/></svg>
+            <div class="cl">ساعت خواب</div><div class="cs">چرخه‌های ۹۰ دقیقه</div>
+          </div>
+          <div class="chip">
+            <svg width="46" height="46" viewBox="0 0 46 46"><path d="M34 8 a6.5 6.5 0 0 1 4.5 11.3 L18 40 l-9 2 2 -9 L31.5 13.5 A6.5 6.5 0 0 1 34 8 z" fill="none" stroke="#8b5cf6" stroke-width="3.4" stroke-linejoin="round"/></svg>
+            <div class="cl">ژورنال شب</div><div class="cs">حالِ روز، نقشهٔ حال</div>
+          </div>
+        </div>
+        <div id="faline">از پایه <b>فارسی</b> — نه ترجمه‌شده.</div>
+
+        <!-- گروه ۷: فینال -->
+        <div id="glow"></div>
+        <svg id="stepm" width="1280" height="720" viewBox="0 0 1280 720"></svg>
+        <div class="ghost" id="gh1"></div>
+        <div class="ghost" id="gh2"></div>
+        <div class="ghost" id="gh3"></div>
+        <div class="fsq" id="fsq1" style="left:500px; top:252px; opacity:.32"></div>
+        <div class="fsq" id="fsq2" style="left:596px; top:172px; opacity:.62"></div>
+        <div class="fsq full" id="fsq3" style="left:692px; top:92px"></div>
+        <div id="finword">روند</div>
+        <div id="fintag">عادت‌هایت را <em>بساز</em>، روندت را <em>ببین</em>.</div>
+        <div id="finurl"><span class="url">ravand.site</span></div>
+        <div class="dust" id="d1"></div><div class="dust" id="d2"></div><div class="dust" id="d3"></div>
+        <div class="dust" id="d4"></div><div class="dust" id="d5"></div><div class="dust" id="d6"></div>
+
+        <div id="flash"></div>
+      </div>
+
+      <!-- ــــــــ پوستر ــــــــ -->
+      <div id="poster">
+        <div class="plogo">
+          <div class="pmark">
+            <svg width="96" height="96" viewBox="0 0 512 512"><g>
+              <rect x="116" y="292" width="88" height="88" rx="20" fill="#8b5cf6" opacity="0.32"/>
+              <rect x="212" y="212" width="88" height="88" rx="20" fill="#8b5cf6" opacity="0.62"/>
+              <rect x="308" y="132" width="88" height="88" rx="20" fill="#8b5cf6"/>
+            </g></svg>
+          </div>
+          <div class="pword">روند</div>
+        </div>
+        <div class="ppill"><span class="tri"></span>پخش فیلم · ۱۵ ثانیه</div>
+        <div class="pnote">با صدا پخش می‌شود</div>
+      </div>
+
+    </div>
+  </div>
+  <div id="bar">
+    <span>روند — فیلم معرفی · ۱۵ ثانیه · ۱۲۸۰×۷۲۰</span>
+    <button id="replay">دوباره ببین ⟲</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+'use strict';
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+/* ============================================================
+   موتور صدا — همهٔ افکت‌ها و موسیقی، سینتیز شده (بدون فایل خارجی)
+   ============================================================ */
+const A = {
+  ctx:null, out:null, nodes:[], nb:null,
+  init(){
+    if (this.ctx) return;
+    const C = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new C();
+    // زنجیرهٔ مستر: کمپرسور به‌عنوان لیمیتر نرم + گین کلی
+    const comp = this.ctx.createDynamicsCompressor();
+    comp.threshold.value=-12; comp.knee.value=8; comp.ratio.value=6;
+    comp.attack.value=.002; comp.release.value=.15;
+    const mg = this.ctx.createGain(); mg.gain.value=.85;
+    this.out = this.ctx.createGain();
+    this.out.connect(comp); comp.connect(mg); mg.connect(this.ctx.destination);
+    // بافر نویز سفید مشترک
+    const len = this.ctx.sampleRate;
+    this.nb = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.nb.getChannelData(0);
+    for (let i=0;i<len;i++) d[i] = Math.random()*2-1;
+  },
+  t(off){ return this.t0 + off; },           // زمان مطلق برای افستِ فیلم
+  stopAll(){ this.nodes.forEach(n=>{ try{ n.stop(); }catch(e){} }); this.nodes=[]; },
+  env(g, t, a, peak, d){
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t+a);
+    g.gain.exponentialRampToValueAtTime(.0001, t+a+d);
+  },
+  osc(type, f0, f1, t, d, peak){
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type; o.frequency.setValueAtTime(f0,t);
+    if (f1 && f1!==f0) o.frequency.exponentialRampToValueAtTime(f1, t+d);
+    o.connect(g); g.connect(this.out); this.env(g,t,.004,peak,d);
+    o.start(t); o.stop(t+d+.06); this.nodes.push(o);
+  },
+  noise(t, d, peak, fType, f0, f1){
+    const s=this.ctx.createBufferSource(); s.buffer=this.nb; s.loop=true;
+    const f=this.ctx.createBiquadFilter(); f.type=fType;
+    f.frequency.setValueAtTime(f0,t);
+    if (f1) f.frequency.exponentialRampToValueAtTime(f1, t+d);
+    const g=this.ctx.createGain(); this.env(g,t,.005,peak,d);
+    s.connect(f); f.connect(g); g.connect(this.out);
+    s.start(t); s.stop(t+d+.06); this.nodes.push(s);
+  },
+  /* —— افکت‌ها —— */
+  pop(t,p=920){ this.osc('sine', p, p*.55, t, .09, .3); },
+  blip(t,p=1250){ this.osc('square', p, p*.8, t, .045, .07); },
+  scribble(t){ this.noise(t, .3, .16, 'bandpass', 2300); },
+  whoosh(t,d=.36){ this.noise(t, d, .3, 'lowpass', 260, 2600); },
+  riser(t,d){ this.osc('sawtooth', 160, 860, t, d, .16); this.noise(t, d, .14, 'highpass', 400, 3200); },
+  slam(t){ this.osc('sine', 115, 36, t, .42, .95); this.noise(t, .16, .5, 'lowpass', 750); },
+  drop(t){ this.osc('sine', 150, 48, t, .22, .55); this.noise(t, .1, .3, 'lowpass', 1200); },
+  /* —— درام/ملودی —— */
+  kick(t){ this.osc('sine', 148, 44, t, .16, .85); },
+  hat(t,v=.12){ this.noise(t, .03, v, 'highpass', 8200); },
+  snare(t){ this.noise(t, .12, .38, 'bandpass', 1900); this.osc('triangle', 225, 185, t, .08, .2); },
+  pluck(t,f,v=.2){ this.osc('triangle', f, f, t, .28, v); },
+  bass(t,f,d=.42){ this.osc('triangle', f, f, t, d, .27); },
+
+  schedule(t0){
+    this.t0 = t0;
+    const t = o => this.t0 + o;
+    /* — بخش روشن: خلوت و کاغذی — */
+    for (let b=.25; b<3.4; b+=.5) this.hat(t(b), .09);        // هت‌های آفسپیس
+    this.bass(t(0), 73.4); this.bass(t(1.0), 73.4); this.bass(t(2.0), 87.3); this.bass(t(3.0), 98);
+    [293.7, 349.2, 392, 440, 349.2].forEach((f,i)=>this.pluck(t(.55+i*.6), f, .13));
+    /* — تیک‌های چک‌لیست — */
+    [.7,.95,1.2,1.45].forEach((o,i)=>this.pop(t(o), 980-i*60));
+    this.whoosh(t(1.9));
+    this.scribble(t(2.95));
+    this.riser(t(3.15), .62);
+    /* — کات تیره: درام‌ها حذف، بعد اسلم — */
+    this.slam(t(3.95));
+    /* — بیت کامل از ۴ ثانیه (۱۲۰ BPM) — */
+    const N = [587.3, 698.5, 784, 880];
+    for (let bt=4.0; bt<9.5; bt+=.5){
+      this.kick(t(bt));
+      this.hat(t(bt+.25), .13);
+    }
+    [4.5,5.5,6.5,7.5,8.5].forEach(o=>this.snare(t(o)));
+    for (let bar=4.0; bar<9.4; bar+=2){
+      this.bass(t(bar),   73.4);
+      this.bass(t(bar+.75), 87.3);
+      this.bass(t(bar+1.25), 98);
+      this.bass(t(bar+1.75), 110);
+    }
+    this.pluck(t(4.1), N[0]); this.pluck(t(5.1), N[2]); this.pluck(t(6.1), N[3]); this.pluck(t(7.1), N[1]);
+    /* — پاپ سلول‌ها و چیپ روز کامل — */
+    [6.1,6.5,6.9,7.15,7.3].forEach((o,i)=>this.blip(t(o), 1100+i*90));
+    this.pop(t(7.05), 1150);
+    /* — الگوها: ردیف‌ها و شمارنده — */
+    [8.0,8.2,8.4].forEach(o=>this.whoosh(t(o), .18));
+    for (let i=0;i<10;i++) this.blip(t(8.6+i*.07), 900+i*70);
+    /* — تراشه‌ها — */
+    [9.9,10.15,10.4].forEach((o,i)=>this.pop(t(o), 880+i*80));
+    this.whoosh(t(11.55));
+    /* — فینال: حذف درام هنگام پرواز توپ، اسلم هنگام فرود — */
+    this.drop(t(11.98)); this.drop(t(12.23));
+    this.slam(t(12.62)); this.noise(t(12.62), .14, .4, 'lowpass', 1500);
+    for (let bt=12.75; bt<14.4; bt+=.5){ this.kick(t(bt)); this.hat(t(bt+.25), .13); }
+    [13.25,14.25].forEach(o=>this.snare(t(o)));
+    for (let bar=12.75; bar<14.2; bar+=2){
+      this.bass(t(bar), 73.4); this.bass(t(bar+.75), 87.3); this.bass(t(bar+1.25), 98); this.bass(t(bar+1.75), 110);
+    }
+    [698.5, 784, 880].forEach((f,i)=>this.pluck(t(13.05+i*.09), f, .18));
+    [587.3, 698.5, 880].forEach(f=>this.pluck(t(14.0), f, .16));
+    this.osc('sine', 110, 55, t(14.0), .9, .3);
+    /* — دُم پایان — */
+    const mg = this.out.gain;
+    mg.setValueAtTime(1, t(14.3));
+    mg.linearRampToValueAtTime(0.0001, t(15.4));
+  }
+};
+
+/* ============================================================
+   ساخت DOM: جدول ۵۰ سلولی + دایره‌های ماژیکی + کلمات
+   ============================================================ */
+const LEVELS = [
+  0,0,1,0,0,2,0,1,0,0,
+  1,0,2,1,0,2,2,0,1,2,
+  2,1,3,2,1,3,2,4,2,3,
+  3,2,4,3,4,3,4,4,3,4,
+  4,3,4,4,4,3,4,4,4,4,
+];
+const grid = $('#grid');
+LEVELS.forEach((lv,i)=>{
+  const c = document.createElement('div');
+  c.className = 'cell l'+lv; c.dataset.i = i;
+  grid.appendChild(c);
+});
+const cells = $$('#grid .cell');
+
+// شکستن تیترها به کلمه برای استاگر
+function splitWords(el){
+  const words = el.textContent.trim().split(/\s+/);
+  el.textContent = '';
+  words.forEach((w,i)=>{
+    const o=document.createElement('span'); o.className='w';
+    const inr=document.createElement('span'); inr.className='wi'; inr.textContent=w;
+    o.appendChild(inr); el.appendChild(o);
+    if (i<words.length-1) el.appendChild(document.createTextNode(' '));
+  });
+}
+splitWords($('#h1'));
+
+// «بهتر» داخل q2 باید یک واحد مستقل برای دایرهٔ ماژیکی باشد
+(function(){
+  const q2 = $('#q2');
+  q2.innerHTML = 'یا داری <em>بهتر</em> می‌شوی؟';
+})();
+
+/* ——— اندازه‌گیری داخل قاب ۱۲۸۰×۷۲۰ (مستقل از اسکیل) ——— */
+function stageRect(el){
+  const s = $('#stage').getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const k = s.width / 1280;
+  return { x:(r.left-s.left)/k, y:(r.top-s.top)/k, w:r.width/k, h:r.height/k };
+}
+
+// دایرهٔ ماژیکی دست‌کشیده دور «بهتر» — دو قوس با ناهماهنگی عمدی
+function markerCircle(svg, rect, color){
+  const cx = rect.x + rect.w/2, cy = rect.y + rect.h/2;
+  const rx = rect.w/2 + 18, ry = rect.h/2 + 14;
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',
+    `M ${cx-rx} ${cy-4} ` +
+    `C ${cx-rx} ${cy-ry-8}, ${cx+rx*.3} ${cy-ry-12}, ${cx+rx} ${cy+2} ` +
+    `C ${cx+rx+4} ${cy+ry*.6}, ${cx-rx*.4} ${cy+ry+10}, ${cx-rx-3} ${cy+3}`);
+  p.setAttribute('stroke', color);
+  svg.appendChild(p);
+  return p;
+}
+// خط پایه پله‌ها (فینال)
+function markerLine(svg, x1, y, x2){
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d', `M ${x1} ${y} C ${(x1+x2)/2-30} ${y-7}, ${(x1+x2)/2+20} ${y+6}, ${x2} ${y-3}`);
+  svg.appendChild(p);
+  return p;
+}
+
+/* ============================================================
+   وضعیت اولیهٔ همهٔ عناصر (seek-safe: همه از t=0 تعریف‌شده)
+   ============================================================ */
+function setInitialStates(){
+  gsap.set('#h1 .wi',        { yPercent:115 });
+  gsap.set('#card',          { autoAlpha:0, y:40, rotate:-1.2 });
+  gsap.set('.cbox svg path', { strokeDasharray:60, strokeDashoffset:60 });
+  gsap.set('#q1',            { autoAlpha:0, y:30 });
+  gsap.set('#q2 .q2w, #q2',  { autoAlpha:0, y:30 });
+  gsap.set('.daychip',       { autoAlpha:0 });
+  gsap.set('#sc-dark',       { autoAlpha:0 });
+  gsap.set('#flash',         { autoAlpha:0 });
+  gsap.set('#sq1,#sq2,#sq3', { autoAlpha:0, y:200 });
+  gsap.set('#wordmark',      { autoAlpha:0, scale:1.6 });
+  gsap.set('#subline',       { autoAlpha:0, y:16 });
+  gsap.set('#gridhead',      { autoAlpha:0, y:24 });
+  gsap.set('.cell',          { autoAlpha:0, scale:.3 });
+  gsap.set('#cellchip',      { autoAlpha:0, scale:.6 });
+  gsap.set('#prows .prow',   { autoAlpha:0, x:60 });
+  gsap.set('.chip',          { autoAlpha:0, y:34, scale:.85 });
+  gsap.set('#faline',        { autoAlpha:0, y:18 });
+  gsap.set('#glow',          { autoAlpha:0, scale:.5 });
+  gsap.set('.fsq',           { autoAlpha:0, y:-210 });
+  gsap.set('.ghost',         { autoAlpha:0 });
+  gsap.set('#finword',       { autoAlpha:0, x:-40 });
+  gsap.set('#fintag',        { autoAlpha:0, y:26 });
+  gsap.set('#finurl .url', { autoAlpha:0, y:14 });
+  gsap.set('.dust',          { autoAlpha:0, scale:.4 });
+}
+
+/* ============================================================
+   تایم‌لاین اصلی — ۱۵ ثانیه
+   ============================================================ */
+let TL, circlePath, cellCircle, cellPath, steps = [];
+const counter = { v:0 };
+
+function buildTimeline(){
+  TL = gsap.timeline({ paused:true, defaults:{ ease:'power2.out' } });
+  const D = 15;
+
+  /* ———— ۱) صحنهٔ کاغذی: ۰ تا ۱.۹ ———— */
+  TL.to('#card', { autoAlpha:1, y:0, duration:.5, ease:'back.out(1.6)' }, 0.05);
+  TL.to('#h1 .wi', { yPercent:0, duration:.55, stagger:.07, ease:'back.out(1.4)' }, 0.32);
+  // تیک‌ها: هرکدام با پاپ
+  [[0.70,0],[0.95,1],[1.20,2],[1.45,3]].forEach(([o,i])=>{
+    TL.to(`.crow:nth-child(${i+1}) .cbox path`,
+      { strokeDashoffset:0, duration:.22, ease:'power2.in' }, o);
+    TL.to(`.crow:nth-child(${i+1}) .cbox`, { scale:1.12, duration:.09, yoyo:true, repeat:1 }, o);
+    TL.to(`.crow:nth-child(${i+1}) .cbox path`, { duration:.01 }, o); // نگه‌دارنده
+  });
+
+  /* ———— ۲) سؤال: ۱.۹ تا ۳.۸ ———— */
+  TL.to('#card', { x:-900, rotate:-14, autoAlpha:0, duration:.5, ease:'power2.in' }, 1.9);  // پرتاب کارت
+  TL.to('#h1',   { autoAlpha:0, y:-24, duration:.3 }, 1.9);
+  TL.to('#q1',   { autoAlpha:1, y:0, duration:.4, ease:'back.out(1.5)' }, 2.0);
+  TL.to('#q2',   { autoAlpha:1, y:0, duration:.4, ease:'back.out(1.5)' }, 2.42);
+  TL.to('.daychip', { autoAlpha:1, duration:.8, stagger:.1 }, 2.2);
+  TL.to('.daychip', { y:'+=12', rotate:8, duration:1.4, stagger:.08, ease:'sine.inOut' }, 2.4);
+  // دایرهٔ ماژیکی دور «بهتر»
+  if (circlePath){
+    const L = circlePath.getTotalLength();
+    gsap.set(circlePath, { strokeDasharray:L, strokeDashoffset:L });
+    TL.to(circlePath, { strokeDashoffset:0, duration:.5, ease:'power1.inOut' }, 2.9);
+  }
+  // تاریک‌شدن تدریجی قبل از کات
+  TL.to('#sc-light', { filter:'brightness(.82)', duration:.35 }, 3.45);
+
+  /* ———— ۳) کات تیره + برند: ۳.۸ تا ۵.۶ ———— */
+  TL.set('#sc-dark', { autoAlpha:1 }, 3.8);
+  TL.to('#flash', { autoAlpha:1, duration:.02 }, 3.8)
+    .to('#flash', { autoAlpha:0, duration:.12, ease:'power2.in' }, 3.83);
+  TL.to('#sq1', { autoAlpha:.32, y:0, duration:.5, ease:'back.out(1.8)' }, 3.95);
+  TL.to('#sq2', { autoAlpha:.62, y:0, duration:.5, ease:'back.out(1.8)' }, 4.04);
+  TL.to('#sq3', { autoAlpha:1,  y:0, duration:.5, ease:'back.out(1.8)' }, 4.13);
+  TL.to('#wordmark', { autoAlpha:1, scale:1, duration:.45, ease:'back.out(1.7)' }, 4.35);
+  TL.to('#wordmark', { scaleX:1.06, scaleY:.94, duration:.07, yoyo:true, repeat:1 }, 4.8); // squash
+  TL.to('#subline', { autoAlpha:1, y:0, duration:.4 }, 4.75);
+
+  /* ———— ۴) جدول: ۵.۶ تا ۷.۷ ———— */
+  TL.to('#wordmark', { autoAlpha:0, y:-30, duration:.3 }, 5.55);
+  TL.to('#subline',  { autoAlpha:0, duration:.25 }, 5.55);
+  // سه مربع لوگو → سه سلول اول جدول (حرکت اصلی: مورف)
+  const cellsPos = cells.slice(0,3).map(c => { const r = stageRect(c); return { x:r.x, y:r.y }; });
+  const sqBase = [{l:496,t:264},{l:592,t:184},{l:688,t:104}];
+  [[ '#sq1',cellsPos[0],.32 ],[ '#sq2',cellsPos[1],.5 ],[ '#sq3',cellsPos[2],.78 ]].forEach(([sel,pos,op],i)=>{
+    TL.to(sel, { x:pos.x-sqBase[i].l, y:pos.y-sqBase[i].t, scale:46/88, duration:.45, ease:'power3.inOut' }, 5.6+i*.06);
+    TL.to(sel, { autoAlpha:op, duration:.3 }, 5.6+i*.06);
+    TL.set(sel, { autoAlpha:0 }, 6.15+i*.06);
+  });
+  TL.to('#gridhead', { autoAlpha:1, y:0, duration:.45, ease:'back.out(1.4)' }, 5.9);
+  // آبشار سلول‌ها
+  cells.forEach((c,i)=>{
+    TL.to(c, { autoAlpha:1, scale:1, duration:.3, ease:'back.out(2)' }, 5.95 + i*.017);
+  });
+  // دایرهٔ ماژیکی روی یک سلول کامل + چیپ «روز کامل»
+  if (cellCircle){
+    const L2 = cellCircle.getTotalLength();
+    gsap.set(cellCircle, { strokeDasharray:L2, strokeDashoffset:L2 });
+    TL.to(cellCircle, { strokeDashoffset:0, duration:.4, ease:'power1.inOut' }, 6.75);
+  }
+  TL.to('#cellchip', { autoAlpha:1, scale:1, duration:.35, ease:'back.out(2)' }, 7.0);
+
+  /* ———— ۵) الگوها: ۷.۷ تا ۹.۶ ———— */
+  TL.to('#grid', { x:'-=140', scale:.62, duration:.45, ease:'power3.inOut' }, 7.7);
+  TL.to('#cellchip', { autoAlpha:0, scale:.5, duration:.2 }, 7.7);
+  if (cellCircle) TL.to(cellCircle, { autoAlpha:0, duration:.2 }, 7.7);
+  TL.to('#gridhead', { autoAlpha:0, y:-20, duration:.3 }, 7.7);
+  $$('#prows .prow').forEach((r,i)=>{
+    TL.to(r, { autoAlpha:1, x:0, duration:.4, ease:'back.out(1.5)' }, 8.0 + i*.22);
+  });
+  // شمارندهٔ روزهای پاک
+  counter.v = 0; $('#cnt').textContent = '۰';
+  TL.to(counter, { v:38, duration:.75, ease:'power1.inOut', onUpdate:()=>{
+      $('#cnt').textContent = fa(Math.round(counter.v));
+    }}, 8.6);
+  TL.to('#cnt', { scale:1.25, duration:.08, yoyo:true, repeat:1, ease:'power1.in' }, 9.32);
+
+  /* ———— ۶) تراشه‌ها: ۹.۶ تا ۱۱.۵ ———— */
+  TL.to('#prows .prow', { autoAlpha:0, x:-70, duration:.32, stagger:.06 }, 9.6);
+  TL.to('#grid', { autoAlpha:0, scale:.4, duration:.35 }, 9.6);
+  $$('.chip').forEach((ch,i)=>{
+    TL.to(ch, { autoAlpha:1, y:0, scale:1, duration:.45, ease:'back.out(1.7)' }, 9.9 + i*.25);
+  });
+  TL.to('#faline', { autoAlpha:1, y:0, duration:.4, ease:'back.out(1.3)' }, 10.75);
+
+  /* ———— ۷) فینال: ۱۱.۵ تا ۱۵ ———— */
+  TL.to('.chip', { y:-60, autoAlpha:0, duration:.35, stagger:.05 }, 11.5);
+  TL.to('#faline', { autoAlpha:0, y:-20, duration:.3 }, 11.5);
+  TL.to('#glow', { autoAlpha:1, scale:1, duration:.9, ease:'power2.out' }, 11.6);
+  // پله‌ها کشیده می‌شوند
+  steps.forEach((p,i)=>{
+    const L3 = p.getTotalLength();
+    gsap.set(p, { strokeDasharray:L3, strokeDashoffset:L3 });
+    TL.to(p, { strokeDashoffset:0, duration:.3, ease:'power1.inOut' }, 11.6 + i*.14);
+  });
+  // سقوط مربع‌ها روی پله‌ها (فیزیک + اسکواش)
+  [[ '#fsq1', 11.95, 'drop' ],[ '#fsq2', 12.22, 'drop' ],[ '#fsq3', 12.5, 'slam' ]].forEach(([sel,o,kind],i)=>{
+    TL.to(sel, { autoAlpha:1, y:0, duration:.48, ease:'power2.in' }, o);
+    if (sel==='#fsq3'){ // اسمیر/پیش‌نمایش حرکت برای توپ اصلی
+      TL.to('#gh1', { autoAlpha:.28, duration:.1 }, o);
+      TL.to('#gh2', { autoAlpha:.16, duration:.1 }, o+.05);
+      TL.to('#gh3', { autoAlpha:.07, duration:.1 }, o+.1);
+      TL.set('.ghost', { autoAlpha:0 }, o+.5);
+    }
+    TL.to(sel, { scaleX:1.3, scaleY:.68, duration:.09, ease:'power2.out' }, o+.48);   // squash
+    TL.to(sel, { scaleX:1, scaleY:1, duration:.5, ease:'elastic.out(1,.45)' }, o+.57); // follow-through
+    if (kind==='slam'){ // گردوغبار فرود
+      TL.to('.dust', { autoAlpha:.9, x:(j)=>[70,-46,86,-70,40,-90][j], y:(j)=>[-40,-70,-16,26,60,14][j],
+        scale:1, duration:.55, ease:'power1.out', stagger:.02 }, o+.48);
+      TL.to('.dust', { autoAlpha:0, duration:.3 }, o+.85);
+    }
+  });
+  TL.to('#finword', { autoAlpha:1, x:0, duration:.5, ease:'back.out(1.6)' }, 12.85);
+  TL.to('#fintag',  { autoAlpha:1, y:0, duration:.5, ease:'back.out(1.4)' }, 13.05);
+  TL.to('#finurl .url',  { autoAlpha:1, y:0, duration:.4 }, 13.45);
+  // نبض نرم هاله تا پایان
+  TL.to('#glow', { scale:1.07, duration:1.1, yoyo:true, repeat:1, ease:'sine.inOut' }, 13.5);
+  TL.to({}, { duration:.01 }, D);
+  TL.eventCallback('onComplete', ()=>{ $('#stage').classList.add('done'); });
+}
+
+/* ============================================================
+   چیدمان: اسکیل قاب + اندازه‌گیری دایره‌ها بعد از فونت
+   ============================================================ */
+function fitStage(){
+  const s = Math.min((innerWidth-28)/1280, (innerHeight-84)/720, 1.4);
+  $('#stagewrap').style.transform = `scale(${s})`;
+}
+addEventListener('resize', fitStage);
+
+async function boot(){
+  // فونت برند حتماً قبل از اندازه‌گیری
+  try {
+    await Promise.all([
+      document.fonts.load('900 76px Vazirmatn'),
+      document.fonts.load('700 30px Vazirmatn'),
+      document.fonts.load('500 27px Vazirmatn'),
+    ]);
+    await document.fonts.ready;
+  } catch(e){}
+
+  fitStage();
+  setInitialStates();
+
+  // دایرهٔ ماژیکی دور «بهتر»
+  const em = $('#q2 em');
+  circlePath = markerCircle($('#mark'), stageRect(em), '#8b5cf6');
+  // دایرهٔ ماژیکی دور سلول «روز کامل» (ردیف ۵، سلول پررنگ)
+  const targetCell = cells[45];
+  const cr = stageRect(targetCell);
+  cellCircle = markerCircle($('#cellmark'),
+    { x:cr.x-3, y:cr.y-3, w:cr.w+6, h:cr.h+6 }, '#43e8a8');
+  const cc = $('#cellchip');
+  cc.style.left = (cr.x + cr.w + 18) + 'px';
+  cc.style.top  = (cr.y - 12) + 'px';
+  // پله‌های فینال
+  const SM = $('#stepm');
+  steps = [ markerLine(SM, 470, 343, 800), markerLine(SM, 566, 263, 684), markerLine(SM, 662, 183, 780) ];
+  // جای اسمیرها بالای توپِ در حال سقوط
+  [['#gh1',-46],['#gh2',-88],['#gh3',-128]].forEach(([id,dy])=>{
+    gsap.set(id, { x:692, y:92+dy-210, opacity:0 });
+  });
+
+  buildTimeline();
+  window.__film = {
+    tl: TL,
+    seek(t){ $('#poster').style.display='none'; TL.pause(t); },
+    play(){ startFilm(); },
+  };
+}
+boot();
+
+/* ============================================================
+   پخش / تکرار
+   ============================================================ */
+function startFilm(){
+  A.init();
+  A.ctx.resume();
+  A.stopAll();
+  A.out.gain.cancelScheduledValues(0);
+  A.out.gain.setValueAtTime(1, 0);
+  A.schedule(A.ctx.currentTime + .06);
+  $('#stage').classList.remove('done');
+  TL.pause(0).play(0);
+}
+$('#poster').addEventListener('click', ()=>{ $('#poster').style.display='none'; startFilm(); });
+$('#replay').addEventListener('click', startFilm);
+$('#stage').addEventListener('click', ()=>{
+  if ($('#stage').classList.contains('done')) startFilm();
+});
+</script>
+</body>
+</html>

@@ -103,11 +103,11 @@ export default function Journal() {
         <div className="mood-map">
           {moodMap.map((c) => (
                       <button key={c.iso} className={'mood-cell' + (c.mood ? ' has' : '') + (c.iso === date ? ' sel' : '')}
-                        style={c.mood ? { background: MOOD_HEX[c.mood] } : {}}
-                        title={faDate(c.iso) + (c.mood ? ' · ' + moodWord(c.mood) : '') + (c.hasText ? t('journal.moodMapHasNoteSuffix') : '')}
-                        onClick={() => { setDate(c.iso); setText((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.text || '' : ''); setGood((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.good || '' : '') }}>
-                        <span className="mood-cell-day">{toFa(jalaliOf(c.iso).jd)}</span>
-                      </button>
+                                              style={c.mood ? { background: MOOD_HEX[c.mood] } : {}}
+                                              title={faDate(c.iso) + (c.mood ? ' · ' + moodWord(c.mood) : '') + (c.hasText ? t('journal.moodMapHasNoteSuffix') : '')}
+                                              onClick={() => { setDate(c.iso); setText((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.text || '' : ''); setGood((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.good || '' : ''); setPreviewImg((db.days[c.iso] && db.days[c.iso].journal) ? db.days[c.iso].journal.img || null : null) }}>
+                                              <span className="mood-cell-day">{toFa(jalaliOf(c.iso).jd)}</span>
+                                            </button>
                     ))}
         </div>
         <div className="mood-map-legend">

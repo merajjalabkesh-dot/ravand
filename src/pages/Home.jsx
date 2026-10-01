@@ -162,13 +162,19 @@ export default function Home() {
     ? <div className="empty-state"><div className="big">✦</div><p className="preline">{t('home.emptyTasks')}</p></div>
     : <div className="home-task-list">
         {todayHabits.map((h, habitIdx) => {
-          const done = H.dayIds(iso).has(h.id)
-          const isBad = h.type === 'bad'
-          return (
-            <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
-              <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
-              {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
-              <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
+                  const done = H.dayIds(iso).has(h.id)
+                  const isBad = h.type === 'bad'
+                  const indicator = isBad ? (
+                    <span className="habit-indicator bad" title={t('today.habitTypeBad')}>✕</span>
+                  ) : (
+                    <span className="habit-indicator good" title={t('today.habitTypeGood')}>✓</span>
+                  )
+                  return (
+                    <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
+                      <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
+                      {indicator}
+                      {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
+                      <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
               {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? t('home.badDoneStat') : t('home.cleanStat')}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                 <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, -1) }} disabled={habitIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
