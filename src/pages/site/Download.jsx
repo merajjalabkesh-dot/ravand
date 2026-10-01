@@ -36,19 +36,6 @@ export default function Download() {
 
         <Steps />
 
-        <section className="dl-note">
-          <div className="dl-note-in">
-            <div className="dl-note-item">
-              <strong>نسخه‌ها هنوز ساخته نشده‌اند</strong>
-              <span>فایل‌های exe و apk در مرحلهٔ بعدی روی سرور قرار می‌گیرند. تا آن زمان کلیک روی دکمهٔ دانلود خطا می‌دهد — این طبیعی است.</span>
-            </div>
-            <div className="dl-note-item">
-              <strong>وب‌اپ همین حالا کار می‌کند</strong>
-              <span>اگر عجله داری، با همان حساب در مرورگر وارد شو. داده‌هایت یکی می‌مانند.</span>
-            </div>
-          </div>
-        </section>
-
         <Faq />
 
         <section className="site-cta-band">

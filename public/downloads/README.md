@@ -8,5 +8,6 @@
 | `ravand.apk` | `/downloads/ravand.apk` |
 | `Ravand.dmg` (اختیاری، مک) | `/downloads/Ravand.dmg` |
 
-تا وقتی این فایل‌ها ساخته نشده‌اند، کارت دانلود در سایت نمایش داده می‌شود
-ولی کلیک روی آن خطای ۴۰۴ می‌دهد — این طبیعی است.
+نکته: `public/downloads/*.apk|*.exe|*.dmg` در `.gitignore` هستند — فایل جدید را باید با
+`git add -f public/downloads/<file>` کامیت کنی، وگرنه روی سرور نمی‌رود و لینکش
+بازنویسی HTML می‌شود (در حال حاضر فقط `ravand.apk` روی سایت مستقر است).
