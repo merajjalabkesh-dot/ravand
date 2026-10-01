@@ -20,16 +20,42 @@
   <body>
     <div id="root"></div>
     <script>
-      // فقط در بیلد native (Tauri / Capacitor) true است؛ روی وب باید false بماند
-      // تا راهنمای «افزودن به صفحهٔ اصلی» برای کاربران وب‌اپ نمایش داده شود.
-      window.__IS_NATIVE_APP__ = !!(window.__TAURI_INTERNALS__ || window.Capacitor);
-      // در WebView کپاسیتور گاهی bridge کمی بعد از این اسکریپت تزریق می‌شود؛
-      // چند لحظه دوباره چک می‌کنیم تا بیلد APK/EXE درست تشخیص داده شود.
+      // ---------------------------------------------------------------
+      // تشخیص بیلد native: Tauri (exe)، Capacitor (apk) یا origin محلی
+      // WebView کپاسیتور از http://localhost سرو می‌شود، پس بدون نیاز به
+      // bridge هم از همان اسکریپت اول قابل تشخیص است (بدون race).
+      // روی وب (pages.dev) همهٔ این‌ها false می‌مانند.
+      // ---------------------------------------------------------------
+      window.__rgIsNative = function () {
+        var h = location.hostname;
+        return !!(
+          window.__TAURI_INTERNALS__ ||
+          window.Capacitor ||
+          (h === 'localhost' && (location.port === '' || location.port === '80')) ||
+          h === 'tauri.localhost'
+        );
+      };
+      window.__IS_NATIVE_APP__ = window.__rgIsNative();
+
+      // داخل اپلیکیشن سایت جایی ندارد: لندینگ/سایت/دانلود حذف و مستقیم
+      // پنل ورود می‌رویم؛ اگر کاربر قبلاً وارد شده باشد Login خودش به
+      // /app هدایت می‌کند (RedirectIfAuthed).
+      var __rgSiteRoutes = { '': 1, '#': 1, '#/': 1, '#/site': 1, '#/download': 1 };
+      window.__rgNativeStart = function () {
+        if (window.__IS_NATIVE_APP__ && __rgSiteRoutes[location.hash]) {
+          location.replace('#/login');
+        }
+      };
+      window.__rgNativeStart();
+      window.addEventListener('hashchange', window.__rgNativeStart);
+
+      // bridge کپاسیتور گاهی کمی بعد تزریق می‌شود؛ ۵ ثانیه دوباره چک می‌کنیم
       (function () {
         var t = setInterval(function () {
-          if (window.__TAURI_INTERNALS__ || window.Capacitor) {
+          if (window.__rgIsNative()) {
             window.__IS_NATIVE_APP__ = true;
             clearInterval(t);
+            window.__rgNativeStart();
           }
         }, 50);
         setTimeout(function () { clearInterval(t); }, 5000);
