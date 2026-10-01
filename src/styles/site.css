@@ -553,7 +553,19 @@
 }
 
 /* ---------------- صفحه ورود ---------------- */
-.login-page { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 26px 20px; background: #070b18; }
+/* flex + «safe center»: کارت وسط می‌ماند، ولی اگر از صفحه بلندتر شد
+ * (فرم ثبت‌نام در موبایل / پنجرهٔ کوتاه) از بالا شروع می‌شود و اسکرول
+ * می‌کند، نه اینکه دکمهٔ ثبت‌نام بیرون از صفحه گیر بیفتد. */
+.login-page {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: max(26px, env(safe-area-inset-top)) 20px max(26px, env(safe-area-inset-bottom));
+  background: #070b18;
+}
 .login-page-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .login-glow { position: absolute; border-radius: 50%; filter: blur(90px); }
 .login-glow-1 { width: 480px; height: 480px; top: -140px; right: -110px; background: rgba(139, 92, 246, .3); }
@@ -614,6 +626,24 @@
 .auth-submit:disabled { opacity: .65; cursor: not-allowed; }
 .login-foot { margin-top: 20px; font-size: 12px; color: var(--site-muted); }
 .login-foot a { color: var(--site-accent-2); text-decoration: none; }
+
+/* --- فرم جمع‌وجور: موبایل یا پنجرهٔ کوتاه (apk و وب‌اپ) ---
+ * هدف: هر ۴ فیلد + دکمهٔ ثبت‌نام در یک نگاه دیده شوند. */
+@media (max-width: 560px), (max-height: 780px) {
+  .login-page { padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
+  .login-card { padding: 22px 18px 20px; border-radius: 22px; }
+  .login-top { top: 14px; inset-inline: 14px; }
+  .login-sun { margin-bottom: 6px; transform: scale(.82); }
+  .login-brand h1 { font-size: 23px; }
+  .login-sub { font-size: 12.5px; margin: 6px 0 14px; line-height: 1.55; }
+  .auth-switch-btn { padding: 8px; font-size: 13.5px; }
+  .auth-hint { font-size: 12.5px; margin: 10px 0 14px; line-height: 1.6; }
+  .login-card .field { margin-bottom: 11px; }
+  .login-card .field label { font-size: 12.5px; }
+  .login-card .input { padding: 10px 12px; font-size: 15px; }
+  .auth-submit { padding: 12px 18px; font-size: 15px; }
+  .login-foot { margin-top: 14px; font-size: 11.5px; }
+}
 
 /* ---------------- سوییچ زبان ---------------- */
 .lang-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
