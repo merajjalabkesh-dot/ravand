@@ -280,7 +280,7 @@
 .hm-body { display: flex; gap: 8px; position: relative; } /* relative for tooltip positioning */
 /* برچسب ماه حذف شد؛ جدول از بالا شروع می‌شود */
 .hm-days { display: grid; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); width: 66px; font-size: 11.5px; color: var(--site-muted); line-height: 1; }
-.hm-days span { display: flex; align-items: center; }
+.hm-days span { display: flex; align-items: flex-start; height: var(--hm-cell); }
 .hm-grid { position: relative; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--hm-cell)); gap: var(--hm-gap); }
 /* خانه‌ها دکمه‌اند تا با کلیک، جزئیات روز باز شود */
 .hm-cell {
