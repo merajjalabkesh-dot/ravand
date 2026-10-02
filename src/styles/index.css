@@ -1282,3 +1282,107 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   font-size: 12px;
   border-radius: 10px;
 }
+/* =========================================================
+   جدول heatmap در تب «جدول» گزارش‌ها (AppHeatmap)
+   ========================================================= */
+.app-hm {
+  --hm-cell: 23px;
+  --hm-gap: 6px;
+  position: relative;
+}
+.app-hm--week { --hm-cell: 34px; --hm-gap: 8px; }
+.app-hm--qtr  { --hm-cell: 16px; --hm-gap: 4px; }
+.app-hm--all  { --hm-cell: 12px; --hm-gap: 3px; }
+
+.app-hm--week .hm-days { width: 54px; }
+
+.app-hm-main { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+
+/* نام ماه‌ها بالای هر بخشِ جدول */
+.app-hm-months {
+  display: grid;
+  gap: var(--hm-gap);
+  align-items: end;
+  min-height: 14px;
+}
+.app-hm-month {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--site-accent-2);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-bottom: 3px;
+}
+.app-hm-month + .app-hm-month {
+  border-inline-start: 1px dashed var(--site-line);
+  padding-inline-start: 5px;
+}
+
+/* خانه‌های خارج از بازهٔ انتخابی: کاملاً شفاف */
+.hm-grid .app-hm-blank { background: transparent; pointer-events: none; }
+
+/* حاشیهٔ روز اول ماه تا مرز ماه‌ها مشخص شود */
+.hm-grid .hm-cell { position: relative; }
+.hm-grid .hm-cell.mstart::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1.5px var(--site-accent-2);
+  opacity: .7;
+  pointer-events: none;
+}
+
+/* روزهای آینده کم‌رنگ‌تر از روزهای سپری‌شده */
+.app-hm .hm-cell.future:not(.selected) { opacity: .42; }
+
+/* پنل اتفاقات روز: سه ستون جدا (عادت‌ها | کارها | ژورنال) تا همه چیز دیده شود */
+.app-hm .hm-detail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 22px; }
+@media (max-width: 860px) { .app-hm .hm-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .app-hm .hm-detail-grid { grid-template-columns: 1fr; gap: 16px; } }
+
+.app-hm .hm-foot { flex-wrap: wrap; gap: 8px 14px; }
+.app-hm .hm-hint { font-size: 12px; color: var(--site-muted); }
+.app-hm .hm-tip-sub { opacity: .72; }
+
+/* ---- پنل اتفاقات روز ---- */
+.app-hm .hm-detail { max-height: 460px; overflow-y: auto; }
+.app-hm .hm-detail .hm-box { border-color: var(--site-line); }
+.app-hm .hm-box svg { width: 11px; height: 11px; display: block; }
+
+.app-hm .hm-status {
+  margin-inline-start: auto;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.app-hm .hm-status.on  { color: var(--site-accent-2); background: rgba(67,232,168,.13); }
+.app-hm .hm-status.off { color: var(--site-muted); background: rgba(255,255,255,.06); }
+.app-hm .hm-status.on.bad { color: #ff6b81; background: rgba(255,107,129,.13); }
+
+.hm-journal-mood {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--site-muted);
+  margin-bottom: 8px;
+}
+.hm-journal-label { font-size: 11.5px; color: var(--site-muted); margin-top: 10px; }
+.hm-journal-text { font-size: 13.5px; line-height: 1.8; white-space: pre-wrap; margin: 0; }
+.hm-detail .journal-img-area img { cursor: default; }
+
+@media (max-width: 560px) {
+  .app-hm { --hm-cell: 19px; --hm-gap: 5px; }
+  .app-hm--week { --hm-cell: 30px; --hm-gap: 7px; }
+  .app-hm--qtr  { --hm-cell: 13px; --hm-gap: 3px; }
+  .app-hm--all  { --hm-cell: 10px; --hm-gap: 3px; }
+  .app-hm .hm-days { width: 54px; font-size: 10.5px; }
+  .app-hm--week .hm-days { width: 48px; }
+  .app-hm .hm-detail { max-height: 60vh; }
+}
+

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useApp, toFa, todayISO, isoAddDays, faDate, minOf, fmtMin, nextEventISO } from '../lib/store'
 import EventCard from '../components/EventCard'
 import JalaliDatePicker from '../components/JalaliDatePicker'
-import PricingTable from '../components/app/PricingTable'
+import AppHeatmap from '../components/app/AppHeatmap'
 import { useI18n } from '../lib/i18n'
 
 const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 10 }, transition: { duration: .35, ease: [0.22, 1, 0.36, 1] } }
@@ -137,7 +137,7 @@ export default function Reports() {
 
   const body = (() => {
       if (tab === 'pricing') {
-        return <PricingTable mode="month" />
+        return <AppHeatmap range={range} />
       }
       if (tab === 'day') {
       return (
