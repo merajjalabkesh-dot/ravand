@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback, useRef } from 'react'
 import { useApp, toFa, isoAddDays, jalaliOf, jalaliMonthLen, jalaliToISO, j2g, num } from '../../lib/store'
 import { useI18n } from '../../lib/i18n'
 
@@ -14,6 +14,8 @@ export default function PricingTable({ mode = 'month' }) {
   
   const [selectedDay, setSelectedDay] = useState(null)
   const [viewMode, setViewMode] = useState(mode) // 'month' | 'qtr' | 'week'
+  const [hover, setHover] = useState(null) // { iso, x, y }
+  const gridRef = useRef(null)
 
   // Calculate days to show
   const daysCount = useMemo(() => {
@@ -90,6 +92,25 @@ export default function PricingTable({ mode = 'month' }) {
   const handleDayClick = (iso, e) => {
     e.stopPropagation()
     setSelectedDay(iso)
+    setHover(null)
+  }
+
+  // Hover tooltip: positioned relative to the grid container
+  const showTip = (iso, e) => {
+    if (!gridRef.current) return
+    const gr = gridRef.current.getBoundingClientRect()
+    const r = e.currentTarget.getBoundingClientRect()
+    setHover({ iso, x: r.left + r.width / 2 - gr.left, y: r.top - gr.top - 6 })
+  }
+  const hideTip = () => setHover(null)
+
+  const tipText = (iso) => {
+    const d = dayData(iso)
+    const done = goodHabits.filter(h => d.habits && d.habits[h.id]).length
+    const total = goodHabits.length
+    const base = faDate(iso, false)
+    if (!total) return base
+    return `${base} — ${toFa(done)}/${toFa(total)} ${t('reports.tooltipHabits')}`
   }
 
   const getDayCellClass = (iso, isCurrentMonth = true) => {
@@ -139,6 +160,8 @@ export default function PricingTable({ mode = 'month' }) {
         key={iso}
         className={getDayCellClass(iso, isCurrentMonth)}
         onClick={(e) => handleDayClick(iso, e)}
+        onMouseEnter={(e) => isCurrentMonth && showTip(iso, e)}
+        onMouseLeave={hideTip}
         disabled={isFuture}
         title={isCurrentMonth ? faDate(iso, true) : ''}
       >
@@ -156,7 +179,7 @@ export default function PricingTable({ mode = 'month' }) {
   // Week view - simple horizontal row
   if (viewMode === 'week') {
     return (
-      <div className="pricing-table week-view">
+      <div className="pricing-table week-view" ref={gridRef}>
         <div className="pricing-header">
           <div className="pricing-title">{t('reports.pricingTableTitle')}</div>
           <div className="pricing-controls">
@@ -171,6 +194,7 @@ export default function PricingTable({ mode = 'month' }) {
           ))}
           {days.map((iso, i) => renderDayCell(iso, true))}
         </div>
+        {hover && <div className="hm-tip" style={{ left: hover.x, top: hover.y }}>{tipText(hover.iso)}</div>}
         {selectedDay && <DayDetailModal iso={selectedDay} onClose={() => setSelectedDay(null)} />}
       </div>
     )
@@ -178,7 +202,7 @@ export default function PricingTable({ mode = 'month' }) {
 
   // Month/Qtr view - grouped by month
   return (
-    <div className="pricing-table month-view">
+    <div className="pricing-table month-view" ref={gridRef}>
       <div className="pricing-header">
         <div className="pricing-title">{t('reports.pricingTableTitle')}</div>
         <div className="pricing-controls">
@@ -230,6 +254,7 @@ export default function PricingTable({ mode = 'month' }) {
         ))}
       </div>
 
+      {hover && <div className="hm-tip" style={{ left: hover.x, top: hover.y }}>{tipText(hover.iso)}</div>}
       {selectedDay && <DayDetailModal iso={selectedDay} onClose={() => setSelectedDay(null)} />}
     </div>
   )
@@ -264,7 +289,7 @@ function DayDetailModal({ iso, onClose }) {
               })}</span>
               {journal && journal.mood > 0 && (
                 <span className="mini-stat" style={{ marginRight: 8 }}>
-                  {t('reports.feelingLabel')}<b>{moodLvl(journal.mood)}</b>
+                  {t('reports.feelingLabel')}<b>{moodLvl(journal.mood, t)}</b>
                 </span>
               )}
             </div>
@@ -280,6 +305,7 @@ function DayDetailModal({ iso, onClose }) {
               <div key={h.id} className="day-modal-row">
                 <span className="mini-dot" style={{ background: h.color }} />
                 <span className="habit-indicator good" title={t('reports.habitTypeGood')}>✓</span>
+                <span className="habit-type-label good">{t('reports.habitTypeGood')}</span>
                 <span className="mini-name">{h.name}</span>
                 <span className={'day-modal-status ' + (d && d.habits && d.habits[h.id] ? 'on' : 'off')}>
                   {d && d.habits && d.habits[h.id] ? t('reports.statusDone') : t('reports.statusNotDone')}
@@ -297,6 +323,7 @@ function DayDetailModal({ iso, onClose }) {
               <div key={h.id} className="day-modal-row">
                 <span className="mini-dot" style={{ background: h.color }} />
                 <span className="habit-indicator bad" title={t('reports.habitTypeBad')}>✕</span>
+                <span className="habit-type-label bad">{t('reports.habitTypeBad')}</span>
                 <span className="mini-name">{h.name}</span>
                 <span className={'day-modal-status ' + (d && d.habits && d.habits[h.id] ? 'on' : 'off')}>
                   {d && d.habits && d.habits[h.id] ? t('reports.statusDoneSad') : t('reports.statusClean')}
@@ -326,7 +353,7 @@ function DayDetailModal({ iso, onClose }) {
               {t('reports.journalSection')}
               {journal.mood > 0 && (
                 <span className="mini-stat" style={{ marginRight: 8 }}>
-                  {t('reports.feelingLabel')}{moodLvl(journal.mood)}
+                  {t('reports.feelingLabel')}{moodLvl(journal.mood, t)}
                 </span>
               )}
             </div>
@@ -335,9 +362,9 @@ function DayDetailModal({ iso, onClose }) {
             ) : (
               <div className="day-modal-sub">{t('reports.journalNoNote')}</div>
             )}
-            {journal.image && (
+            {journal.img && (
               <div className="journal-img-area">
-                <img src={journal.image} alt={t('reports.journalImageAlt')} />
+                <img src={journal.img} alt={t('reports.journalImageAlt')} />
               </div>
             )}
           </div>
@@ -356,7 +383,7 @@ function DayDetailModal({ iso, onClose }) {
   )
 }
 
-function moodLvl(m) {
+function moodLvl(m, t) {
   const labels = ['', 'reports.moodDash', 'reports.moodLow', 'reports.moodLazy', 'reports.moodNormal', 'reports.moodGood', 'reports.moodGreat']
   return t(labels[m] || '')
 }

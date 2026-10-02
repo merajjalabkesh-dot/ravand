@@ -178,6 +178,7 @@ export const FA = {
   "reports.rangeMonth": "ماه",
   "reports.rangeQtr": "۳ ماه",
   "reports.rangeAll": "کل",
+  "reports.tooltipHabits": "عادت انجام‌شده",
   "reports.overviewRangeWeek": "هفته",
   "reports.overviewRangeMonth": "ماه",
   "reports.overviewRangeQtr": "۳ ماه",

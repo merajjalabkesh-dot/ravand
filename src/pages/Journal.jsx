@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useApp, toFa, todayISO, isoAddDays, faDate, moodFace, moodWord } from '../lib/store'
+import { useApp, toFa, todayISO, isoAddDays, faDate, moodFace, moodWord, jalaliOf } from '../lib/store'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 import { useI18n } from '../lib/i18n'
 

@@ -178,6 +178,7 @@ export const EN = {
   "reports.rangeMonth": "Month",
   "reports.rangeQtr": "3 months",
   "reports.rangeAll": "All",
+  "reports.tooltipHabits": "habits done",
   "reports.overviewRangeWeek": "last week",
   "reports.overviewRangeMonth": "last month",
   "reports.overviewRangeQtr": "last 3 months",

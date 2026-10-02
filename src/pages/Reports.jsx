@@ -102,10 +102,16 @@ export default function Reports() {
                         ) : (
                           <span className="habit-indicator good" title={t('reports.habitTypeGood')}>✓</span>
                         )
+                        const typeLabel = bad ? (
+                          <span className="habit-type-label bad">{t('reports.habitTypeBad')}</span>
+                        ) : (
+                          <span className="habit-type-label good">{t('reports.habitTypeGood')}</span>
+                        )
                         return (
                           <div className="day-modal-row" key={h.id}>
                             <span className="mini-dot" style={{ background: h.color }} />
                             {indicator}
+                            {typeLabel}
                             <span className="mini-name">{h.name}</span>
                             <span className={'day-modal-status' + (on ? ' on' : ' off')}>{bad ? (on ? t('reports.statusDoneSad') : t('reports.statusClean')) : (on ? t('reports.statusDone') : t('reports.statusNotDone'))}</span>
                           </div>
@@ -180,11 +186,16 @@ export default function Reports() {
                       ) : (
                         <span className="habit-indicator good" title={t('reports.habitTypeGood')}>✓</span>
                       )
+                      const typeLabel = bad ? (
+                        <span className="habit-type-label bad">{t('reports.habitTypeBad')}</span>
+                      ) : (
+                        <span className="habit-type-label good">{t('reports.habitTypeGood')}</span>
+                      )
                       const st = habitStats(h)
                       const rate = Math.min(100, Math.round(bad ? (st.clean / Math.max(1, st.scheduled)) * 100 : st.rate))
                       return (
                         <div className="analy-row" key={h.id}>
-                          <div className="analy-top"><span className="habit-color" style={{ background: h.color, width: 14, height: 14, borderRadius: '50%' }} />{indicator}<span className="analy-name">{h.name}</span><span className="analy-rate">{bad ? t('reports.cleanDaysStat', { clean: toFa(st.clean), scheduled: toFa(st.scheduled) }) : t('reports.doneStat', { done: toFa(st.done), scheduled: toFa(st.scheduled) })}{t('reports.dotSeparator')}<b style={{ color: 'var(--accent)' }}>{toFa(rate)}{t('reports.percentSign')}</b></span></div>
+                          <div className="analy-top"><span className="habit-color" style={{ background: h.color, width: 14, height: 14, borderRadius: '50%' }} />{indicator}{typeLabel}<span className="analy-name">{h.name}</span><span className="analy-rate">{bad ? t('reports.cleanDaysStat', { clean: toFa(st.clean), scheduled: toFa(st.scheduled) }) : t('reports.doneStat', { done: toFa(st.done), scheduled: toFa(st.scheduled) })}{t('reports.dotSeparator')}<b style={{ color: 'var(--accent)' }}>{toFa(rate)}{t('reports.percentSign')}</b></span></div>
                 <div className="analy-bar"><div className="analy-fill" style={{ width: rate + '%' }} /></div>
                 <div className="dots30">{cur.map((x) => <span key={x} className={'dot' + (bad ? (dayIds(x).has(h.id) ? '' : ' on') : (dayIds(x).has(h.id) ? ' on' : ''))} title={faDate(x)} />)}</div>
               </div>

@@ -169,10 +169,16 @@ export default function Home() {
                   ) : (
                     <span className="habit-indicator good" title={t('today.habitTypeGood')}>✓</span>
                   )
+                  const typeLabel = isBad ? (
+                    <span className="habit-type-label bad">{t('today.habitTypeBad')}</span>
+                  ) : (
+                    <span className="habit-type-label good">{t('today.habitTypeGood')}</span>
+                  )
                   return (
                     <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
                       <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
                       {indicator}
+                      {typeLabel}
                       {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
                       <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
               {isBad ? <span className="mini-stat" style={{ fontSize: 11 }}>{done ? t('home.badDoneStat') : t('home.cleanStat')}</span> : <span className="mini-stat" style={{ fontSize: 11 }}>عادت</span>}

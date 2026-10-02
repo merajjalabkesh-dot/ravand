@@ -14,8 +14,8 @@ export const todayISO = () => {
 }
 export const isoAddDays = (iso, n) => {
   const p = iso.split('-').map(Number)
-  const dt = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n))
-  return dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate())
+  const dt = new Date(p[0], p[1] - 1, p[2] + n)
+  return dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate())
 }
 
 /* زبان فعال — تابع‌های ماژولی به کانتکست دسترسی ندارند، پس از همین متغیر می‌خوانند.
