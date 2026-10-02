@@ -1397,18 +1397,18 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 }
 
 /* Heatmap grid in row 2, col 2 */
-.app-hm .hm-grid { grid-column: 2; grid-row: 2; }
-
-/* app-hm-main no longer needed as flex container (replaced by hm-body grid) */
-.app-hm-main { display: contents; }
-
-/* Grid rows must match exactly */
-.app-hm .hm-grid {
+.app-hm .hm-grid { 
+  grid-column: 2; 
+  grid-row: 2; 
+  justify-self: start; /* shrink-wrap like flex layout, prevents stretching across 1fr */
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: repeat(7, var(--hm-cell));
-  gap: var(--hm-gap);
+  gap: var(--hm-gap); /* must match hm-days gap exactly */
 }
+
+/* app-hm-main no longer needed as flex container (replaced by hm-body grid) */
+.app-hm-main { display: contents; }
 
 /* hm-cell needs position:relative for pseudo-elements (::before, ::after) */
 .app-hm .hm-cell { position: relative; }
