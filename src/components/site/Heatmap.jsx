@@ -267,13 +267,13 @@ export default function Heatmap({ weeks = 20, labels }) {
                           />
             )
           }))}
-
-          {active && (
-            <div className="hm-tip" style={{ left: active.x, top: active.y }} role="status">
-              {tipText(active)}
-            </div>
-          )}
         </div>
+
+        {active && (
+          <div className="hm-tip" style={{ left: active.x, top: active.y }} role="status">
+            {tipText(active)}
+          </div>
+        )}
       </div>
 
       <div className="hm-foot">
