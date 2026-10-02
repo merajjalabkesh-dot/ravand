@@ -36,16 +36,6 @@ export default function Habits() {
   const list = db.habits.length === 0 ? <div className="empty-state"><div className="big">✦</div><p>{t('habits.emptyStateLine1')}<br />{t('habits.emptyStateLine2')}</p></div>
       : db.habits.map((h) => {
         const bad = h.type === 'bad'
-        const indicator = bad ? (
-          <span className="habit-indicator bad" title={t('habits.typeBad')}>✕</span>
-        ) : (
-          <span className="habit-indicator good" title={t('habits.typeGood')}>✓</span>
-        )
-        const typeLabel = bad ? (
-          <span className="habit-type-label bad">{t('habits.typeBad')}</span>
-        ) : (
-          <span className="habit-type-label good">{t('habits.typeGood')}</span>
-        )
         if (bad) {
         const cs = cleanStreak(h.id), bs = bestClean(h.id)
         const csFa = toFa(cs)
@@ -58,8 +48,6 @@ export default function Habits() {
         return (
                   <div className="habit-manage-row bad" key={h.id}>
                     <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
-                    {indicator}
-                    {typeLabel}
                     <span className="hname">{h.name}</span>
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="badge" style={{ fontSize: 9, background: 'rgba(248,113,113,.16)', color: '#f87171' }}>{t('habits.badgeBad')}</span>
@@ -80,8 +68,6 @@ export default function Habits() {
       return (
               <div className="habit-manage-row" key={h.id}>
                 <span className="habit-color" style={{ background: h.color, width: 16, height: 16 }} />
-                {indicator}
-                {typeLabel}
                 <span className="hname">{h.name}</span>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="badge good-badge">{t('habits.badgeGood')}</span>

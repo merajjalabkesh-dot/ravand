@@ -304,8 +304,6 @@ function DayDetailModal({ iso, onClose }) {
             {goodHabits.map(h => (
               <div key={h.id} className="day-modal-row">
                 <span className="mini-dot" style={{ background: h.color }} />
-                <span className="habit-indicator good" title={t('reports.habitTypeGood')}>✓</span>
-                <span className="habit-type-label good">{t('reports.habitTypeGood')}</span>
                 <span className="mini-name">{h.name}</span>
                 <span className={'day-modal-status ' + (d && d.habits && d.habits[h.id] ? 'on' : 'off')}>
                   {d && d.habits && d.habits[h.id] ? t('reports.statusDone') : t('reports.statusNotDone')}
@@ -322,8 +320,6 @@ function DayDetailModal({ iso, onClose }) {
             {badHabits.map(h => (
               <div key={h.id} className="day-modal-row">
                 <span className="mini-dot" style={{ background: h.color }} />
-                <span className="habit-indicator bad" title={t('reports.habitTypeBad')}>✕</span>
-                <span className="habit-type-label bad">{t('reports.habitTypeBad')}</span>
                 <span className="mini-name">{h.name}</span>
                 <span className={'day-modal-status ' + (d && d.habits && d.habits[h.id] ? 'on' : 'off')}>
                   {d && d.habits && d.habits[h.id] ? t('reports.statusDoneSad') : t('reports.statusClean')}

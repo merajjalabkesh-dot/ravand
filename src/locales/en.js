@@ -10,6 +10,8 @@ export const EN = {
   "home.badDoneStat": "Done",
   "home.cleanStat": "Clean",
   "home.habitStat": "Habit",
+  "home.habitTypeGood": "Good habit",
+  "home.habitTypeBad": "Bad habit",
   "home.moveUp": "Move up",
   "home.moveDown": "Move down",
   "home.greetingMorning": "Hi, {name} 🌅",

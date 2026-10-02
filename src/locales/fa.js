@@ -10,6 +10,8 @@ export const FA = {
   "home.badDoneStat": "انجام شد",
   "home.cleanStat": "پاک",
   "home.habitStat": "عادت",
+  "home.habitTypeGood": "عادت خوب",
+  "home.habitTypeBad": "عادت بد",
   "home.moveUp": "انتقال به بالا",
   "home.moveDown": "انتقال به پایین",
   "home.greetingMorning": "سلام، {name} 🌅",

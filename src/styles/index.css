@@ -498,51 +498,14 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 .delete-habit { color: var(--muted); padding: 9px; border-radius: 12px; transition: color .15s, background .15s; }
 .delete-habit:hover { color: #f87171; background: rgba(248, 113, 113, .12); }
 
-/* ---------- Habit type indicator (good/bad) ---------- */
-.habit-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 800;
-  margin: 0 6px;
-  flex-shrink: 0;
-}
-.habit-indicator.good {
-  background: rgba(67, 232, 168, .18);
+/* ---------- Habit type shown inline in task-list mini-stat (good/bad) ---------- */
+.mini-stat.good {
   color: var(--accent-2);
-  border: 1.5px solid rgba(67, 232, 168, .35);
-}
-.habit-indicator.bad {
-  background: rgba(248, 113, 113, .18);
-  color: #f87171;
-  border: 1.5px solid rgba(248, 113, 113, .35);
-}
-/* Visible text badge showing whether a habit is good or bad */
-.habit-type-label {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 8px;
-  margin: 0 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  line-height: 1.4;
 }
-.habit-type-label.good {
-  background: rgba(67, 232, 168, .16);
-  color: var(--accent-2);
-  border: 1px solid rgba(67, 232, 168, .35);
-}
-.habit-type-label.bad {
-  background: rgba(248, 113, 113, .16);
+.mini-stat.bad {
   color: #f87171;
-  border: 1px solid rgba(248, 113, 113, .38);
+  font-weight: 800;
 }
 
 @media (max-width: 820px) {

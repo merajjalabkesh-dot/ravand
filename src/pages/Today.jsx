@@ -115,8 +115,6 @@ export default function Today() {
                           return (
                             <div className={'habit-check bad' + (done ? ' bad-done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
                               <span className="habit-color" style={{ background: h.color }} />
-                              <span className="habit-indicator bad" title={t('today.habitTypeBad')}>✕</span>
-                              <span className="habit-type-label bad">{t('today.habitTypeBad')}</span>
                               <span className="hname">{h.name}</span>
                   {cs > 0 && <span className="streak">{toFa(cs)} {t('today.cleanStreakSuffix')}</span>}
                   <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
@@ -128,8 +126,6 @@ export default function Today() {
             return (
                           <div className={'habit-check' + (done ? ' done' : '')} key={h.id} onClick={() => toggleHabit(h.id)} style={sched ? {} : { opacity: .55 }}>
                             <span className="habit-color" style={{ background: h.color }} />
-                            <span className="habit-indicator good" title={t('today.habitTypeGood')}>✓</span>
-                            <span className="habit-type-label good">{t('today.habitTypeGood')}</span>
                             <span className="hname">{h.name}{!sched && <small style={{ color: 'var(--muted)' }}> {t('today.notScheduledToday')}</small>}</span>
                 {st > 0 && <span className="streak">{toFa(st)} {t('today.streakDaysSuffix')}</span>}
                 <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
