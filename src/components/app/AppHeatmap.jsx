@@ -175,23 +175,26 @@ export default function AppHeatmap({ range = 'week' }) {
     <div ref={rootRef} className={`app-hm ${RANGE_CLASS[range] || RANGE_CLASS.week}`}>
       <div className="hm-wrap">
         <div className="hm-body">
+          {/* Grid layout: col 1 = day labels (54px), col 2 = main content (flex-1) */}
+          {/* Row 1: spacer (col 1) + month labels (col 2) */}
+          {/* Row 2: day labels (col 1) + grid (col 2) */}
+          <div className="app-hm-spacer" aria-hidden="true" />
+          <div className="app-hm-months" style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}>
+            {segs.map((s) => (
+              <div
+                key={s.key}
+                className="app-hm-month"
+                style={{ gridColumn: `${s.start + 1} / span ${s.end - s.start + 1}` }}
+              >
+                {monthName(s.jm)}
+              </div>
+            ))}
+          </div>
           <div className="hm-days">
             {DOW_KEYS.map((k) => <span key={k}>{t(k)}</span>)}
           </div>
-          <div className="app-hm-main">
-            <div className="app-hm-months" style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}>
-              {segs.map((s) => (
-                <div
-                  key={s.key}
-                  className="app-hm-month"
-                  style={{ gridColumn: `${s.start + 1} / span ${s.end - s.start + 1}` }}
-                >
-                  {monthName(s.jm)}
-                </div>
-              ))}
-            </div>
-            <div className="hm-grid" onMouseLeave={() => setTip(null)}>
-              {cols.map((col) => col.map((c, r) => (
+          <div className="hm-grid" onMouseLeave={() => setTip(null)}>
+            {cols.map((col) => col.map((c, r) => (
                 c.visible ? (
                   <button
                     key={c.iso}
@@ -214,10 +217,9 @@ export default function AppHeatmap({ range = 'week' }) {
                   <span key={`b-${c.iso}`} className="hm-cell app-hm-blank" aria-hidden="true" />
                 )
               )))}
-            </div>
-          </div>
         </div>
       </div>
+    </div>
 
       {tip && (
         <div
