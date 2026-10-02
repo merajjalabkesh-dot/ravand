@@ -178,6 +178,7 @@ export default function Heatmap({ weeks = 20, labels }) {
   const [active, setActive] = useState(null)
   const [openDay, setOpenDay] = useState(null)
   const gridRef = useRef(null)
+  const bodyRef = useRef(null)
   const detailRef = useRef(null)
 
   useEffect(() => {
@@ -203,13 +204,13 @@ export default function Heatmap({ weeks = 20, labels }) {
   const showTip = useCallback((cell, x, y) => setActive({ ...cell, x, y }), [])
 
   const onEnter = (cell, e) => {
-    const r = gridRef.current ? gridRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
+    const r = bodyRef.current ? bodyRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
     const rect = e.currentTarget.getBoundingClientRect()
     showTip(cell, rect.left + rect.width / 2 - r.left, rect.top - r.top - 10)
   }
   const onMove = (cell, e) => {
     if (!e.currentTarget.matches(':hover')) return
-    const r = gridRef.current ? gridRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
+    const r = bodyRef.current ? bodyRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
     const rect = e.currentTarget.getBoundingClientRect()
     showTip(cell, rect.left + rect.width / 2 - r.left, rect.top - r.top - 10)
   }
@@ -244,7 +245,7 @@ export default function Heatmap({ weeks = 20, labels }) {
 
   return (
     <div className="hm-wrap">
-      <div className="hm-body">
+      <div className="hm-body" ref={bodyRef}>
         <div className="hm-days" aria-hidden="true">
           {DAY_LABELS.map((d) => <span key={d}>{d}</span>)}
         </div>
