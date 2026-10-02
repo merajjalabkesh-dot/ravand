@@ -1348,51 +1348,35 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 
 /* ===== App Heatmap overrides: prevent site heatmap styles from leaking ===== */
 /* Site heatmap has global .hm-cell.today/.selected outlines - disable inside .app-hm */
-.app-hm .hm-cell.today { outline: none; box-shadow: none; }
-.app-hm .hm-cell.selected { outline: none; box-shadow: none; }
+.app-hm .hm-cell.today { outline: none !important; box-shadow: none !important; }
+.app-hm .hm-cell.selected { outline: none !important; box-shadow: none !important; }
 
-/* Selected day: single green ring via box-shadow (not outline) so it doesn't affect layout */
+/* Selected day: ONLY this gets a green ring (box-shadow, not outline) */
 .app-hm .hm-cell.selected {
-  box-shadow: 0 0 0 2px var(--site-accent-2);
+  box-shadow: 0 0 0 2px var(--site-accent-2) !important;
   border-radius: 5px;
 }
 
-/* Today (not selected): subtle accent dot at top-center */
-.app-hm .hm-cell.today:not(.selected)::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--site-accent-2);
-  pointer-events: none;
-}
-
-/* Month start indicator: subtle accent vertical line on left, NOT a full green box */
-.app-hm .hm-grid .hm-cell.mstart::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--site-accent-2);
-  opacity: .5;
-  border-radius: 2px 0 0 2px;
-  pointer-events: none;
-}
+/* REMOVE all default green indicators: no dot on today, no line on month start */
+.app-hm .hm-cell.today:not(.selected)::before { display: none !important; content: none !important; }
+.app-hm .hm-grid .hm-cell.mstart::after { display: none !important; content: none !important; }
 
 /* Ensure day columns (hm-days) align perfectly with grid rows */
+/* Use align-items: start so labels sit at top of each row (matching grid cells) */
 .app-hm .hm-days {
   display: grid;
   grid-template-rows: repeat(7, var(--hm-cell));
   gap: var(--hm-gap);
-  width: 54px; /* fixed width for labels */
+  width: 54px;
+  align-items: start;
 }
 .app-hm--week .hm-days { width: 48px; }
+.app-hm .hm-days span {
+  height: var(--hm-cell);
+  display: flex;
+  align-items: flex-start; /* top-align to match grid cell top */
+  padding-top: 0;
+}
 
 /* Grid rows must match exactly */
 .app-hm .hm-grid {
