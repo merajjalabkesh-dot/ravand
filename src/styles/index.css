@@ -1362,13 +1362,14 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 .app-hm .hm-grid .hm-cell.mstart::after { display: none !important; content: none !important; }
 
 /* Ensure day columns (hm-days) align perfectly with grid rows */
-/* Use align-items: start so labels sit at top of each row (matching grid cells) */
+/* hm-days is now a flex item in app-hm-main (column), directly above hm-grid */
+/* Both share grid-template-rows: repeat(7, var(--hm-cell)) so rows match exactly */
 .app-hm .hm-days {
   display: grid;
   grid-template-rows: repeat(7, var(--hm-cell));
   gap: var(--hm-gap);
   width: 54px;
-  align-items: start;
+  flex-shrink: 0;
 }
 .app-hm--week .hm-days { width: 48px; }
 .app-hm .hm-days span {
@@ -1376,6 +1377,15 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   display: flex;
   align-items: flex-start; /* top-align to match grid cell top */
   padding-top: 0;
+}
+
+/* app-hm-main is flex column: hm-days -> app-hm-months -> hm-grid */
+/* hm-grid has grid-template-rows: repeat(7, ...) matching hm-days */
+.app-hm-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* small gap between month labels and grid */
+  min-width: 0;
 }
 
 /* Grid rows must match exactly */

@@ -175,10 +175,10 @@ export default function AppHeatmap({ range = 'week' }) {
     <div ref={rootRef} className={`app-hm ${RANGE_CLASS[range] || RANGE_CLASS.week}`}>
       <div className="hm-wrap">
         <div className="hm-body">
-          <div className="hm-days">
-            {DOW_KEYS.map((k) => <span key={k}>{t(k)}</span>)}
-          </div>
           <div className="app-hm-main">
+            <div className="hm-days">
+              {DOW_KEYS.map((k) => <span key={k}>{t(k)}</span>)}
+            </div>
             <div className="app-hm-months" style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}>
               {segs.map((s) => (
                 <div
