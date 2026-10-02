@@ -296,8 +296,14 @@
 .hm-cell.lv3 { background: var(--hm-3); }
 .hm-cell.lv4 { background: var(--hm-4); box-shadow: 0 0 10px rgba(245, 166, 35, .35); }
 .hm-cell.future { background: rgba(255, 255, 255, .025); }
-.hm-cell.today { outline: 1.5px solid var(--site-accent-2); outline-offset: 1px; }
-.hm-cell.selected { outline: 2px solid var(--site-accent-2); outline-offset: 2px; }
+/* REMOVE default green outline from today - only selected gets green ring */
+.hm-cell.today { outline: none !important; box-shadow: none !important; }
+/* Selected day: green ring via box-shadow (not outline) so it doesn't affect layout */
+.hm-cell.selected {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--site-accent-2) !important;
+  border-radius: 5px;
+}
 .hm-grid .hm-cell:hover { transform: scale(1.35); box-shadow: 0 3px 12px rgba(139, 92, 246, .5); z-index: 2; position: relative; }
 
 .hm-tip {
@@ -317,7 +323,12 @@
 }
 
 /* ---------------- جزئیات یک روز (درجا، زیر جدول) ---------------- */
-.hm-cell:focus-visible { outline: 2px solid var(--site-accent-2); outline-offset: 2px; }
+/* Focus visible: subtle ring matching accent, not green outline */
+.hm-cell:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--site-accent) !important;
+  border-radius: 5px;
+}
 
 .hm-detail {
   margin-top: 18px; padding: 20px 22px;
