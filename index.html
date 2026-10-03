@@ -31,6 +31,8 @@
         return !!(
           window.__TAURI_INTERNALS__ ||
           window.Capacitor ||
+          // exe (Electron) فایل محلی بسته‌بندی‌شده را از file:// لود می‌کند
+          location.protocol === 'file:' ||
           (h === 'localhost' && (location.port === '' || location.port === '80')) ||
           h === 'tauri.localhost'
         );
