@@ -157,9 +157,13 @@ self.addEventListener('fetch', (event) => {
 `
 
 fs.writeFileSync(path.join(dist, 'service-worker.js'), sw, 'utf8')
+// همان SW در dist/sw.js هم نوشته می‌شود. کاربرانی که نسخهٔ قدیمی را نصب کرده‌اند
+// هنوز /sw.js را روی scope «/» ثبت دارند؛ در بیلد قبلی public/sw.js به یک stub
+// بدون fetch handler تبدیل شده بود، پس مرورگر آن‌ها همین URL را به stub به‌روز
+// می‌کرد و آفلاین کاملاً از کار می‌افتاد (صفحهٔ خطای مرورگر). نوشتن SW واقعی روی
+// /sw.js باعث می‌شود همان ثبتِ کهنه هم به‌روز شود و کش‌های قدیمی در activate پاک شوند.
+fs.writeFileSync(path.join(dist, 'sw.js'), sw, 'utf8')
 
-// Public sw.js is only a development fallback; the deployed build uses
-// dist/service-worker.js generated above.
-console.log('[pwa] generated dist/service-worker.js')
+console.log('[pwa] generated dist/service-worker.js + dist/sw.js')
 console.log('[pwa] precached ' + precache.length + ' files')
 console.log('[pwa] ' + precache.join('\n       '))
