@@ -11,25 +11,11 @@
     <meta name="apple-mobile-web-app-title" content="روند" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" /></noscript>
+    <!-- فونت سایت (IRAN) از public/fonts/iran و در site.css بارگذاری می‌شود؛
+         لینک Vazirmatn گوگل برای این ورودی لازم نیست. -->
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      console.info('[PWA boot]', {
-        href: location.href,
-        online: navigator.onLine,
-        controller: navigator.serviceWorker?.controller?.scriptURL ?? null
-      });
-      navigator.serviceWorker?.getRegistration().then(reg => {
-        console.info('[PWA registration]', {
-          scope: reg?.scope, active: reg?.active?.scriptURL, state: reg?.active?.state
-        });
-      });
-    </script>
     <script type="module" src="./src/main.jsx"></script>
     <script>
       // Register the generated service worker (created after vite build).

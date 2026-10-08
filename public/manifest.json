@@ -3,7 +3,7 @@
   "short_name": "روند",
   "description": "عادت‌هایت را بساز، روندت را ببین.",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./#/app",
   "scope": "./",
   "display": "standalone",
   "background_color": "#070b18",

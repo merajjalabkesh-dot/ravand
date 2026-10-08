@@ -3,19 +3,13 @@ import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
 import Logo from './Logo'
 import AppLink from './AppLink'
+import { jumpToAnchor } from './helpers'
 
 export default function SiteFooter() {
   const year = new Date().getFullYear()
 
   // لینک‌های داخلی: فقط اسکرول نرم، بدون عوض شدن صفحه
-  const jump = (e) => {
-    e.preventDefault()
-    const id = e.currentTarget.getAttribute('href')
-    const el = id && id.length > 1 ? document.getElementById(id.slice(1)) : null
-    if (!el) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-  }
+  const jump = jumpToAnchor
 
   return (
     <footer className="site-footer">
@@ -27,6 +21,10 @@ export default function SiteFooter() {
           </Link>
           <p className="site-foot-tag">
             یک جدول برای روزهایت. عادت‌ها، کارها و ژورنال — همه در یک جا.
+          </p>
+          {/* اعتبار فونت: مجوز CC BY 4.0 ایجاب می‌کند لینک سازنده در سایت بیاید */}
+          <p className="site-foot-credit">
+            فونت از <a href="http://www.onlinewebfonts.com" target="_blank" rel="noopener noreferrer">Web Fonts</a> با مجوز CC BY 4.0.
           </p>
         </div>
 

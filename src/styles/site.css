@@ -8,6 +8,22 @@
 
 @import './glass.css';
 
+/* ------------------------------------------------------------
+   فونت سایت: IRAN (محلی) — فایل‌ها در public/fonts/iran/
+   فونت یک وزن دارد؛ بقیهٔ وزن‌ها (600 تا 900) از همین یک قلم
+   ساخته می‌شوند (synthetic bold). مجوز CC BY 4.0 — اعتبار در
+   فوتر سایت (SiteFooter.jsx) آمده است.
+   ------------------------------------------------------------ */
+@font-face {
+  font-family: 'IRAN';
+  src: url('/fonts/iran/IRAN.woff2') format('woff2'),
+       url('/fonts/iran/IRAN.woff') format('woff'),
+       url('/fonts/iran/IRAN.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --site-max: 1160px;
   --site-ink: #eef2ff;
@@ -15,11 +31,10 @@
   --site-muted: #8494b8;
   --site-line: rgba(140, 170, 230, .16);
   --site-accent: #8b5cf6;
+  --site-accent-deep: #6d3ff2;
   --site-accent-2: #43e8a8;
   --site-warm: #f5a623;
 
-  --hm-cell: 13px;
-  --hm-gap: 4px;
   --hm-0: rgba(139, 92, 246, .07);
   --hm-1: rgba(139, 92, 246, .3);
   --hm-2: rgba(139, 92, 246, .55);
@@ -28,6 +43,13 @@
 }
 
 .site { min-height: 100vh; background: #070b18; color: var(--site-ink); }
+/* فونت IRAN فقط در دامنهٔ سایت. body از --font مشترک index.css می‌خواند؛
+   اینجا هم --font را بازنویسی می‌کنیم و هم font-family را مستقیم می‌دهیم
+   تا بدون دست زدن به فایل مشترک، روی صفحات سایت برندهٔ cascade شود. */
+.site, .landing-page {
+  --font: 'IRAN', 'Vazirmatn', Tahoma, Arial, sans-serif;
+  font-family: 'IRAN', 'Vazirmatn', Tahoma, Arial, sans-serif;
+}
 .site-main { display: block; }
 /* لندینگ: بالای صفحه آبی روشن، پایینش آبی تیره — یکدست */
 /*
@@ -80,7 +102,9 @@
  * پدینگ افقیِ content صفر شده تا از چپ و راست نوار روشن نماند،
  * و ریل تمام‌عرض است تا کل عرض را بپوشاند.
  */
-.landing-page > section { background: var(--lp-rail, #a9cdf7); }
+/* ریشهٔ پورتال گلیف font-family:Arial می‌گذارد؛ این قاعده دامنهٔ لندینگ را
+   دوباره به IRAN برمی‌گرداند (بدون دست زدن به خودِ فایل پورتال). */
+.landing-page > section { background: var(--lp-rail, #a9cdf7); font-family: 'IRAN', 'Vazirmatn', Tahoma, Arial, sans-serif; }
 /*
  * جلوگیری از «grid blowout» در موبایل: ستون autoِ این گرید به اندازهٔ
  * min-content ریل (~۸۰۰px) باز می‌شد و چون RTL بود، ~۴۰۰px از سمت چپ
@@ -151,7 +175,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 10px 18px; border-radius: 999px;
   font-size: 14px; font-weight: 700; text-decoration: none;
-  background: linear-gradient(135deg, #8b5cf6, #6d3ff2);
+  background: linear-gradient(135deg, var(--site-accent), var(--site-accent-deep));
   color: #fff; border: none;
   box-shadow: 0 8px 26px rgba(139, 92, 246, .3);
   transition: transform .16s, filter .16s, box-shadow .16s;
@@ -211,13 +235,13 @@
 .site-hero-points svg { color: var(--site-accent-2); }
 
 /* ---------------- بخش‌ها ---------------- */
-.site-section { max-width: var(--site-max); margin: 0 auto; padding: clamp(44px, 6.5vw, 80px) 22px; scroll-margin-top: 78px; }
-/* بخش‌های لنگری زیر هدر چسبان نروند */
-#features, #compare, #pricing, #faq, #download, #channels { scroll-margin-top: 84px; }
+.site-section { max-width: var(--site-max); margin: 0 auto; padding: clamp(44px, 6.5vw, 80px) 22px; scroll-margin-top: 84px; }
+/* لنگری‌ها یک اندازه فاصله از هدر چسبان بگیرند — لیست کامل مقصدهای لینک‌های هدر و فوتر */
+#live, #about, #features, #compare, #audience, #voices, #pricing, #download, #steps, #faq, #channels { scroll-margin-top: 84px; }
 .site-sec-head { text-align: center; margin-bottom: 40px; }
 .site-kicker {
-  display: inline-block; font-size: clamp(17px, 1.9vw, 22px); font-weight: 800;
-  letter-spacing: .04em; color: var(--site-accent-2); margin-bottom: 14px; line-height: 1.6;
+  display: inline-block; font-size: clamp(13px, 1.1vw, 14.5px); font-weight: 700;
+  letter-spacing: .1em; color: var(--site-accent-2); margin-bottom: 12px; line-height: 1.6;
 }
 .site-sec-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
 .site-sec-sub { margin: 14px auto 0; max-width: 600px; color: var(--site-muted); font-size: 15px; line-height: 1.9; }
@@ -434,7 +458,7 @@
 .voice-avatar {
   display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
   border-radius: 50%; font-weight: 800; font-size: 15px;
-  background: linear-gradient(140deg, #8b5cf6, #43e8a8); color: #0a0f1f;
+  background: linear-gradient(140deg, var(--site-accent), var(--site-accent-2)); color: #0a0f1f;
 }
 .voice figcaption b { display: block; font-size: 14px; font-weight: 700; }
 .voice figcaption i { font-style: normal; font-size: 12px; color: var(--site-muted); }
@@ -446,7 +470,7 @@
 .price-badge {
   position: absolute; top: 14px; inset-inline-end: 20px;
   padding: 5px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 800;
-  background: linear-gradient(135deg, #8b5cf6, #43e8a8); color: #08111f;
+  background: linear-gradient(135deg, var(--site-accent), var(--site-accent-2)); color: #08111f;
 }
 .price-name { font-size: 17px; font-weight: 800; }
 .price-card.primary .price-name { padding-inline-end: 104px; }
@@ -475,7 +499,6 @@
 .dl-points { list-style: none; padding: 0; display: grid; gap: 7px; font-size: 13px; color: var(--site-muted); }
 .dl-points li { display: flex; align-items: center; gap: 7px; }
 .dl-points svg { color: var(--site-accent-2); flex-shrink: 0; }
-.dl-size { font-size: 11.5px; opacity: .75; margin-inline-start: 2px; direction: ltr; }
 
 /* ---------------- مراحل ---------------- */
 .steps-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr)); gap: 16px; }
@@ -483,7 +506,7 @@
 .step-n {
   display: grid; place-items: center; width: 40px; height: 40px; padding: 0; margin: 0 0 14px;
   border-radius: 13px; font-weight: 900; font-size: 16px;
-  background: linear-gradient(135deg, #8b5cf6, #43e8a8); color: #08111f;
+  background: linear-gradient(135deg, var(--site-accent), var(--site-accent-2)); color: #08111f;
 }
 .step h3 { font-size: 16.5px; font-weight: 800; margin-bottom: 7px; }
 .step p { font-size: 13.5px; line-height: 1.9; color: var(--site-muted); }
@@ -543,6 +566,9 @@
   padding: 48px 22px 34px;
 }
 .site-foot-tag { margin-top: 14px; font-size: 13.5px; line-height: 1.95; color: var(--site-muted); max-width: 300px; }
+.site-foot-credit { margin-top: 10px; font-size: 12px; line-height: 1.8; color: var(--site-muted); max-width: 300px; }
+.site-foot-credit a { color: var(--site-accent-2); text-decoration: none; }
+.site-foot-credit a:hover { text-decoration: underline; }
 .site-foot-col { display: flex; flex-direction: column; gap: 11px; }
 .site-foot-col h3 { font-size: 13px; font-weight: 800; letter-spacing: .08em; color: var(--site-ink); margin-bottom: 3px; }
 .site-foot-col a { font-size: 13.5px; color: var(--site-muted); text-decoration: none; transition: color .15s; }
@@ -600,7 +626,7 @@
 
 .auth-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
 .auth-switch-btn { padding: 10px; border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--site-muted); transition: background .16s, color .16s; }
-.auth-switch-btn.on { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; }
+.auth-switch-btn.on { background: linear-gradient(135deg, var(--site-accent), var(--site-accent-deep)); color: #fff; }
 .auth-hint { font-size: 13px; color: var(--site-muted); margin: 14px 0 20px; line-height: 1.8; }
 
 .login-card .field { text-align: start; margin-bottom: 15px; }
@@ -651,7 +677,7 @@
 .lang-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .05); border: 1px solid var(--site-line); }
 .lang-opt { padding: 7px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--site-muted); transition: background .16s, color .16s; }
 .lang-opt:hover { color: var(--site-ink); }
-.lang-opt.sel { background: linear-gradient(135deg, #8b5cf6, #6d3ff2); color: #fff; }
+.lang-opt.sel { background: linear-gradient(135deg, var(--site-accent), var(--site-accent-deep)); color: #fff; }
 .lang-switch.mini .lang-opt { padding: 6px 12px; font-size: 12.5px; }
 
 /* ---------------- فرم تغییر رمز ---------------- */
@@ -696,10 +722,8 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
    * گریدها یک‌ستونه شوند، و هیچ‌چیز از صفحه بیرون نزند.
    */
 
-  /* ریشه‌ها: هت‌مپ و گپ */
+  /* ریشه: عرض کانتینر */
   :root {
-    --hm-cell: 10px;
-    --hm-gap: 3px;
     --site-max: 100%;
   }
 
@@ -708,7 +732,7 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .site-hero { padding: clamp(40px, 8vw, 64px) 16px clamp(32px, 6vw, 48px); min-height: 0; height: auto; }
   .site-hero-in { gap: 18px; }
   .site-sec-head { margin-bottom: 28px; }
-  .site-kicker { font-size: clamp(14px, 3.5vw, 17px); margin-bottom: 10px; }
+  .site-kicker { font-size: clamp(12px, 3vw, 13.5px); margin-bottom: 8px; }
   .site-sec-title { font-size: clamp(22px, 5.5vw, 30px); line-height: 1.35; }
   .site-sec-sub { font-size: 14px; line-height: 1.8; max-width: 100%; margin-top: 10px; }
 
@@ -740,15 +764,10 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
     font-size: 12px;
   }
 
-  /* ========== هت‌مپ موبایل — سلول‌های بزرگ‌تر لمسی ========== */
-  :root {
-    --hm-cell: 14px;
-    --hm-gap: 3px;
-  }
+  /* ========== هت‌مپ موبایل ========== */
   .hm-days { width: 34px; font-size: 9px; }
   .hm-body { gap: 4px; }
   .hm-wrap { overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
-  .hm-months { min-width: max-content; }
   .hm-foot { flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 14px; }
   .hm-legend { gap: 3px; }
   .hm-legend-label { font-size: 11px; }

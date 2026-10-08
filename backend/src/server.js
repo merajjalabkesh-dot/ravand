@@ -1,4 +1,4 @@
-// Roznegar backend — Express + SQLite (better-sqlite3), Auth (JWT + OTP), data sync.
+// Roznegar backend — Express + PostgreSQL (Neon/Railway), Auth (JWT), data sync.
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
@@ -12,7 +12,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = +(process.env.PORT || 4000)
 
-app.use(cors({ origin: true, credentials: true })) // open CORS; adjust for prod if needed
+// Railway پشت پروکسی است؛ بدون این، req.ip آدرس پروکسی می‌شود و محدودیت نرخ
+// عملاً همه را یک کاربر می‌بیند. عدد ۱ یعنی فقط به اولین hop اعتماد کن.
+app.set('trust proxy', 1)
+
+// CORS: با env قابل تنظیم. اگر CORS_ORIGINS ست باشد فقط همان‌ها مجازند
+// (با کاما جدا شوند)؛ وگرنه رفتار قبلی (باز) حفظ می‌شود تا سایت فعلی نشکند.
+const corsOrigins = (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean)
+app.use(cors(corsOrigins.length ? { origin: corsOrigins, credentials: true } : { origin: true, credentials: true }))
 app.use(express.json({ limit: '12mb' })) // journal images as dataURLs
 
 app.get('/health', (_req, res) => res.json({ ok: true }))

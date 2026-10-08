@@ -30,7 +30,9 @@ export default function SiteHome() {
   useEffect(() => {
     if (!loc.hash) return
     const el = document.getElementById(loc.hash.slice(1))
-    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 90)
+    if (!el) return
+    const id = setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 90)
+    return () => clearTimeout(id)
   }, [loc.hash])
 
   return (

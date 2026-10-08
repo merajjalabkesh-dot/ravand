@@ -1,46 +1,44 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, phaseOfHour, nextEventISO } from '../lib/store'
+import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, phaseOfHour, nextEventISO, isScheduled } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import EventCard from '../components/EventCard'
 
 function useHabitData(db) {
   const today = todayISO()
-  const dayIds = (iso) => {
-    const d = db.days[iso]
-    if (!d) return new Set()
-    return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
-  }
-  const dayPct = (iso) => {
-    const goods = db.habits.filter((h) => h.type !== 'bad' && isSched(h, iso))
-    if (!goods.length) return 0
-    const ids = dayIds(iso)
-    let n = 0
-    goods.forEach((h) => { if (ids.has(h.id)) n++ })
-    return Math.round((n / goods.length) * 100)
-  }
-  const isSched = (h, iso) => {
-    if (h.type === 'bad') return true
-    const d = h.days || []
-    if (!d.length) return true
-    const jw = new Date(iso.split('-').map(Number)).getDay()
-    return d.includes(jw)
-  }
-  const habitStreak = (id) => {
-    let s = 0, iso = today
-    if (!dayIds(iso).has(id)) iso = isoAddDays(iso, -1)
-    while (dayIds(iso).has(id)) { s++; iso = isoAddDays(iso, -1) }
-    return s
-  }
-  const bestStreak = (id) => {
-    let best = 0, cur = 0
-    for (let i = 400; i >= 0; i--) { if (dayIds(isoAddDays(today, -i)).has(id)) cur++; else { if (cur > best) best = cur; cur = 0 } }
-    if (cur > best) best = cur
-    return best
-  }
-  const weekDone = (id) => { let n = 0; for (let i = 0; i < 7; i++) if (dayIds(isoAddDays(today, -i)).has(id)) n++; return n }
-  return { dayIds, dayPct, isSched, habitStreak, bestStreak, weekDone, today }
+  // همهٔ این توابع از db می‌خوانند؛ یک‌بار در هر تغییرِ db ساخته می‌شوند نه
+  // در هر رندر. bestStreak روی ۴۰۱ روز حلقه می‌زند، پس این مهم است.
+  return useMemo(() => {
+    const dayIds = (iso) => {
+      const d = db.days[iso]
+      if (!d) return new Set()
+      return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
+    }
+    const dayPct = (iso) => {
+      const goods = db.habits.filter((h) => h.type !== 'bad' && isScheduled(h, iso))
+      if (!goods.length) return 0
+      const ids = dayIds(iso)
+      let n = 0
+      goods.forEach((h) => { if (ids.has(h.id)) n++ })
+      return Math.round((n / goods.length) * 100)
+    }
+    const isSched = (h, iso) => isScheduled(h, iso)
+    const habitStreak = (id) => {
+      let s = 0, iso = today
+      if (!dayIds(iso).has(id)) iso = isoAddDays(iso, -1)
+      while (dayIds(iso).has(id)) { s++; iso = isoAddDays(iso, -1) }
+      return s
+    }
+    const bestStreak = (id) => {
+      let best = 0, cur = 0
+      for (let i = 400; i >= 0; i--) { if (dayIds(isoAddDays(today, -i)).has(id)) cur++; else { if (cur > best) best = cur; cur = 0 } }
+      if (cur > best) best = cur
+      return best
+    }
+    const weekDone = (id) => { let n = 0; for (let i = 0; i < 7; i++) if (dayIds(isoAddDays(today, -i)).has(id)) n++; return n }
+    return { dayIds, dayPct, isSched, habitStreak, bestStreak, weekDone, today }
+  }, [db])
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.07 } } }

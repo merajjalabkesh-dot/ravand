@@ -45,7 +45,6 @@ export function I18nProvider({ children }) {
 
   /* ---- فونت مناسب هر زبان ---- */
   useEffect(() => {
-    let cancelled = false
     const id = 'rg-lang-font'
     const old = document.getElementById(id)
     if (old) old.remove()
@@ -58,7 +57,7 @@ export function I18nProvider({ children }) {
       link.href = 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap'
     }
     document.head.appendChild(link)
-    return () => { cancelled = true; if (!cancelled) link.remove() }
+    return () => link.remove()
   }, [lang])
 
   const dict = DICTS[lang] || FA

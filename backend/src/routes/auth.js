@@ -4,9 +4,23 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'node:crypto'
 import { getByEmail, getUser, getUserAuth, createUser, loadData, setPassword } from '../db.js'
+import { rateLimit } from '../rateLimit.js'
 
 const router = Router()
-const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
+
+// در production، JWT_SECRET باید حتماً ست شده باشد. اگر نباشد و ما به مقدار
+// پیش‌فرض بیفتیم، هر کسی با دانستن آن رشته می‌تواند توکن جعل کند و جای هر
+// کاربری جا بزند. پس ترجیح می‌دهیم سرور اصلاً بالا نیاید تا آسیب‌پذیر نباشد.
+const IS_PROD = process.env.NODE_ENV === 'production'
+const SECRET = process.env.JWT_SECRET || (IS_PROD ? null : 'dev-secret-change-me')
+if (!SECRET) {
+  throw new Error('[auth] JWT_SECRET در محیط production ست نشده است — سرور بالا نمی‌آید.')
+}
+
+// محدودیت نرخ روی مسیرهای حساس: ورود و ثبت‌نام سخت‌گیرانه‌تر (۱۰ بار در ۱۵ دقیقه)،
+// تغییر رمز سبک‌تر چون کاربر لاگین‌شده است.
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 })
+const changePwLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 })
 
 function sign(id) {
   return jwt.sign({ uid: id }, SECRET, { expiresIn: process.env.JWT_EXPIRES || '7d' })
@@ -22,7 +36,7 @@ function requireAuth(req, res, next) {
   } catch { return res.status(401).json({ error: 'invalid-token' }) }
 }
 
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   const { email, password, name, last } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'email-password-required' })
   if (String(password).length < 6) return res.status(400).json({ error: 'weak-password' })
@@ -35,11 +49,11 @@ router.post('/register', async (req, res) => {
     res.json({ token: sign(id), user: { id, email: norm, name: (name || '').trim() } })
   } catch (e) {
     console.error('register error', e && e.message, e && e.stack)
-    res.status(500).json({ error: 'server-error', detail: e && e.message })
+    res.status(500).json({ error: 'server-error' })
   }
 })
 
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   const { email, password } = req.body || {}
   const norm = String(email || '').toLowerCase().trim()
   try {
@@ -50,7 +64,7 @@ router.post('/login', async (req, res) => {
     res.json({ token: sign(u.id), user: { id: u.id, email: u.email, name: u.name || '' } })
   } catch (e) {
     console.error('login error', e && e.message, e && e.stack)
-    res.status(500).json({ error: 'server-error', detail: e && e.message })
+    res.status(500).json({ error: 'server-error' })
   }
 })
 
@@ -73,7 +87,7 @@ router.get('/me', requireAuth, async (req, res) => {
 })
 
 // تغییر رمز عبور — رمز فعلی باید درست باشد تا کسی که وارد اکانت شده، رمز را عوض نکند
-router.post('/change-password', requireAuth, async (req, res) => {
+router.post('/change-password', requireAuth, changePwLimiter, async (req, res) => {
   const { currentPassword, newPassword } = req.body || {}
   if (!currentPassword || !newPassword) return res.status(400).json({ error: 'passwords-required' })
   if (String(newPassword).length < 6) return res.status(400).json({ error: 'weak-password' })
@@ -88,7 +102,7 @@ router.post('/change-password', requireAuth, async (req, res) => {
     res.json({ ok: true })
   } catch (e) {
     console.error('change-password error', e && e.message, e && e.stack)
-    res.status(500).json({ error: 'server-error', detail: e && e.message })
+    res.status(500).json({ error: 'server-error' })
   }
 })
 

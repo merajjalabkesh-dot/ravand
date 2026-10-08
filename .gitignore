@@ -18,6 +18,7 @@ public/portal.mp4
 
 # Local stage backups — kept on disk as rollback points, not in git
 backup/
+backup full ravand/
 
 # Tauri (Windows .exe build)
 src-tauri/target/

@@ -52,12 +52,3 @@ export default function Logo({ size = 32, tone = 'mono', glow = false, className
     </span>
   )
 }
-
-/** نسخت�� inline برای جاهایی که کلاس لازم نیست */
-export function LogoSvg({ size = 32, tone = 'mono' }) {
-  return (
-    <svg viewBox="0 0 512 512" width={size} height={size} aria-hidden="true">
-      {tone === 'gradient' ? GRADIENT_PATHS : PATHS}
-    </svg>
-  )
-}

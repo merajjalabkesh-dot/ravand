@@ -11,6 +11,28 @@ const DOW_KEYS = ['reports.gridDow0', 'reports.gridDow1', 'reports.gridDow2', 'r
 // شنبه = 0
 const dowSatOf = (iso) => (jalaliOf(iso).jw + 1) % 7
 
+// سطح رنگِ یک روز از روی داده‌های همان روز و فهرست عادت‌های خوب.
+// تابع خالص و ماژولی است تا در memo یک‌بار برای هر سلول حساب شود، نه در
+// هر رندر (هاور روی جدول مدام re-render می‌دهد و قبلاً هر بار همهٔ ~۷۳۰
+// سلول دوباره سطح‌بندی می‌شدند).
+function levelOf(d, goods) {
+  if (!d) return 0
+  const ids = new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
+  let n = 0
+  goods.forEach((g) => { if (ids.has(g.id)) n += 1 })
+  const hp = goods.length ? n / goods.length : 0
+  const tasks = d.tasks || []
+  const tp = tasks.length ? tasks.filter((x) => x.done).length / tasks.length : 0
+  const j = d.journal || {}
+  const entries = (j.text ? 1 : 0) + (j.img ? 1 : 0)
+  const score = hp * 3 + tp * 4 + Math.min(entries, 2) * 2.5 + (j.mood ? 1 : 0)
+  if (score <= 0) return 0
+  if (score <= 1) return 1
+  if (score <= 3) return 2
+  if (score <= 5.5) return 3
+  return 4
+}
+
 /**
  * جدول heatmap (سبک گیت‌هاب) برای تب «جدول» گزارش‌ها.
  * ردیف‌ها = روزهای هفته، ستون‌ها = هفته‌ها؛ بالای هر بخش نام ماه نوشته می‌شود.
@@ -94,35 +116,29 @@ export default function AppHeatmap({ range = 'week' }) {
   }, [db, range, today])
 
   /* ---------- آمار یک روز ---------- */
-  const goods = db.habits.filter((h) => h.type !== 'bad')
+  const goods = useMemo(() => db.habits.filter((h) => h.type !== 'bad'), [db])
 
-  const pctOf = (iso) => {
-    const d = db.days[iso]
-    if (!d || !goods.length) return 0
-    const ids = new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
-    let n = 0
-    goods.forEach((g) => { if (ids.has(g.id)) n += 1 })
-    return Math.round(n * 100 / goods.length)
-  }
+  // سطح و درصدِ هر روز یک‌بار برای همهٔ روزها حساب می‌شود، نه در هر رندر.
+  // هاور روی جدول مرتب setTip می‌کند و کل کامپوننت دوباره رندر می‌شود؛ قبلاً
+  // هر بار برای ~۷۳۰ سلول دوباره سطح‌بندی انجام می‌شد.
+  const { levels, pcts } = useMemo(() => {
+    const lv = {}
+    const pc = {}
+    const days = db.days || {}
+    Object.keys(days).forEach((iso) => {
+      const d = days[iso]
+      lv[iso] = levelOf(d, goods)
+      if (!d || !goods.length) { pc[iso] = 0; return }
+      const ids = new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
+      let n = 0
+      goods.forEach((g) => { if (ids.has(g.id)) n += 1 })
+      pc[iso] = Math.round(n * 100 / goods.length)
+    })
+    return { levels: lv, pcts: pc }
+  }, [db, goods])
 
-  const cellLevel = (iso) => {
-    const d = db.days[iso]
-    if (!d) return 0
-    const ids = new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k]))
-    let n = 0
-    goods.forEach((g) => { if (ids.has(g.id)) n += 1 })
-    const hp = goods.length ? n / goods.length : 0
-    const tasks = d.tasks || []
-    const tp = tasks.length ? tasks.filter((x) => x.done).length / tasks.length : 0
-    const j = d.journal || {}
-    const entries = (j.text ? 1 : 0) + (j.img ? 1 : 0)
-    const score = hp * 3 + tp * 4 + Math.min(entries, 2) * 2.5 + (j.mood ? 1 : 0)
-    if (score <= 0) return 0
-    if (score <= 1) return 1
-    if (score <= 3) return 2
-    if (score <= 5.5) return 3
-    return 4
-  }
+  const pctOf = (iso) => pcts[iso] || 0
+  const cellLevel = (iso) => levels[iso] || 0
 
   const tipSub = (iso) => {
     const d = db.days[iso]

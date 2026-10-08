@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { fa } from './helpers'
 
 /*
  * جدول هر روز — همان چیزی که نشانهٔ برند از آن آمده.
@@ -11,7 +12,11 @@ const DAY_LABELS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه
 const MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 
 const pad = (n) => String(n).padStart(2, '0')
-const fa = (n) => String(n).replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])
+
+/** تیک کوچک داخل خانهٔ عادت/کار — یک‌بار تعریف شده، دو جا استفاده می‌شود */
+const CheckMark = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0f1f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+)
 
 function toISO(d) {
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
@@ -78,9 +83,8 @@ const JOURNAL_LINES = [
 ]
 
 /* شروع و پایان هر فصل (نسبی) — اول ماه نامنظم، میانه منظم، آخر دوباره شلوغ */
-function buildStory(weeks) {
-  const { cols } = buildGrid(weeks)
-  const total = weeks * 7
+function buildStory(cols) {
+  const total = cols.length * 7
   const out = {}
   cols.flat().forEach((cell, i) => {
     if (cell.future) return
@@ -174,7 +178,7 @@ const fmtMin = (m) => fa(String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' 
 
 export default function Heatmap({ weeks = 20, labels }) {
   const { cols, today } = useMemo(() => buildGrid(weeks), [weeks])
-  const story = useMemo(() => buildStory(weeks), [weeks])
+  const story = useMemo(() => buildStory(cols), [cols])
   const [active, setActive] = useState(null)
   const [openDay, setOpenDay] = useState(null)
   const gridRef = useRef(null)
@@ -201,18 +205,31 @@ export default function Heatmap({ weeks = 20, labels }) {
     return () => clearTimeout(t)
   }, [openDay])
 
-  const showTip = useCallback((cell, x, y) => setActive({ ...cell, x, y }), [])
+  const showTip = useCallback((cell, x, y, below) => setActive({ ...cell, x, y, below }), [])
 
-  const onEnter = (cell, e) => {
-    const r = bodyRef.current ? bodyRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
+  /*
+   * جای تولتیپ: پیش‌فرض بالای خانه. اما .hm-wrap فقط overflow افقی می‌خواهد
+   * و چون یک محور auto است، مرورگر محور visible را هم auto می‌کند و کادر
+   * عمودی هم می‌بُرد؛ پس تولتیپِ سه ردیف بالایی (row < 3) که بالای کادر
+   * می‌افتاد بریده می‌شد. برای همین در این ردیف‌ها تولتیپ زیرِ خانه باز
+   * می‌شود.
+   */
+  const tipPos = (row, e) => {
+    const br = bodyRef.current ? bodyRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
     const rect = e.currentTarget.getBoundingClientRect()
-    showTip(cell, rect.left + rect.width / 2 - r.left, rect.top - r.top - 10)
+    const below = row < 3
+    const y = below ? rect.bottom - br.top + 10 : rect.top - br.top - 10
+    return { x: rect.left + rect.width / 2 - br.left, y, below }
   }
-  const onMove = (cell, e) => {
+
+  const onEnter = (cell, row, e) => {
+    const p = tipPos(row, e)
+    showTip(cell, p.x, p.y, p.below)
+  }
+  const onMove = (cell, row, e) => {
     if (!e.currentTarget.matches(':hover')) return
-    const r = bodyRef.current ? bodyRef.current.getBoundingClientRect() : { left: 0, top: 0, width: 400 }
-    const rect = e.currentTarget.getBoundingClientRect()
-    showTip(cell, rect.left + rect.width / 2 - r.left, rect.top - r.top - 10)
+    const p = tipPos(row, e)
+    showTip(cell, p.x, p.y, p.below)
   }
 
   const L = labels || {}
@@ -252,17 +269,17 @@ export default function Heatmap({ weeks = 20, labels }) {
 
         <div className="hm-grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}
           role="img" aria-label="جدول فعالیت سه ماه گذشته">
-          {cols.map((col) => col.map((cell) => {
+          {cols.map((col) => col.map((cell, row) => {
             const lvl = cell.future ? -1 : levelOf(story[cell.iso])
             return (
                         <button
                             type="button"
                             key={cell.iso}
                             className={'hm-cell lv' + (lvl < 0 ? ' future' : lvl) + (cell.iso === today ? ' today' : '') + (cell.iso === openDay ? ' selected' : '')}
-                            onMouseEnter={(e) => onEnter(cell, e)}
-                            onMouseMove={(e) => onMove(cell, e)}
+                            onMouseEnter={(e) => onEnter(cell, row, e)}
+                            onMouseMove={(e) => onMove(cell, row, e)}
                             onMouseLeave={() => setActive(null)}
-                            onFocus={(e) => onEnter(cell, e)}
+                            onFocus={(e) => onEnter(cell, row, e)}
                             onClick={() => !cell.future && setOpenDay(cell.iso)}
                             aria-label={faLong(cell.iso)}
                           />
@@ -271,7 +288,7 @@ export default function Heatmap({ weeks = 20, labels }) {
         </div>
 
         {active && (
-          <div className="hm-tip" style={{ left: active.x, top: active.y }} role="status">
+          <div className="hm-tip" style={{ left: active.x, top: active.y, transform: active.below ? 'translate(-50%, 0)' : 'translate(-50%, -100%)' }} role="status">
             {tipText(active)}
           </div>
         )}
@@ -308,7 +325,7 @@ export default function Heatmap({ weeks = 20, labels }) {
               {detail.habits.map((h) => (
                 <div className="hm-row" key={h.name}>
                   <span className="hm-box" style={{ background: h.done ? h.color : 'transparent', borderColor: h.done ? h.color : 'rgba(140,170,230,.4)' }}>
-                    {h.done ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0f1f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg> : null}
+                    {h.done ? <CheckMark /> : null}
                   </span>
                   <span className="hm-row-text">{h.name}</span>
                 </div>
@@ -322,7 +339,7 @@ export default function Heatmap({ weeks = 20, labels }) {
               ) : detail.tasks.map((t) => (
                 <div className="hm-row" key={t.text}>
                   <span className="hm-box" style={{ background: t.done ? '#43e8a8' : 'transparent', borderColor: t.done ? '#43e8a8' : 'rgba(140,170,230,.4)' }}>
-                    {t.done ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0f1f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg> : null}
+                    {t.done ? <CheckMark /> : null}
                   </span>
                   <span className={'hm-row-text' + (t.done ? ' done' : '')}>{t.text}</span>
                 </div>

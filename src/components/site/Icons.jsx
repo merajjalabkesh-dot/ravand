@@ -22,10 +22,7 @@ export const IconWeb = (p) => <S {...p}><circle cx="12" cy="12" r="9" /><path d=
 export const IconDownload = (p) => <S {...p}><path d="M12 3v12" /><path d="m7.5 10.5 4.5 4.5 4.5-4.5" /><path d="M4 20h16" /></S>
 export const IconCheck = (p) => <S {...p}><path d="M4 12.5 9 17.5 20 6.5" /></S>
 export const IconX = (p) => <S {...p}><path d="M18 6 6 18M6 6l12 12" /></S>
-export const IconMinus = (p) => <S {...p}><path d="M5 12h14" /></S>
 export const IconArrow = (p) => <S {...p}><path d="M19 12H5M12 19l-7-7 7-7" /></S>
-export const IconShield = (p) => <S {...p}><path d="M12 3 5 6v5.5c0 4.2 2.8 8.1 7 9.5 4.2-1.4 7-5.3 7-9.5V6z" /><path d="m9 12 2 2 4-4" /></S>
-export const IconSparkle = (p) => <S {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4" /><path d="M12 8.5 13.6 12 12 15.5 10.4 12z" fill="currentColor" stroke="none" /></S>
 
 /** ژورنال با نقشهٔ حال و هوا — دفترچه + اب/آفتاب */
 export const IconJournalMood = (p) => <S {...p}><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z" /><path d="M5 4a2 2 0 0 0-2 2v12" /><path d="M9 8h6M9 12h6" /><circle cx="18" cy="7" r="4" /><path d="M18 3v2M18 19v2M3 18h2M19 18h2" stroke="currentColor" stroke-width="1.2" /></S>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp, toFa, todayISO, isoAddDays, faDate, minOf, fmtMin, nextEventISO } from '../lib/store'
 import EventCard from '../components/EventCard'
@@ -15,54 +15,63 @@ export default function Reports() {
   const [range, setRange] = useState('week') // week | month | qtr | all
   const [selectedDay, setSelectedDay] = useState(null)
 
-  const dayIds = (iso) => { const d = db.days[iso]; if (!d) return new Set(); return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) }
-  const dayPct = (iso) => {
+  const dayIds = useCallback((iso) => { const d = db.days[iso]; if (!d) return new Set(); return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) }, [db])
+  const dayPct = useCallback((iso) => {
     const goods = db.habits.filter((h) => h.type !== 'bad')
     if (!goods.length) return 0
     const ids = dayIds(iso); let n = 0
     goods.forEach((g) => { if (ids.has(g.id)) n++ })
     return Math.round((n / goods.length) * 100)
-  }
-  const taskStats = (iso) => {
+  }, [db, dayIds])
+  const taskStats = useCallback((iso) => {
     const d = db.days[iso]
     if (!d || !d.tasks || !d.tasks.length) return null
     const done = d.tasks.filter((t) => t.done).length
     return { done, total: d.tasks.length, pct: Math.round(done / d.tasks.length * 100) }
-  }
-  const rangeDays = () => {
+  }, [db])
+  const rangeDays = useCallback(() => {
     if (range === 'week') return 7
     if (range === 'month') return 30
     if (range === 'qtr') return 90
     return Math.max(7, ...db.habits.map((h) => { const c = h.createdAt ? Math.round((Date.now() - new Date(h.createdAt + 'T00:00:00').getTime()) / 86400000) : 0; return c }), ...Object.keys(db.days).filter((k) => db.days[k] && (db.days[k].habits && Object.keys(db.days[k].habits).length || (db.days[k].tasks && db.days[k].tasks.length) || db.days[k].journal && (db.days[k].journal.text || db.days[k].journal.mood))).map((k) => Math.round((Date.now() - new Date(k + 'T00:00:00').getTime()) / 86400000)))
-  }
-  const ds = (() => { const n = rangeDays(); const a = []; for (let i = n - 1; i >= 0; i--) a.push(isoAddDays(todayISO(), -i)); return a })()
+  }, [range, db])
+  const ds = useMemo(() => { const n = rangeDays(); const a = []; for (let i = n - 1; i >= 0; i--) a.push(isoAddDays(todayISO(), -i)); return a }, [rangeDays])
 
   const tabs = [['overview', 'reports.tabOverview'], ['habits', 'reports.tabHabits'], ['pricing', 'reports.tabPricing'], ['day', 'reports.tabDay'], ['sleep', 'reports.tabSleep'], ['events', 'reports.tabEvents']]
 
-  // ---- overview computations ----
-  const avgPct = (arr) => arr.length ? Math.round(arr.reduce((s, x) => s + dayPct(x), 0) / arr.length) : 0
-  const cur = ds.filter((x) => x <= todayISO())
-  const prevN = range === 'week' ? 7 : range === 'month' ? 30 : 45
-  const prevDs = (() => { const a = []; for (let i = prevN - 1; i >= 0; i--) a.push(isoAddDays(todayISO(), -prevN - i)); return a })()
-  const curAvg = avgPct(cur)
-  const prevAvg = avgPct(prevDs)
-  const dPct = curAvg - prevAvg
-  const maxPct = Math.max(1, ...cur.map(dayPct))
+  // ---- overview computations (از db و range و ds مشتق می‌شوند؛ در هر رندر
+  //      دوباره محاسبه نشوند — قبلاً هر رندر کل بازه را دوباره می‌شمرد) ----
+  const cur = useMemo(() => ds.filter((x) => x <= todayISO()), [ds])
+  const {
+    curAvg, dPct, maxPct, avgMood, tasksTotal, tasksAll, tasksPct,
+    sleepTimes, avgSleep, avgWake,
+  } = useMemo(() => {
+    const avgPct = (arr) => arr.length ? Math.round(arr.reduce((s, x) => s + dayPct(x), 0) / arr.length) : 0
+    const prevN = range === 'week' ? 7 : range === 'month' ? 30 : 45
+    const prevDs = []; for (let i = prevN - 1; i >= 0; i--) prevDs.push(isoAddDays(todayISO(), -prevN - i))
+    const curAvg = avgPct(cur)
+    const prevAvg = avgPct(prevDs)
+    const dPct = curAvg - prevAvg
+    const maxPct = Math.max(1, ...cur.map(dayPct))
 
-  const moodArr = cur.filter((iso) => db.days[iso] && db.days[iso].journal && db.days[iso].journal.mood).map((iso) => db.days[iso].journal.mood)
-  const avgMood = moodArr.length ? Math.round(moodArr.reduce((a, b) => a + b, 0) / moodArr.length) : 0
+    const moodArr = cur.filter((iso) => db.days[iso] && db.days[iso].journal && db.days[iso].journal.mood).map((iso) => db.days[iso].journal.mood)
+    const avgMood = moodArr.length ? Math.round(moodArr.reduce((a, b) => a + b, 0) / moodArr.length) : 0
+
+    const tasksTotal = cur.reduce((s, x) => { const ts = taskStats(x); return s + (ts ? ts.done : 0) }, 0)
+    const tasksAll = cur.reduce((s, x) => { const ts = taskStats(x); return s + (ts ? ts.total : 0) }, 0)
+    const tasksPct = tasksAll ? Math.round(tasksTotal / tasksAll * 100) : 0
+
+    const sleepTimes = cur.filter((iso) => db.days[iso] && db.days[iso].sleep && db.days[iso].wake).map((iso) => ({ wake: minOf(db.days[iso].wake), sleep: minOf(db.days[iso].sleep), json: iso }))
+    const avgSleep = sleepTimes.length ? Math.round(sleepTimes.reduce((s, x) => s + (x.sleep >= 720 ? x.sleep : x.sleep + 1440), 0) / sleepTimes.length) : null
+    const avgWake = sleepTimes.length ? Math.round(sleepTimes.reduce((s, x) => s + x.wake, 0) / sleepTimes.length) : null
+
+    return { curAvg, dPct, maxPct, avgMood, tasksTotal, tasksAll, tasksPct, sleepTimes, avgSleep, avgWake }
+  }, [cur, db, range, dayPct, taskStats])
+
   const moodLvl = (m) => t(['reports.moodDash', 'reports.moodLow', 'reports.moodLazy', 'reports.moodNormal', 'reports.moodGood', 'reports.moodGreat'][m])
 
-  const tasksTotal = cur.reduce((s, x) => { const ts = taskStats(x); return s + (ts ? ts.done : 0) }, 0)
-  const tasksAll = cur.reduce((s, x) => { const ts = taskStats(x); return s + (ts ? ts.total : 0) }, 0)
-  const tasksPct = tasksAll ? Math.round(tasksTotal / tasksAll * 100) : 0
-
-  const sleepTimes = cur.filter((iso) => db.days[iso] && db.days[iso].sleep && db.days[iso].wake).map((iso) => ({ wake: minOf(db.days[iso].wake), sleep: minOf(db.days[iso].sleep), json: iso }))
-  const avgSleep = sleepTimes.length ? Math.round(sleepTimes.reduce((s, x) => s + (x.sleep >= 720 ? x.sleep : x.sleep + 1440), 0) / sleepTimes.length) : null
-  const avgWake = sleepTimes.length ? Math.round(sleepTimes.reduce((s, x) => s + x.wake, 0) / sleepTimes.length) : null
-
   // ---- per-habit compliance ----
-  const habitStats = (h) => {
+  const habitStats = useCallback((h) => {
     const isBad = h.type === 'bad'
     let scheduled = 0, relapsed = 0
     const start = h.createdAt || todayISO()
@@ -75,7 +84,7 @@ export default function Reports() {
     const clean = isBad ? scheduled - relapsed : 0
     const rate = scheduled ? Math.round(done / scheduled * 100) : 0
     return { scheduled, done, relapsed, rate, clean }
-  }
+  }, [cur, dayIds])
 
   // ---- modal for a single day ----
   const DayModal = ({ iso }) => {
@@ -212,7 +221,6 @@ export default function Reports() {
       return <EventsTab db={db} mutate={mutate} toast={toast} t={t} />
     }
     // ---- overview (default) ----
-    const wMax = Math.max(1, ...cur.map((x) => taskStats(x) ? taskStats(x).total : 0))
     return (
       <div className="glass">
         <div className="glass-title">{t('reports.overviewTitle', { range: t(range === 'week' ? 'reports.overviewRangeWeek' : range === 'month' ? 'reports.overviewRangeMonth' : range === 'qtr' ? 'reports.overviewRangeQtr' : 'reports.overviewRangeAll') })}</div>

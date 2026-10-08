@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { THEMES, THEME_VARS, DEFAULT_THEME } from '../config/themes'
 import { api, setToken, clearToken } from './apiClient'
 
@@ -32,7 +32,6 @@ export const num = (n) => {
 }
 /** نام مستعار قدیمی — حالا با زبان فعال هماهنگ است */
 export const toFa = num
-export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 
 const JWEEK = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
 const JWEEK_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -203,10 +202,13 @@ export function moodFace(level, size) {
     + '<circle cx="12" cy="12" r="10.4" fill="' + c + '" stroke="rgba(0,0,0,.16)" stroke-width=".7"/>'
     + extras + eyes + mouth + '</svg>'
 }
-export const ringSVG = (pct, size, color) => {
-  const r = (size - 6) / 2, c = 2 * Math.PI * r
-  const off = c * (1 - Math.min(100, Math.max(0, pct)) / 100)
-  return '<svg class="ring" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '"><circle class="bg" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '"></circle><circle class="fg" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" style="stroke:' + (color || 'var(--accent)') + '"></circle></svg>'
+/* عادت آیا در این روزِ هفته برنامه‌ریزی شده؟ bad همیشه، good با روزهای خالی
+   همیشه. مبنای همهٔ محاسبات درصد/استریک در Home، Today و Reports. */
+export function isScheduled(h, iso) {
+  if (h.type === 'bad') return true
+  const d = h.days || []
+  if (!d.length) return true
+  return d.includes(new Date(iso.split('-').map(Number)).getDay())
 }
 
 const DEFAULT_DB = {
@@ -284,21 +286,38 @@ export function AppProvider({ children }) {
     init.settings = Object.assign({}, DEFAULT_DB.settings, init.settings)
     return init
   })
-  const [view, setView] = useState('home')
   const [toastMsg, setToastMsg] = useState(null)
   const [authUser, setAuthUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
 
   const persist = (data) => { try { safeStore.setItem('rg_data_v2', JSON.stringify(data)) } catch (e) { /* storage locked — continue in-memory */ } }
   const hasToken = () => { try { return !!localStorage.getItem('rg_token') } catch { return false } }
-  const pushDb = (data) => {
-    if (!hasToken()) { console.warn('[sync] no token — skipping push'); return }
+  // ذخیرهٔ محلی فوری است (تا رفرش داده از دست نرود)، ولی نوشتن روی سرور
+  // با تأخیرِ کوتاه دسته‌بندی می‌شود: هر تیکِ عادت قبلاً یک PUT کامل به
+  // /api/data می‌زد؛ حالا چند تغییر سریع در یک درخواست جمع می‌شوند.
+  const pushTimer = useRef(null)
+  const pushLatest = useRef(null)
+  const flushPush = useCallback(() => {
+    if (pushTimer.current) { clearTimeout(pushTimer.current); pushTimer.current = null }
+    const data = pushLatest.current
+    pushLatest.current = null
+    if (!data || !hasToken()) return
     api.saveData(data).then((r) => {
       if (r && r.error) console.warn('[sync] push failed:', r.error)
-      else console.log('[sync] pushed ok', (data.habits || []).length, 'habits')
     }).catch((e) => console.warn('[sync] push EXCEPTION:', e && e.message))
-  }
-  const save = useCallback((next) => { setDb(next); persist(next); pushDb(next) }, [])
+  }, [])
+  const pushDb = useCallback((data) => {
+    pushLatest.current = data
+    if (pushTimer.current) clearTimeout(pushTimer.current)
+    pushTimer.current = setTimeout(flushPush, 700)
+  }, [flushPush])
+  const save = useCallback((next) => { setDb(next); persist(next); pushDb(next) }, [pushDb])
+  // کپی عمیق لازم است: mutatorها همه‌جا با فرضِ «نسخهٔ تازه» نوشته شده‌اند و
+  // درجا تغییر می‌دهند (push/splice/delete/toggle روی زیرآبجکت‌های مشترک).
+  // با کپی سطحی، همان رفرنسِ قبلی تغییر می‌کرد و چون StrictMode در حالت
+  // توسعه updater را دو بار اجرا می‌کند، این تغییرات دو بار اعمال می‌شدند
+  // (دو تیک، دو append، جابه‌جایی دوباره). کپی سطحی اینجا برد محسوسی هم
+  // ندارد؛ بهینه‌سازی واقعی، debounce نوشتن سرور است که پایین‌تر انجام شده.
   const mutate = useCallback((fn) => {
     setDb((prev) => {
       const next = JSON.parse(JSON.stringify(prev))
@@ -307,9 +326,21 @@ export function AppProvider({ children }) {
       pushDb(next)
       return next
     })
-  }, [])
+  }, [pushDb])
 
   const toast = useCallback((msg) => { setToastMsg(msg); setTimeout(() => setToastMsg(null), 2200) }, [])
+
+  /* اگر کاربر صفحه را ببندد و آخرین تغییر هنوز روی سرور نرفته باشد،
+     در لحظهٔ خروج فوراً می‌فرستیم تا داده گم نشود. */
+  useEffect(() => {
+    const flush = () => flushPush()
+    window.addEventListener('beforeunload', flush)
+    document.addEventListener('visibilitychange', flush)
+    return () => {
+      window.removeEventListener('beforeunload', flush)
+      document.removeEventListener('visibilitychange', flush)
+    }
+  }, [flushPush])
 
   /* theme */
   useEffect(() => {
@@ -363,7 +394,7 @@ export function AppProvider({ children }) {
       if (r.data && (r.data.habits || r.data.days || r.data.events || r.data.settings)) {
         // remote has real data -> load it (server wins, never overwrite with empty local)
         setDb((prev) => {
-          const next = JSON.parse(JSON.stringify(prev))
+          const next = { ...prev }
           // remember the local user identity so we don't lose the name
           const localUser = next.user
           Object.assign(next, r.data)
@@ -386,7 +417,11 @@ export function AppProvider({ children }) {
       return db.days[iso]
     }, [db.days])
 
-  /* wake reminder — if user hasn't logged today's wake by their usual time, notify */
+  /* wake reminder — if user hasn't logged today's wake by their usual time, notify.
+     check() از ref می‌خواند تا تایمر هر بار تغییرِ db از نو ساخته نشود؛
+     فقط تغییر تنظیماتِ مربوطه (یا ورود/خروج کاربر) آن را بازسازی می‌کند. */
+  const dbRef = useRef(db); dbRef.current = db
+  const settingsRef = useRef(db.settings); settingsRef.current = db.settings
   useEffect(() => {
     if (!db.user || !db.user.first) return
     const s = db.settings
@@ -394,24 +429,26 @@ export function AppProvider({ children }) {
     const w = s.curWake || s.wakeGoal || '06:00'
     const m = minOf(w)
     const check = () => {
-      if (!db.settings || !db.settings.wakeNotify) return
-      if (db.days[todayISO()] && db.days[todayISO()].wake) return
+      const st = settingsRef.current
+      if (!st || !st.wakeNotify) return
+      const today = todayISO()
+      if (dbRef.current.days[today] && dbRef.current.days[today].wake) return
       const now = new Date()
       const nowMin = now.getHours() * 60 + now.getMinutes()
       // only during daytime window (between usual wake + 5min and 2pm) avoid night pings
       if (nowMin < m + 5 || nowMin > 14 * 60 + 5) return
       try {
-        if (safeStore.getItem('rg_wake_notified') === todayISO()) return
-        safeStore.setItem('rg_wake_notified', todayISO())
+        if (safeStore.getItem('rg_wake_notified') === today) return
+        safeStore.setItem('rg_wake_notified', today)
         browserNotify('روند', 'امروز هنوز بیداری‌ات را ثبت نکرده‌ای 🌅', { tag: 'wake' })
       } catch (e) { /* ignore */ }
     }
     check()
     const t = setInterval(check, 60 * 1000)
     return () => clearInterval(t)
-  }, [db.user, db.settings.wakeNotify, db.settings.curWake, db.settings.wakeGoal, db.days])
+  }, [db.user, db.settings.wakeNotify, db.settings.curWake, db.settings.wakeGoal])
 
-  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, view, setView, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, dayOf, ACCENTS, MOOD_WORDS, moodWord, monthName, num, setActiveLang, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, view, dayOf, authUser, authReady])
+  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, dayOf, ACCENTS, MOOD_WORDS, moodWord, monthName, num, setActiveLang, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, dayOf, authUser, authReady])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

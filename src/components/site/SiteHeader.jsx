@@ -4,6 +4,7 @@ import { SITE } from '../../config/site.config'
 import { useApp } from '../../lib/store'
 import Logo from './Logo'
 import AppLink from './AppLink'
+import { jumpToAnchor } from './helpers'
 
 export default function SiteHeader({ floating = false }) {
   const { db } = useApp()
@@ -22,12 +23,7 @@ export default function SiteHeader({ floating = false }) {
 
   // با کلیک روی لینک داخلی، صفحه عوض نشود؛ فقط اسکرول نرم شود.
   const jumpTo = (e) => {
-    e.preventDefault()
-    const id = e.currentTarget.getAttribute('href')
-    const el = id && id.length > 1 ? document.getElementById(id.slice(1)) : null
-    if (!el) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    jumpToAnchor(e)
     setOpen(false)
   }
 

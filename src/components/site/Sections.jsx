@@ -6,6 +6,7 @@ import Heatmap from './Heatmap'
 import KineticField from './KineticField'
 import ScrollText from './ScrollText'
 import AppLink from './AppLink'
+import { fa, smoothScrollToId } from './helpers'
 
 /* ------------------------------------------------------------------ */
 /*  هیرو                                                               */
@@ -17,10 +18,7 @@ import AppLink from './AppLink'
  */
 function scrollToLive(e) {
   e.preventDefault()
-  const el = document.getElementById('live')
-  if (!el) return
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  smoothScrollToId('live')
 }
 
 export function Hero({ compact = false, showField = true }) {
@@ -180,7 +178,7 @@ export function Audience() {
       <div className="aud-grid">
         {SITE.audience.map((a, i) => (
           <div className="aud-item rv-glass" key={a.title}>
-            <span className="aud-num rv-glass">{String(i + 1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
+            <span className="aud-num rv-glass">{fa(i + 1)}</span>
             <div>
               <h3>{a.title}</h3>
               <p>{a.text}</p>
@@ -323,7 +321,7 @@ export function Steps() {
       <ol className="steps-grid">
         {SITE.steps.map((s) => (
           <li className="step rv-glass" key={s.n}>
-            <span className="step-n">{String(s.n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</span>
+            <span className="step-n">{fa(s.n)}</span>
             <h3>{s.t}</h3>
             <p>{s.d}</p>
           </li>

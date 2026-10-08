@@ -23,11 +23,42 @@ import React, { useRef, useState, useEffect, useCallback } from 'react'
 const DIM = [90, 106, 148]    // #5a6a94
 const LIT = [238, 242, 255]   // #eef2ff
 
+/*
+ * یک شنوندهٔ مشترک برای همهٔ نمونه‌های ScrollText.
+ * قبلاً هر نمونهٔ خودش به scroll و resize گوش می‌داد؛ صفحهٔ About
+ * چند پاراگراف دارد و هر پاراگراف یک شنونده بود. حالا یک شنونده
+ * داریم که در یک فریم همهٔ نمونه‌ها را حساب می‌کند — همان نتیجه.
+ */
+const listeners = new Set()
+let rafId = 0
+function flush() {
+  rafId = 0
+  listeners.forEach((fn) => fn())
+}
+function schedule() {
+  if (rafId) return
+  rafId = requestAnimationFrame(flush)
+}
+let attached = 0
+function attach() {
+  if (attached++ === 0) {
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+  }
+}
+function detach() {
+  if (--attached === 0) {
+    window.removeEventListener('scroll', schedule)
+    window.removeEventListener('resize', schedule)
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0 }
+  }
+}
+
 export default function ScrollText({ text, className = '' }) {
   const ref = useRef(null)
   const [progress, setProgress] = useState(0)
 
-  const onScroll = useCallback(() => {
+  const measure = useCallback(() => {
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -44,14 +75,14 @@ export default function ScrollText({ text, className = '' }) {
   }, [])
 
   useEffect(() => {
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    listeners.add(measure)
+    attach()
+    measure()
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      listeners.delete(measure)
+      detach()
     }
-  }, [onScroll])
+  }, [measure])
 
   // کلمه‌ها با فاصلهٔ واقعی (شامل نیم‌فاصله) نگه داشته می‌شوند
   const words = String(text).split(/(\s+)/).filter((w) => w.length)

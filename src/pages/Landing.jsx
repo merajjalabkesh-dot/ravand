@@ -57,8 +57,8 @@ export default function Landing() {
     return () => io.disconnect()
   }, [face])
 
-  // باید صبر کنیم تا فونت Vazirmatn لود شود، وگرنه کامپوننت پورتال درست کار نمی‌کند
-  const fontFaceName = 'Vazirmatn'
+  // باید صبر کنیم تا فونت IRAN لود شود، وگرنه کامپوننت پورتال درست کار نمی‌کند
+  const fontFaceName = 'IRAN'
   const faceStack = `'${fontFaceName}', Arial, sans-serif`
   useEffect(() => {
     let settled = false
@@ -86,9 +86,18 @@ export default function Landing() {
    * --gp-field و --gp-paper هر دو با همین رنگ می‌روند تا پس‌زمینه
    * و حرفی که از آن دیده می‌شود هم‌رنگ نمانند.
    */
-  const onPortalProgress = useCallback((p) => {
+  /* آخرین مقدار پیشرفت را نگه می‌داریم و نوشتنِ متغیرها را به یک
+     نوشتن در هر فریم گره می‌زنیم. مرورگر در هر فریم یک‌بار رنگ می‌کند،
+     پس نوشتن چندبارهٔ همان فریم فقط کار بیهوده است — خروجی دیداری یکی است. */
+  const pendingP = useRef(null)
+  const rafRef = useRef(0)
+  const applyProgress = useCallback(() => {
+    rafRef.current = 0
     const el = shellRef.current
     if (!el) return
+    const p = pendingP.current
+    if (p == null) return
+    pendingP.current = null
     const t = Math.max(0, Math.min(1, p / 0.75))
     const color = mix(SKY, NAVY, t)
     el.style.setProperty('--lp-bg', color)
@@ -101,6 +110,12 @@ export default function Landing() {
     el.style.setProperty('--gp-ink', t < 0.36 ? INK_DARK : INK_LIGHT)
     el.style.setProperty('--lp-tint', t.toFixed(4))
   }, [])
+  const onPortalProgress = useCallback((p) => {
+    pendingP.current = p
+    if (rafRef.current) return
+    rafRef.current = requestAnimationFrame(applyProgress)
+  }, [applyProgress])
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }, [])
 
   return (
     <div className="landing-page" ref={shellRef}>

@@ -2,13 +2,24 @@ import React, { useEffect, useState } from 'react'
 import { toFa, countdownOf, eventIcon, eventLabel, nextEventISO } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 
+// یک تیکرِ مشترک بین همهٔ کارت‌ها. قبلاً هر EventCard یک setInterval
+// ۶۰ثانیه‌ای مستقل داشت (با ۲۰ کارت = ۲۰ تایمر). حالا یک تایمر و یک
+// مجموعهٔ مشترک از مشترک‌ها؛ وقتی آخرین کارت حذف شود تایمر هم می‌رود.
+const tickSubs = new Set()
+let tickTimer = null
+function subscribeTick(fn) {
+  tickSubs.add(fn)
+  if (!tickTimer) tickTimer = setInterval(() => { tickSubs.forEach((f) => f()) }, 60000)
+  return () => {
+    tickSubs.delete(fn)
+    if (!tickSubs.size && tickTimer) { clearInterval(tickTimer); tickTimer = null }
+  }
+}
+
 export default function EventCard({ ev, onDelete }) {
   const { t } = useI18n()
   const [, tick] = useState(0)
-  useEffect(() => {
-    const t = setInterval(() => tick((x) => x + 1), 60000)
-    return () => clearInterval(t)
-  }, [])
+  useEffect(() => subscribeTick(() => tick((x) => x + 1)), [])
   const dateStr = nextEventISO(ev)
   if (!dateStr) return null
   const c = countdownOf(dateStr)

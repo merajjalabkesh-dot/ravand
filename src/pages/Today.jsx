@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, playTick, browserNotify } from '../lib/store'
+import { useApp, toFa, todayISO, isoAddDays, faDate, fmtMin, minOf, playTick, browserNotify, isScheduled } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 
@@ -14,19 +14,40 @@ export default function Today() {
   const isToday = iso === todayISO()
   const d = db.days[iso] || { habits: {}, tasks: [], journal: { mood: 0, text: '' } }
   const ids = db.days[iso] ? new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) : new Set()
-  const pct = (() => {
-    const goods = db.habits.filter((h) => h.type !== 'bad' && (h.type !== 'good' || (!(h.days || []).length) || (h.days || []).includes(new Date(iso.split('-').map(Number)).getDay())))
-    if (!goods.length) return 0
-    let n = 0
-    goods.forEach((h) => { if (ids.has(h.id)) n++ })
-    return Math.round((n / goods.length) * 100)
-  })()
+
+  // pct و استریک‌ها از db و روز انتخابی مشتق می‌شوند و در هر رندر دوباره
+  // حساب می‌شدند؛ cleanStreak می‌تواند تا createdAt صدها روز عقب برود.
+  // حالا فقط با تغییر db یا روز دوباره حساب می‌شوند.
+  const { pct, streaks, cleanStreaks } = useMemo(() => {
+    const dow = new Date(iso.split('-').map(Number)).getDay()
+    const goods = db.habits.filter((h) => h.type !== 'bad' && (h.type !== 'good' || (!(h.days || []).length) || (h.days || []).includes(dow)))
+    let p = 0
+    if (goods.length) {
+      let n = 0
+      goods.forEach((h) => { if (ids.has(h.id)) n++ })
+      p = Math.round((n / goods.length) * 100)
+    }
+    const st = {}
+    const cs = {}
+    db.habits.forEach((h) => {
+      let s = 0, x = iso
+      if (!ids.has(h.id)) x = isoAddDays(x, -1)
+      while (db.days[x] && db.days[x].habits && db.days[x].habits[h.id]) { s++; x = isoAddDays(x, -1) }
+      st[h.id] = s
+      let c = 0, y = todayISO()
+      const start = h.createdAt || y
+      while (y >= start) { if (db.days[y] && db.days[y].habits && db.days[y].habits[h.id]) break; c++; y = isoAddDays(y, -1) }
+      cs[h.id] = c
+    })
+    return { pct: p, streaks: st, cleanStreaks: cs }
+  }, [db, iso])
+
   const tD = (d.tasks || []).filter((t) => t.done).length
   const tC = (d.tasks || []).length
 
-  const isSched = (h) => { if (h.type === 'bad') return true; const dd = h.days || []; if (!dd.length) return true; return dd.includes(new Date(iso.split('-').map(Number)).getDay()) }
-  const habitStreak = (id) => { let s = 0, x = iso; if (!ids.has(id)) x = isoAddDays(x, -1); while ((db.days[x] && db.days[x].habits && db.days[x].habits[id])) { s++; x = isoAddDays(x, -1) }; return s }
-  const cleanStreak = (id) => { const h = db.habits.find((y) => y.id === id); let st = 0, x = todayISO(); const start = h ? h.createdAt : x; while (x >= start) { if (db.days[x] && db.days[x].habits && db.days[x].habits[id]) break; st++; x = isoAddDays(x, -1) } return st }
+  const isSched = isScheduled
+  const habitStreak = (id) => streaks[id] || 0
+  const cleanStreak = (id) => cleanStreaks[id] || 0
 
   const toggleHabit = (id) => {
     const h = db.habits.find((y) => y.id === id)
