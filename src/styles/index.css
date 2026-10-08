@@ -88,7 +88,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .app { display: flex; position: fixed; inset: 0; align-items: stretch; overflow: hidden; }
 /* .main یک flex column است تا هر صفحهٔ اپ بتواند ارتفاع باقی‌مانده
    را بگیرد و محتوایش تا پایین صفحه پر شود. */
-.main { flex: 1; overflow-y: auto; padding: 30px 34px 80px; max-width: 1140px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
+.main { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 34px 80px; max-width: 1140px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
 
 .page-head { margin-bottom: 26px; }
 .page-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; line-height: 1.3; }
@@ -790,12 +790,18 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   /* سایدبار در موبایل جایی ندارد — نوار پایین جایگزینش است */
   .sidebar { display: none; }
 
-  .main { padding: 20px 16px calc(78px + env(safe-area-inset-bottom)); }
+  /* نوار پایین حالا در جریان است و ارتفاع واقعی‌اش را می‌گیرد، پس دیگر
+     لازم نیست با پدینگِ بزرگ جایش را باز کنیم؛ فقط یک فاصلهٔ کوچک. */
+  .main { padding: 20px 16px 24px; }
 
+  /* نوار پایین در فلوی عادی .app می‌نشیند (نه fixed). روی سافاری iOS،
+     نوارِ position:fixed هنگام اسکرول/زوم از کف جدا می‌شود و نوارِ خالی
+     زیرش می‌ماند. چون .app خودش inset:0 است و به کف ویوپورت می‌چسبد،
+     فرزندِ فلکسِ آن (این نوار) هم دقیقاً روی کف می‌نشیند — بدون آن باگ. */
   .app-tabbar {
     display: flex;
-    position: fixed;
-    inset: auto 0 0 0;
+    flex: 0 0 auto;
+    position: static;
     z-index: 90;
     background: var(--sidebar-bg, rgba(18, 20, 28, .92));
     backdrop-filter: blur(24px);
