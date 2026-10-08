@@ -7,6 +7,7 @@ import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { router as authRouter } from './routes/auth.js'
 import dataRouter from './routes/data.js'
+import appVersionRouter from './routes/appVersion.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -26,6 +27,7 @@ app.get('/health', (_req, res) => res.json({ ok: true }))
 
 app.use('/api/auth', authRouter)
 app.use('/api/data', dataRouter)
+app.use('/api/app-version', appVersionRouter)
 
 // Optional: serve the built frontend (../dist) from the same server
 const front = process.env.FRONTEND_DIR || path.join(__dirname, '..', '..', 'dist')

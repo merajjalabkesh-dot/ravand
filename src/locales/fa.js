@@ -156,7 +156,11 @@ export const FA = {
   "journal.moodSavedToast": "حس ثبت شد",
   "journal.deleteConfirm": "یادداشت این روز حذف شود؟",
   "journal.deletedToast": "یادداشت حذف شد",
-  "journal.imageTooLargeToast": "تصویر باید کمتر از ~۱.۸ مگابایت باشد",
+  "journal.imageTooLargeToast": "فایل تصویر بیش از حد بزرگ است (بیشتر از ~۲۰ مگابایت)",
+  "journal.notImageToast": "فقط فایل تصویری (JPG، PNG و…) قابل انتخاب است",
+  "journal.imageErrorToast": "این تصویر پردازش نشد. یک عکس دیگر امتحان کن.",
+  "journal.imageProcessing": "در حال آماده‌سازی عکس…",
+  "journal.storageFullToast": "حافظهٔ دستگاه پر است؛ برای ذخیرهٔ مطمئن، چند عکس قدیمی را حذف کن",
   "journal.pickImageFirstToast": "اول یک تصویر انتخاب کن",
   "journal.imageAddedToast": "تصویر اضافه شد",
   "journal.imageRemovedToast": "تصویر حذف شد",
@@ -494,7 +498,12 @@ export const FA = {
   "app.preparing": "در حال آماده‌سازی…",
   "app.scrollHint": "اسکرول کنید",
   "app.heroTagline": "عادت‌هایت را بساز، روندت را ببین.",
-  "home.percentSign": "٪"
+  "home.percentSign": "٪",
+  "update.title": "نسخهٔ جدید روند آماده است",
+  "update.body": "نسخهٔ {version} منتشر شد. برای دریافت، به‌روزرسانی کن.",
+  "update.download": "دانلود نسخهٔ جدید",
+  "update.reload": "به‌روزرسانی",
+  "update.later": "بعداً"
 }
 
 export default FA

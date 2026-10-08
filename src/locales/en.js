@@ -156,7 +156,11 @@ export const EN = {
   "journal.moodSavedToast": "Mood saved",
   "journal.deleteConfirm": "Delete this day's note?",
   "journal.deletedToast": "Note deleted",
-  "journal.imageTooLargeToast": "The photo must be under ~1.8 MB",
+  "journal.imageTooLargeToast": "That image file is too large (over ~20 MB)",
+  "journal.notImageToast": "Only image files (JPG, PNG, …) can be chosen",
+  "journal.imageErrorToast": "That image could not be processed. Try another photo.",
+  "journal.imageProcessing": "Preparing photo…",
+  "journal.storageFullToast": "Device storage is full — delete some old photos to save safely",
   "journal.pickImageFirstToast": "Choose a photo first",
   "journal.imageAddedToast": "Photo added",
   "journal.imageRemovedToast": "Photo removed",
@@ -494,7 +498,12 @@ export const EN = {
   "app.preparing": "Preparing…",
   "app.scrollHint": "Scroll",
   "app.heroTagline": "Build your habits, see your rhythm.",
-  "home.percentSign": "%"
+  "home.percentSign": "%",
+  "update.title": "A new version of Ravand is ready",
+  "update.body": "Version {version} is available. Update to get it.",
+  "update.download": "Download the new version",
+  "update.reload": "Update now",
+  "update.later": "Later"
 }
 
 export default EN

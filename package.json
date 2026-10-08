@@ -16,7 +16,8 @@
     "cap:apk": "npm run build && node scripts/prune-cap-dist.mjs && cap sync && cd android && gradlew.bat assembleDebug",
     "cap:apk:release": "npm run build && node scripts/prune-cap-dist.mjs && cap sync && cd android && gradlew.bat assembleRelease",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5175 && electron .\"",
-    "electron:build": "npm run build && node scripts/prune-cap-dist.mjs && electron-builder"
+    "electron:build": "npm run build && node scripts/prune-cap-dist.mjs && electron-builder",
+    "version:sync": "node scripts/sync-app-version.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.2",
@@ -43,6 +44,7 @@
     "files": [
       "dist/**/*",
       "electron.cjs",
+      "preload.cjs",
       "!node_modules/**"
     ],
     "electronLanguages": ["en-US", "fa"],

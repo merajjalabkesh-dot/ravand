@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../lib/store'
 import { useI18n } from '../lib/i18n'
+import UpdateBanner from './UpdateBanner'
 
 const NAV = [
   { to: '/app', key: 'nav.home', icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>' },
@@ -66,7 +67,11 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      <main className="main">{children}</main>
+      <main className="main">
+        {/* نوار به‌روزرسانی — یک‌جا این‌جاست، پس روی همهٔ صفحه‌های /app/* دیده می‌شود */}
+        <UpdateBanner />
+        {children}
+      </main>
 
       {/* 
        * نوار پایین موبایل. روی دسکتاپ پنهان است و سایدبار کار می‌کند.

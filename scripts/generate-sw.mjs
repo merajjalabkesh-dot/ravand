@@ -113,16 +113,22 @@ self.addEventListener('fetch', (event) => {
   if (/\\.(mp4|webm|mov|avi)$/i.test(url.pathname)) return;
 
   // SPA navigations (including iOS deep links) -> cached app shell offline.
+  // شبکه اول است تا آپدیت بنشیند، ولی یک مهلت کوتاه دارد: اگر شبکه معلق
+  // بماند (آفلاین/شبکهٔ کند) به‌جای هنگ‌کردن تب، شلِ کش‌شده سرو می‌شود.
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
+      const shell = async () =>
+        (await caches.match(SHELL_APP)) || (await caches.match(SHELL)) || (await caches.match(ROOT));
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3000);
       try {
-        return await fetch(request);
+        const response = await fetch(request, { signal: controller.signal });
+        clearTimeout(timer);
+        return response;
       } catch (_) {
-        // Try app shell first (for electron/app builds), then site shell
-        const shell = await caches.match(SHELL_APP) || await caches.match(SHELL);
-        if (shell) return shell;
-        const root = await caches.match(ROOT);
-        if (root) return root;
+        clearTimeout(timer);
+        const cached = await shell();
+        if (cached) return cached;
         return new Response('Offline: app shell not cached', {
           status: 503,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' }

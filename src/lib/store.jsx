@@ -232,6 +232,13 @@ const safeStore = (() => {
   catch (e) { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v) }, removeItem: (k) => { delete m[k] } } }
 })()
 
+/* ---------- گزارش خطای ذخیرهٔ محلی ----------
+   persist خطای «حافظه پر است» را می‌خورد تا اپ در حافظه ادامه دهد. این هندلرِ
+   اختیاری به UI اجازه می‌دهد به کاربر هشدار بدهد (مصرف‌کننده: ژورنال، هنگام
+   پیوست عکس). به‌صورت ماکروتسک صدا زده می‌شود تا در فاز رندر React نباشد. */
+let persistErrorHandler = null
+export const setPersistErrorHandler = (fn) => { persistErrorHandler = (typeof fn === 'function' ? fn : null) }
+
 export function hexToRgba(hex, a) {
   const n = parseInt(hex.slice(1), 16)
   return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
@@ -290,22 +297,55 @@ export function AppProvider({ children }) {
   const [authUser, setAuthUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
 
-  const persist = (data) => { try { safeStore.setItem('rg_data_v2', JSON.stringify(data)) } catch (e) { /* storage locked — continue in-memory */ } }
+  const persist = (data) => {
+    try { safeStore.setItem('rg_data_v2', JSON.stringify(data)) }
+    catch (e) {
+      // حافظهٔ محلی پر است (اغلب به‌خاطر عکس‌های ژورنال). اپ در حافظه ادامه
+      // می‌دهد ولی UI باید به کاربر خبر بدهد تا داده بی‌صدا گم نشود.
+      if (persistErrorHandler) setTimeout(() => { try { persistErrorHandler(e) } catch (err) { /* ignore */ } }, 0)
+    }
+  }
   const hasToken = () => { try { return !!localStorage.getItem('rg_token') } catch { return false } }
   // ذخیرهٔ محلی فوری است (تا رفرش داده از دست نرود)، ولی نوشتن روی سرور
   // با تأخیرِ کوتاه دسته‌بندی می‌شود: هر تیکِ عادت قبلاً یک PUT کامل به
   // /api/data می‌زد؛ حالا چند تغییر سریع در یک درخواست جمع می‌شوند.
+  //
+  // صف آفلاین: آخرین عکسِ نفرستاده در pushLatest نگه داشته می‌شود و تا
+  // موفقیتِ تأییدشده پاک نمی‌شود. اگر ارسال شکست بخورد (آفلاین/خطای شبکه)
+  // داده گم نمی‌شود؛ با برگشت اینترنت (رویداد online) یا با backoff کوتاه
+  // دوباره تلاش می‌شود.
   const pushTimer = useRef(null)
   const pushLatest = useRef(null)
+  const pushInFlight = useRef(false)
+  const retryTimer = useRef(null)
+  const RETRY_MS = 5000
+  const markDirty = (d) => { try { safeStore.setItem('rg_sync_dirty', d ? '1' : '') } catch (e) { /* ignore */ } }
+  const isDirty = () => { try { return safeStore.getItem('rg_sync_dirty') === '1' } catch (e) { return false } }
+  // وقتی مرورگر مطمئن است آنلاین نیست، اصلاً تلاش نمی‌کنیم؛ فقط صف را
+  // نگه می‌داریم تا با رویداد online فرستاده شود (خطای فوری و بی‌فایده ندهیم).
+  const offline = () => (typeof navigator !== 'undefined' && navigator.onLine === false)
+  const scheduleRetry = useCallback(() => {
+    if (retryTimer.current || offline()) return
+    retryTimer.current = setTimeout(() => { retryTimer.current = null; flushPush() }, RETRY_MS)
+  }, [])
   const flushPush = useCallback(() => {
     if (pushTimer.current) { clearTimeout(pushTimer.current); pushTimer.current = null }
     const data = pushLatest.current
-    pushLatest.current = null
     if (!data || !hasToken()) return
+    if (offline()) { markDirty(true); scheduleRetry(); return }
+    if (pushInFlight.current) return
+    pushInFlight.current = true
     api.saveData(data).then((r) => {
-      if (r && r.error) console.warn('[sync] push failed:', r.error)
-    }).catch((e) => console.warn('[sync] push EXCEPTION:', e && e.message))
-  }, [])
+      // سرور داده را ذخیره کرد -> تازه حالا عکسِ نفرستاده پاک می‌شود.
+      if (r && r.error) { markDirty(true); scheduleRetry(); return }
+      if (pushLatest.current === data) pushLatest.current = null
+      markDirty(false)
+    }).catch((e) => {
+      console.warn('[sync] push failed, will retry:', e && e.message)
+      markDirty(true)
+      scheduleRetry()
+    }).finally(() => { pushInFlight.current = false })
+  }, [scheduleRetry])
   const pushDb = useCallback((data) => {
     pushLatest.current = data
     if (pushTimer.current) clearTimeout(pushTimer.current)
@@ -334,11 +374,17 @@ export function AppProvider({ children }) {
      در لحظهٔ خروج فوراً می‌فرستیم تا داده گم نشود. */
   useEffect(() => {
     const flush = () => flushPush()
+    // با برگشت اینترنت، تغییرات آفلاین همان لحظه فرستاده می‌شوند.
+    const onOnline = () => { flushPush() }
     window.addEventListener('beforeunload', flush)
     document.addEventListener('visibilitychange', flush)
+    window.addEventListener('online', onOnline)
+    // اگر تب در حالی باز شد که تغییرِ نفرستاده داریم و اینترنت هست، همین حالا بفرست.
+    if (isDirty() && !offline()) flushPush()
     return () => {
       window.removeEventListener('beforeunload', flush)
       document.removeEventListener('visibilitychange', flush)
+      window.removeEventListener('online', onOnline)
     }
   }, [flushPush])
 
@@ -380,8 +426,11 @@ export function AppProvider({ children }) {
     // Scale the whole app visually (works with fixed px sizes across the codebase)
     const scale = db.settings.fontScale || 1
     root.style.setProperty('--font-scale', String(scale))
-    const rootEl = document.getElementById('root')
-    if (rootEl) rootEl.style.zoom = scale === 1 ? '' : String(scale)
+    // zoom باید روی documentElement باشد، نه #root: zoom روی یک عنصرِ میانی آن را
+    // به containing block برای فرزندانِ position:fixed تبدیل می‌کند و نوارِ پایین
+    // موبایل از کفِ صفحه جدا می‌افتد (نوارِ خالی زیرِ نوار). zoom روی ریشه = زومِ
+    // واقعیِ صفحه و نوار پایین سرِ جایش می‌ماند.
+    root.style.zoom = scale === 1 ? '' : String(scale)
   }, [db.settings.theme, db.settings.accent, db.settings.fontScale])
 
   /* Backend auth bootstrap: pull remote identity + data on app start */

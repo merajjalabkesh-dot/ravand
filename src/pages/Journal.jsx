@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useApp, toFa, todayISO, isoAddDays, faDate, moodFace, moodWord, jalaliOf } from '../lib/store'
+import { useApp, setPersistErrorHandler, toFa, todayISO, isoAddDays, faDate, moodFace, moodWord, jalaliOf } from '../lib/store'
 import JalaliDatePicker from '../components/JalaliDatePicker'
 import { useI18n } from '../lib/i18n'
 
@@ -9,6 +9,53 @@ const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, 
 // vivid colors for the mood map cells (same family as mood faces)
 const MOOD_HEX = { 1: '#f87171', 2: '#fb923c', 3: '#fbbf24', 4: '#4ade80', 5: '#38bdf8' }
 
+/* ---- فشرده‌سازی عکسِ ژورنال ----
+   عکس خام گوشی چند مگابایت است و به‌صورت base64 حدود ۳۳٪ بزرگ‌تر می‌شود؛ همان
+   عکس کلِ blob سینک را سنگین می‌کند و در localStorage (سهمیهٔ ~۵ مگابایت) جا
+   نمی‌شود. پس پیش از ذخیره، بزرگ‌ترین ضلع را به MAX_EDGE محدود و به JPEG
+   بازکد می‌کنیم. خروجی همان data-URL است و در همان فیلد d.journal.img می‌نشیند. */
+const MAX_EDGE = 1400          // بزرگ‌ترین ضلعِ خروجی، پیکسل
+const JPEG_QUALITY = 0.8       // کیفیت بازکد JPEG
+const MAX_INPUT_BYTES = 20 * 1024 * 1024   // سقفِ فایلِ ورودی پیش از فشرده‌سازی
+
+async function decodeImage(file) {
+  // createImageBitmap چرخشِ EXIF را با imageOrientation:'from-image' حفظ می‌کند.
+  if (typeof createImageBitmap === 'function') {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }) }
+    catch (e) { /* گزینه پشتیبانی نمی‌شود؛ با <img> امتحان می‌کنیم */ }
+  }
+  const url = URL.createObjectURL(file)
+  try {
+    return await new Promise((resolve, reject) => {
+      const el = new Image()
+      el.onload = () => resolve(el)
+      el.onerror = () => reject(new Error('decode failed'))
+      el.src = url
+    })
+  } finally { URL.revokeObjectURL(url) }
+}
+
+async function compressImage(file) {
+  const src = await decodeImage(file)
+  const w = src.width || src.naturalWidth || 0
+  const h = src.height || src.naturalHeight || 0
+  if (!w || !h) throw new Error('bad image')
+  const scale = Math.min(1, MAX_EDGE / Math.max(w, h))
+  const tw = Math.max(1, Math.round(w * scale))
+  const th = Math.max(1, Math.round(h * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = tw
+  canvas.height = th
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('no canvas')
+  // پس‌زمینهٔ سفید تا PNGهای شفاف به سیاه تبدیل نشوند
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, tw, th)
+  ctx.drawImage(src, 0, 0, tw, th)
+  if (src.close) { try { src.close() } catch (e) { /* ignore */ } }
+  return canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+}
+
 export default function Journal() {
   const { db, mutate, toast } = useApp()
   const { t } = useI18n()
@@ -16,8 +63,19 @@ export default function Journal() {
   const [text, setText] = useState('')
   const [good, setGood] = useState('')
   const [previewImg, setPreviewImg] = useState(null)
+  const [processing, setProcessing] = useState(false)
+  // نمایش تمام‌صفحهٔ عکس حالا state جدا دارد و فقط با کلیک باز می‌شود. قبلاً
+  // previewImg خودش تمام‌صفحه می‌شد و روی دکمهٔ «پیوست به این روز» می‌افتاد،
+  // پس عکس هرگز پیوست نمی‌شد.
+  const [lightboxImg, setLightboxImg] = useState(null)
   const day = db.days[date] || { journal: { mood: 0, text: '', good: '', img: null } }
   const mood = day.journal.mood
+
+  // اگر ذخیرهٔ محلی به‌خاطر پر بودن حافظه شکست بخورد، به کاربر خبر بده.
+  useEffect(() => {
+    setPersistErrorHandler(() => { toast(t('journal.storageFullToast')) })
+    return () => setPersistErrorHandler(null)
+  }, [toast, t])
 
   const save = () => {
     mutate((s) => {
@@ -40,13 +98,23 @@ export default function Journal() {
     if (dt === date) { setText(''); setGood('') }
     toast(t('journal.deletedToast'))
   }
-  const onPickImage = (e) => {
-    const f = e.target.files && e.target.files[0]
+  const onPickImage = async (e) => {
+    const input = e.target
+    const f = input.files && input.files[0]
+    if (input) input.value = ''   // انتخاب دوبارهٔ همان فایل هم onChange بدهد
     if (!f) return
-    if (f.size > 1.8 * 1024 * 1024) { toast(t('journal.imageTooLargeToast')); return }
-    const fr = new FileReader()
-    fr.onload = () => { setPreviewImg(fr.result) }
-    fr.readAsDataURL(f)
+    if (!f.type || f.type.indexOf('image/') !== 0) { toast(t('journal.notImageToast')); return }
+    if (f.size > MAX_INPUT_BYTES) { toast(t('journal.imageTooLargeToast')); return }
+    setProcessing(true)
+    try {
+      const dataUrl = await compressImage(f)
+      setPreviewImg(dataUrl)
+      setLightboxImg(null)
+    } catch (err) {
+      toast(t('journal.imageErrorToast'))
+    } finally {
+      setProcessing(false)
+    }
   }
   const attachImage = () => {
     if (!previewImg) { toast(t('journal.pickImageFirstToast')); return }
@@ -54,11 +122,13 @@ export default function Journal() {
       const d = s.days[date] || (s.days[date] = { habits: {}, tasks: [], journal: { mood: 0, text: '', good: '', img: null } })
       d.journal.img = previewImg
     })
+    setLightboxImg(null)
     toast(t('journal.imageAddedToast'))
   }
   const removeImage = () => {
     mutate((s) => { const d = s.days[date]; if (d && d.journal) d.journal.img = null })
     setPreviewImg(null)
+    setLightboxImg(null)
     toast(t('journal.imageRemovedToast'))
   }
 
@@ -81,7 +151,7 @@ export default function Journal() {
         <div className="journal-head">
           <span className="journal-date">{faDate(iso, true)}{iso === todayISO() && <span style={{ color: 'var(--accent)', fontWeight: 700, marginRight: 8 }}>{t('journal.today')}</span>}</span>
           {dd.journal.mood > 0 && <span className="journal-mood" dangerouslySetInnerHTML={{ __html: moodFace(dd.journal.mood, 20) }} />}
-          {dd.journal.img && <button className="journal-thumb" onClick={() => setPreviewImg(dd.journal.img)}><img src={dd.journal.img} alt="" /></button>}
+          {dd.journal.img && <button className="journal-thumb" onClick={() => setLightboxImg(dd.journal.img)}><img src={dd.journal.img} alt="" /></button>}
           <span className="journal-actions">
             <button onClick={() => { setDate(iso); setText(dd.journal.text || ''); setGood(dd.journal.good || '') }}>{t('journal.entryEdit')}</button>
             <button className="del" onClick={() => delEntry(iso)}>{t('journal.entryDelete')}</button>
@@ -144,16 +214,17 @@ export default function Journal() {
           <label>{t('journal.photoLabel')}</label>
           {(previewImg || day.journal.img) ? (
             <div className="journal-img-area">
-              <img src={previewImg || day.journal.img} alt={t('journal.photoAlt')} onClick={() => setPreviewImg(previewImg || day.journal.img)} />
+              <img src={previewImg || day.journal.img} alt={t('journal.photoAlt')} onClick={() => setLightboxImg(previewImg || day.journal.img)} />
               <div className="journal-img-actions">
-                <label className="btn ghost small">{t('journal.photoReplace')}<input type="file" accept="image/*" style={{ display: 'none' }} onChange={onPickImage} /></label>
+                <label className="btn ghost small">{t('journal.photoReplace')}<input type="file" accept="image/*" disabled={processing} style={{ display: 'none' }} onChange={onPickImage} /></label>
                 <button className="btn ghost danger-ghost small" onClick={removeImage}>{t('journal.removePhoto')}</button>
               </div>
             </div>
           ) : (
-            <label className="btn ghost small">{t('journal.photoChoose')}<input type="file" accept="image/*" style={{ display: 'none' }} onChange={onPickImage} /></label>
+            <label className="btn ghost small">{t('journal.photoChoose')}<input type="file" accept="image/*" disabled={processing} style={{ display: 'none' }} onChange={onPickImage} /></label>
           )}
-          {previewImg && !day.journal.img && <button className="btn small" style={{ marginTop: 8 }} onClick={attachImage}>{t('journal.photoAttach')}</button>}
+          {processing && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>{t('journal.imageProcessing')}</div>}
+          {previewImg && !day.journal.img && <button className="btn small" style={{ marginTop: 8 }} disabled={processing} onClick={attachImage}>{t('journal.photoAttach')}</button>}
         </div>
         <button className="btn" onClick={save}>{t('journal.saveNote')}</button>
       </motion.div>
@@ -164,9 +235,9 @@ export default function Journal() {
         {list.length ? list : <p className="glass-hint">{t('journal.historyEmpty')}</p>}
       </motion.div>
 
-      {previewImg && (
-        <div className="journal-lightbox" onClick={() => setPreviewImg(null)}>
-          <img src={previewImg} alt="" />
+      {lightboxImg && (
+        <div className="journal-lightbox" onClick={() => setLightboxImg(null)}>
+          <img src={lightboxImg} alt="" />
         </div>
       )}
     </motion.div>

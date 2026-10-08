@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="roznegar" />
     <link rel="manifest" href="./manifest.json" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./brand/icon-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
@@ -63,6 +63,24 @@
         setTimeout(function () { clearInterval(t); }, 5000);
       })();
       localStorage.setItem('theme', 'midnight');
+
+      // ---------------------------------------------------------------
+      // ثبت service worker برای نسخهٔ وب (PWA).
+      // داخل اپ native (exe/apk) هرگز ثبت نمی‌شود؛ WebView نباید precache کند.
+      // مسیر و scope از document.baseURI ساخته می‌شوند تا روی زیرمسیر هم درست باشد.
+      // بدون این ثبت، بازگشایی مجدد تبِ اپ آفلاین روی درخواست شبکه معلق می‌ماند.
+      // ---------------------------------------------------------------
+      if (!window.__IS_NATIVE_APP__ && 'serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          try {
+            var swUrl = new URL('service-worker.js', document.baseURI).pathname;
+            var scope = new URL('./', document.baseURI).pathname;
+            navigator.serviceWorker.register(swUrl, { scope: scope }).catch(function (e) {
+              console.warn('SW registration failed', e);
+            });
+          } catch (e) { console.warn('SW registration failed', e); }
+        });
+      }
     </script>
     <script type="module" src="./src/main-app.jsx"></script>
   </body>
