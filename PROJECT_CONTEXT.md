@@ -46,13 +46,11 @@ roznegar-react/
 │   ├── lib/
 │   │   ├── store.jsx       # Global state (Context + localStorage + sync)
 │   │   ├── i18n.jsx        # i18n provider (fa/en, RTL/LTR, fonts)
-│   │   ├── firebaseService.js  # Optional Firebase auth/sync
 │   │   ├── apiClient.js    # Custom backend (Express + PostgreSQL)
 │   │   └── seo.js          # Page meta helper
 │   ├── config/
 │   │   ├── themes.js       # 6 themes (midnight, ocean, berry, lilac, cream, pinky)
-│   │   ├── site.config.js  # All marketing copy (SITE object)
-│   │   └── firebase.js     # Firebase config (optional)
+│   │   └── site.config.js  # All marketing copy (SITE object)
 │   ├── locales/            # fa.js, en.js (translation dictionaries)
 │   ├── hooks/              # Custom hooks
 │   ├── styles/
@@ -68,7 +66,6 @@ roznegar-react/
 │   │   ├── routes/
 │   │   │   ├── auth.js     # register, login, me, change-password
 │   │   │   └── data.js     # GET/PUT /api/data (full blob sync)
-│   │   └── mailer.js       # Nodemailer (unused currently)
 │   └── package.json
 ├── src-tauri/              # Tauri desktop config
 ├── android/                # Capacitor Android project
@@ -253,8 +250,6 @@ mutate(fn) / save(next)  ──▶  localStorage (rg_data_v2)  ──▶  pushDb
 ## 🐛 Known Issues / TODOs
 
 - [ ] OTP/SMS auth disabled (backend returns 501)
-- [ ] Firebase sync optional — not used in production
-- [ ] Email mailer configured but unused
 - [ ] Tests missing
 - [ ] No CI/CD pipeline
 - [ ] TypeScript not adopted (plain JS + JSDoc)

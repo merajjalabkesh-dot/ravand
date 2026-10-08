@@ -411,12 +411,6 @@ export function AppProvider({ children }) {
     return () => { alive = false }
   }, [])
 
-  /* helpers (pure) */
-    const dayOf = useCallback((iso) => {
-      if (!db.days[iso]) db.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '', good: '', img: null } }
-      return db.days[iso]
-    }, [db.days])
-
   /* wake reminder — if user hasn't logged today's wake by their usual time, notify.
      check() از ref می‌خواند تا تایمر هر بار تغییرِ db از نو ساخته نشود؛
      فقط تغییر تنظیماتِ مربوطه (یا ورود/خروج کاربر) آن را بازسازی می‌کند. */
@@ -448,7 +442,7 @@ export function AppProvider({ children }) {
     return () => clearInterval(t)
   }, [db.user, db.settings.wakeNotify, db.settings.curWake, db.settings.wakeGoal])
 
-  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, dayOf, ACCENTS, MOOD_WORDS, moodWord, monthName, num, setActiveLang, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, dayOf, authUser, authReady])
+  const value = useMemo(() => ({ db, setDb: save, mutate, toast, toastMsg, todayISO, isoAddDays, toFa, faDate, faMonth, jalaliOf, j2g, jalaliToISO, jalaliMonthLen, isLeapJalali, JMONTH_NAMES, minOf, fmtMin, ACCENTS, MOOD_WORDS, moodWord, monthName, num, setActiveLang, playTick, notifySupported, notifyPermission, requestNotifyPermission, browserNotify, clearWakeNotified, nextEventISO, eventLabel, countdownOf, formatCountdown, eventIcon, authUser, authReady, signOutWithBackend: () => { clearToken(); setAuthUser(null) } }), [db, save, mutate, toast, toastMsg, authUser, authReady])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
