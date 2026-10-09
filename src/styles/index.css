@@ -90,6 +90,13 @@ input, textarea { font-family: inherit; color: inherit; }
    را بگیرد و محتوایش تا پایین صفحه پر شود. */
 .main { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 34px 80px; max-width: 1140px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
 
+/* حالت standalone (افزودن به صفحهٔ اصلی آیفون): iOS ارتفاع کادرِ
+   position:fixed;inset:0 را به ناحیهٔ زیر نوار وضعیت محدود می‌کند و
+   نوار پایین از کف جدا می‌افتد. کلاس rg-standalone فقط در همین حالت
+   در index.html اضافه می‌شود و ارتفاع واقعی ویوپورت را به .app می‌دهد.
+   در مرورگر عادی این قاعده هرگز فعال نمی‌شود. */
+html.rg-standalone .app { height: var(--rg-app-h, 100dvh); }
+
 .page-head { margin-bottom: 26px; }
 .page-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; line-height: 1.3; }
 .page-head .sub { color: var(--muted); font-size: 15px; margin-top: 5px; }

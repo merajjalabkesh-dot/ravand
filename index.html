@@ -65,6 +65,37 @@
       localStorage.setItem('theme', 'midnight');
 
       // ---------------------------------------------------------------
+      // حالت standalone (افزودن به صفحهٔ اصلی آیفون): iOS ارتفاع کادرِ
+      // position:fixed;inset:0 را به ناحیهٔ زیر نوار وضعیت محدود می‌کند،
+      // پس نوار پایین اپ (آخرین فرزند فلکس) از کف صفحه جدا می‌افتد و یک
+      // نوار خالی زیرش می‌ماند. اینجا فقط در همین حالت ارتفاع واقعی
+      // ویوپورت را صریح روی ریشه می‌گذاریم تا اپ دقیقاً تا کف بنشیند.
+      // در مرورگر عادی هیچ کلاسی اضافه نمی‌شود و چیدمان دست‌نخورده می‌ماند.
+      // ---------------------------------------------------------------
+      (function () {
+        var standalone =
+          window.navigator.standalone === true ||
+          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+        if (!standalone || window.__IS_NATIVE_APP__) return;
+        var root = document.documentElement;
+        root.classList.add('rg-standalone');
+        var setH = function () {
+          // iOS در حالت standalone گاهی innerHeight را کوتاه‌تر از صفحهٔ
+          // فیزیکی گزارش می‌کند؛ بزرگ‌ترین مقدار را می‌گیریم تا اپ همیشه
+          // تا کف واقعی صفحه بنشیند.
+          var h = Math.max(
+            window.innerHeight || 0,
+            (window.screen && window.screen.height) || 0
+          );
+          if (h > 0) root.style.setProperty('--rg-app-h', h + 'px');
+        };
+        setH();
+        window.addEventListener('load', setH);
+        window.addEventListener('resize', setH);
+        window.addEventListener('orientationchange', setH);
+      })();
+
+      // ---------------------------------------------------------------
       // ثبت service worker برای نسخهٔ وب (PWA).
       // داخل اپ native (exe/apk) هرگز ثبت نمی‌شود؛ WebView نباید precache کند.
       // مسیر و scope از document.baseURI ساخته می‌شوند تا روی زیرمسیر هم درست باشد.
