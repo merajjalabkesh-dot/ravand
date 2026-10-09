@@ -67,15 +67,10 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      <main className="main">
-        {/* نوار به‌روزرسانی — یک‌جا این‌جاست، پس روی همهٔ صفحه‌های /app/* دیده می‌شود */}
-        <UpdateBanner />
-        {children}
-      </main>
-
-      {/* 
-       * نوار پایین موبایل. روی دسکتاپ پنهان است و سایدبار کار می‌کند.
-       * همان هفت آیکون سایدبار، ولی بدون متن و در یک ردیف افقی.
+      {/*
+       * نوار تب‌بار موبایل — بالای صفحه. روی دسکتاپ پنهان است و سایدبار کار می‌کند.
+       * همان هفت آیکون سایدبار در یک ردیف افقی. قبل از <main> می‌آید تا در
+       * فلکسِ عمودیِ .app بالای صفحه بنشیند.
        */}
       <nav className="app-tabbar" aria-label={t('nav.brand')}>
         {NAV.map((n) => (
@@ -89,6 +84,12 @@ export default function Layout({ children }) {
           <span className="app-tab-label">{t('nav.logout')}</span>
         </button>
       </nav>
+
+      <main className="main">
+        {/* نوار به‌روزرسانی — یک‌جا این‌جاست، پس روی همهٔ صفحه‌های /app/* دیده می‌شود */}
+        <UpdateBanner />
+        {children}
+      </main>
     </div>
   )
 }

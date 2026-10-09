@@ -790,21 +790,20 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
 .task-move:hover:not(:disabled) { color: var(--accent); background: rgba(124,92,252,.12); }
 
 /* ============================================================
-   نوار پایین موبایل
+   نوار تب‌بار موبایل (بالای صفحه)
    روی دسکتاپ پنهان است و سایدبار جایگزینش می‌کند.
    ============================================================ */
 @media (max-width: 700px) {
-  /* سایدبار در موبایل جایی ندارد — نوار پایین جایگزینش است */
+  /* سایدبار در موبایل جایی ندارد — نوار بالا جایگزینش است */
   .sidebar { display: none; }
 
-  /* نوار پایین حالا در جریان است و ارتفاع واقعی‌اش را می‌گیرد، پس دیگر
+  /* نوار بالا حالا در جریان است و ارتفاع واقعی‌اش را می‌گیرد، پس دیگر
      لازم نیست با پدینگِ بزرگ جایش را باز کنیم؛ فقط یک فاصلهٔ کوچک. */
   .main { padding: 20px 16px 24px; }
 
-  /* نوار پایین در فلوی عادی .app می‌نشیند (نه fixed). روی سافاری iOS،
-     نوارِ position:fixed هنگام اسکرول/زوم از کف جدا می‌شود و نوارِ خالی
-     زیرش می‌ماند. چون .app خودش inset:0 است و به کف ویوپورت می‌چسبد،
-     فرزندِ فلکسِ آن (این نوار) هم دقیقاً روی کف می‌نشیند — بدون آن باگ. */
+  /* نوار تب‌بار بالای صفحه، در فلوی عادی .app می‌نشیند (نه fixed). چون
+     .app خودش inset:0 است، فرزندِ فلکسِ آن (این نوار) دقیقاً روی لبهٔ
+     بالای ویوپورت می‌نشیند و هنگام اسکرول/زوم از لبه جدا نمی‌شود. */
   .app-tabbar {
     display: flex;
     flex: 0 0 auto;
@@ -813,8 +812,8 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
     background: var(--sidebar-bg, rgba(18, 20, 28, .92));
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-top: 1px solid var(--glass-border);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    border-bottom: 1px solid var(--glass-border);
+    padding: calc(6px + env(safe-area-inset-top)) 4px 6px;
   }
   .app-tab {
     flex: 1 1 0;
@@ -852,7 +851,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   .app-tab-out:active { background: rgba(248, 113, 113, .2); }
 }
 
-/* روی نمایشگرهای خیلی بلند (iPad عمودی) هم نوار پایین بماند */
+/* روی نمایشگرهای خیلی بلند (iPad عمودی) هم نوار بالا بماند */
 @media (min-width: 701px) {
   .app-tabbar { display: none !important; }
 }
