@@ -240,7 +240,7 @@
 #live, #about, #features, #compare, #audience, #voices, #pricing, #download, #steps, #faq, #channels { scroll-margin-top: 84px; }
 .site-sec-head { text-align: center; margin-bottom: 40px; }
 .site-kicker {
-  display: inline-block; font-size: clamp(13px, 1.1vw, 14.5px); font-weight: 700;
+  display: inline-block; font-size: clamp(15px, 1.4vw, 17px); font-weight: 800;
   letter-spacing: .1em; color: var(--site-accent-2); margin-bottom: 12px; line-height: 1.6;
 }
 .site-sec-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
@@ -346,6 +346,44 @@
   font-size: 12.5px; color: var(--site-muted); line-height: 1.8; text-align: center;
 }
 
+/* ---------------- گالری محیط برنامه ---------------- */
+.gal {
+  position: relative; max-width: 900px; margin: 22px auto 0;
+  padding: 22px; border-radius: 26px;
+}
+.gal-head { text-align: center; margin-bottom: 16px; }
+.gal-title { font-size: 20px; font-weight: 800; }
+.gal-sub { margin-top: 6px; font-size: 13.5px; color: var(--site-muted); }
+.gal-stage { position: relative; aspect-ratio: 16 / 10; border-radius: 18px; overflow: hidden; background: rgba(255, 255, 255, .03); }
+.gal-slide {
+  position: absolute; inset: 0; margin: 0;
+  opacity: 0; transition: opacity .5s ease; pointer-events: none;
+}
+.gal-slide.on { opacity: 1; pointer-events: auto; }
+.gal-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gal-ph {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  background: repeating-linear-gradient(135deg, rgba(139, 92, 246, .06) 0 14px, rgba(139, 92, 246, .12) 14px 28px);
+  color: var(--site-muted); font-size: 13px;
+}
+.gal-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(10, 18, 38, .72); border: 1px solid var(--site-line); color: var(--site-ink);
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.gal-arrow:hover { background: rgba(139, 92, 246, .35); }
+/* در RTL «قبلی» سمت راست (start) و «بعدی» سمت چپ (end) است */
+.gal-arrow.prev { inset-inline-start: 12px; }
+.gal-arrow.prev svg { transform: scaleX(-1); }
+.gal-arrow.next { inset-inline-end: 12px; }
+.gal-dots { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.gal-dot {
+  width: 9px; height: 9px; border-radius: 50%; padding: 0; cursor: pointer;
+  background: rgba(255, 255, 255, .18); border: none; transition: background .15s, transform .15s;
+}
+.gal-dot.on { background: var(--site-accent-2); transform: scale(1.25); }
+
 /* ---------------- جزئیات یک روز (درجا، زیر جدول) ---------------- */
 /* Focus visible: subtle ring matching accent, not green outline */
 .hm-cell:focus-visible {
@@ -385,7 +423,7 @@
 
 /* دو ستون کنار هم: عادت‌ها | کارها و ژورنال */
 .hm-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-.hm-detail-col h4 { font-size: 12.5px; font-weight: 800; color: var(--site-accent-2); margin-bottom: 10px; }
+.hm-detail-col h4 { font-size: 14px; font-weight: 800; color: var(--site-accent-2); margin-bottom: 10px; }
 .hm-row { display: flex; align-items: center; gap: 11px; padding: 7px 0; border-bottom: 1px solid rgba(140, 170, 230, .07); }
 .hm-row:last-child { border-bottom: none; }
 .hm-box {
@@ -450,8 +488,30 @@
 .aud-item p { font-size: 13.5px; line-height: 1.9; color: var(--site-muted); }
 
 /* ---------------- نظر کاربران ---------------- */
-.voice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 16px; }
-.voice { display: flex; flex-direction: column; gap: 18px; padding: 26px 24px; border-radius: 22px; margin: 0; transition: transform .2s; }
+/* حالت خالی: وقتی هنوز نظری ثبت نشده */
+.voice-empty {
+  max-width: 560px; margin: 0 auto; text-align: center;
+  padding: 30px 24px; border-radius: 22px;
+  font-size: 15px; line-height: 1.9; color: var(--site-muted);
+}
+/* نوار بی‌نهایت نظرات — دو گروه یکسان، انیمیشن به اندازهٔ یک گروه */
+.marquee { position: relative; overflow: hidden; }
+.marquee::before, .marquee::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 72px; z-index: 2; pointer-events: none;
+}
+.marquee::before { inset-inline-start: 0; background: linear-gradient(to right, #070b18, rgba(7, 11, 24, 0)); }
+.marquee::after { inset-inline-end: 0; background: linear-gradient(to left, #070b18, rgba(7, 11, 24, 0)); }
+.marquee-track { display: flex; width: max-content; animation: marquee-run var(--duration, 40s) linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-group { display: flex; gap: 16px; padding-inline-end: 16px; }
+.marquee.static .marquee-track { animation: none; flex-wrap: wrap; width: 100%; }
+.marquee.static { overflow: visible; }
+.marquee.static::before, .marquee.static::after { display: none; }
+.marquee.static .marquee-group { flex-wrap: wrap; width: 100%; padding-inline-end: 0; }
+.marquee.static .marquee-group[aria-hidden="true"] { display: none; }
+
+.voice { display: flex; flex-direction: column; gap: 18px; padding: 26px 24px; border-radius: 22px; margin: 0; transition: transform .2s; width: 340px; flex-shrink: 0; }
+.marquee.static .voice { width: auto; flex: 1 1 288px; }
 .voice:hover { transform: translateY(-4px); }
 .voice-text { font-size: 14.5px; line-height: 2.05; color: var(--site-ink-mid); flex: 1; }
 .voice figcaption { display: flex; align-items: center; gap: 11px; }
@@ -462,6 +522,21 @@
 }
 .voice figcaption b { display: block; font-size: 14px; font-weight: 700; }
 .voice figcaption i { font-style: normal; font-size: 12px; color: var(--site-muted); }
+
+/*
+ * در RTL، نوار از راست به چپ حرکت می‌کند تا حس طبیعی‌تری داشته باشد.
+ * در حالت reduced-motion، انیمیشن خاموش و نوار افقی اسکرول‌شدنی می‌شود.
+ */
+@keyframes marquee-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none !important; }
+  .marquee { overflow-x: auto; }
+  .marquee::before, .marquee::after { display: none; }
+}
 
 /* ---------------- تعرفه ---------------- */
 .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 18px; max-width: 940px; margin: 0 auto; align-items: stretch; }
@@ -732,7 +807,7 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .site-hero { padding: clamp(40px, 8vw, 64px) 16px clamp(32px, 6vw, 48px); min-height: 0; height: auto; }
   .site-hero-in { gap: 18px; }
   .site-sec-head { margin-bottom: 28px; }
-  .site-kicker { font-size: clamp(12px, 3vw, 13.5px); margin-bottom: 8px; }
+  .site-kicker { font-size: clamp(14px, 3.6vw, 15.5px); margin-bottom: 8px; }
   .site-sec-title { font-size: clamp(22px, 5.5vw, 30px); line-height: 1.35; }
   .site-sec-sub { font-size: 14px; line-height: 1.8; max-width: 100%; margin-top: 10px; }
 
@@ -777,7 +852,7 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .hm-chip { padding: 3px 9px; font-size: 11px; border-radius: 999px; }
   .hm-close { width: 34px; height: 34px; font-size: 19px; border-radius: 9px; }
   .hm-detail-grid { grid-template-columns: 1fr; gap: 16px; }
-  .hm-detail-col h4 { font-size: 12px; margin-bottom: 8px; }
+  .hm-detail-col h4 { font-size: 13px; margin-bottom: 8px; }
   .hm-row { gap: 9px; padding: 7px 0; }
   .hm-box { width: 17px; height: 17px; border-width: 1.2px; }
   .hm-row-text { font-size: 12.5px; line-height: 1.5; }
@@ -812,10 +887,17 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .aud-item h3 { font-size: 15px; }
   .aud-item p { font-size: 12.5px; line-height: 1.8; }
 
-  .voice-grid { grid-template-columns: 1fr; gap: 12px; }
-  .voice { padding: 20px 16px; gap: 14px; }
+  .voice { padding: 20px 16px; gap: 14px; width: 260px; }
+  .marquee.static .voice { width: auto; flex-basis: 100%; }
   .voice-text { font-size: 13.5px; line-height: 1.9; }
   .voice-avatar { width: 36px; height: 36px; font-size: 13px; }
+  /* لبه‌های محو روی موبایل حذف می‌شوند تا فضای کارت هدر نرود */
+  .marquee::before, .marquee::after { display: none; }
+  .gal { padding: 16px; border-radius: 20px; }
+  .gal-title { font-size: 17px; }
+  .gal-arrow { width: 36px; height: 36px; }
+  .gal-arrow.prev { inset-inline-start: 8px; }
+  .gal-arrow.next { inset-inline-end: 8px; }
 
   .price-grid { grid-template-columns: 1fr; gap: 14px; max-width: 360px; }
   .price-card { padding: 24px 18px 20px; border-radius: 20px; }
@@ -873,7 +955,7 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .hm-chip { padding: 3px 9px; font-size: 11px; border-radius: 999px; }
   .hm-close { width: 28px; height: 28px; font-size: 18px; border-radius: 8px; }
   .hm-detail-grid { grid-template-columns: 1fr; gap: 16px; }
-  .hm-detail-col h4 { font-size: 12px; margin-bottom: 8px; }
+  .hm-detail-col h4 { font-size: 13px; margin-bottom: 8px; }
   .hm-row { gap: 9px; padding: 6px 0; }
   .hm-box { width: 16px; height: 16px; border-width: 1.2px; }
   .hm-row-text { font-size: 12.5px; line-height: 1.5; }

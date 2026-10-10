@@ -1,12 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { SITE } from '../../config/site.config'
 import { ICONS, IconCheck, IconDownload, IconArrow, IconX } from './Icons'
-import Heatmap from './Heatmap'
+import Heatmap, { getSampleSummary } from './Heatmap'
 import KineticField from './KineticField'
 import ScrollText from './ScrollText'
 import AppLink from './AppLink'
 import { fa, smoothScrollToId } from './helpers'
+
+/* هفته‌های جدول نمونه — هم برای جدول و هم برای آمار بالای آن، تا یکسان بمانند */
+const LIVE_WEEKS = 20
 
 /* ------------------------------------------------------------------ */
 /*  هیرو                                                               */
@@ -50,6 +53,8 @@ export function Hero({ compact = false, showField = true }) {
 /*  نمونه زندهٔ جدول                                                    */
 /* ------------------------------------------------------------------ */
 export function Live() {
+  // آمار بالای جدول از همان دادهٔ نمونه ساخته می‌شود تا هیچ‌وقت با جدول نخواند
+  const stats = getSampleSummary(LIVE_WEEKS)
   return (
     <section className="site-section site-live" id="live">
       <div className="site-sec-head">
@@ -65,20 +70,114 @@ export function Live() {
             <div className="live-sub">سه ماه گذشته</div>
           </div>
           <div className="live-stats">
-            <div className="live-stat"><b>۴۱</b><span>روز کامل</span></div>
-            <div className="live-stat"><b>۲۳</b><span>روز بدون ثبت</span></div>
-            <div className="live-stat"><b>۵</b><span>عادت فعال</span></div>
+            <div className="live-stat"><b>{fa(stats.full)}</b><span>روز کامل</span></div>
+            <div className="live-stat"><b>{fa(stats.empty)}</b><span>روز بدون ثبت</span></div>
+            <div className="live-stat"><b>{fa(stats.habits)}</b><span>عادت فعال</span></div>
           </div>
         </div>
 
-        <Heatmap weeks={20} labels={SITE.live} />
+        <Heatmap weeks={LIVE_WEEKS} labels={SITE.live} />
 
         <p className="live-note">
           این دادهٔ واقعی نیست — نمونه‌ای است با الگویی شبیه زندگی واقعی.
           تو در اپ خودت همین جدول را از صفر می‌سازی.
         </p>
       </div>
+
+      <Gallery />
     </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  گالری محیط برنامه — اسلایدشوی خودکار زیر جدول نمونه                */
+/* ------------------------------------------------------------------ */
+/*
+ * تصاویر از SITE.live.gallery می‌آیند. تا وقتی کاربر عکس واقعی نفرستاده،
+ * هر item با src خالی یک جای‌نگهدار نشان می‌دهد. اسلایدشو هر ۶.۵ ثانیه
+ * جلو می‌رود، با کلیک دستی تایمر ریست می‌شود، و وقتی تب پنهان است یا
+ * گالری از دید بیرون است تایمر می‌ایستد. با prefers-reduced-motion
+ * خودکار جلو نمی‌رود و فقط دستی جابه‌جا می‌شود.
+ */
+function Gallery() {
+  const G = SITE.live.gallery
+  const items = G && G.items ? G.items : []
+  const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [inView, setInView] = useState(false)
+  const [reduce, setReduce] = useState(false)
+  const rootRef = useRef(null)
+
+  const n = items.length
+  const go = (d) => setI((v) => (n ? (v + d + n) % n : 0))
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => setReduce(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
+
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el || !('IntersectionObserver' in window)) { setInView(true); return }
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.25 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (reduce || paused || !inView || n < 2) return
+    if (typeof document !== 'undefined' && document.hidden) return
+    const t = setTimeout(() => setI((v) => (v + 1) % n), 6500)
+    return () => clearTimeout(t)
+  }, [reduce, paused, inView, n, i])
+
+  if (!n) return null
+
+  return (
+    <div className="gal rv-glass" ref={rootRef}
+      role="region" aria-roledescription="carousel" aria-label={G.title}
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="gal-head">
+        <h3 className="gal-title">{G.title}</h3>
+        {G.subtitle && <p className="gal-sub">{G.subtitle}</p>}
+      </div>
+
+      <div className="gal-stage">
+        {items.map((it, idx) => (
+          <figure className={'gal-slide' + (idx === i ? ' on' : '')} key={idx}
+            aria-hidden={idx !== i} aria-roledescription="slide"
+            aria-label={`${fa(idx + 1)} از ${fa(n)}`}>
+            {it.src
+              ? <img className="gal-img" src={it.src} alt={it.alt || ''} loading="lazy" draggable="false" />
+              : <div className="gal-ph" role="img" aria-label={it.alt || ''}>
+                  <span>به‌زودی — تصویر واقعی اینجا می‌آید</span>
+                </div>}
+          </figure>
+        ))}
+      </div>
+
+      {n > 1 && (
+        <>
+          <button type="button" className="gal-arrow prev" onClick={() => go(-1)} aria-label="تصویر قبلی">
+            <IconArrow size={20} />
+          </button>
+          <button type="button" className="gal-arrow next" onClick={() => go(1)} aria-label="تصویر بعدی">
+            <IconArrow size={20} />
+          </button>
+          <div className="gal-dots" role="tablist" aria-label="انتخاب تصویر">
+            {items.map((_, idx) => (
+              <button type="button" key={idx} role="tab" aria-selected={idx === i}
+                className={'gal-dot' + (idx === i ? ' on' : '')}
+                onClick={() => setI(idx)} aria-label={`تصویر ${fa(idx + 1)}`} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -193,29 +292,51 @@ export function Audience() {
 /* ------------------------------------------------------------------ */
 /*  نظر کاربران                                                        */
 /* ------------------------------------------------------------------ */
+function TestimonialCard({ v }) {
+  return (
+    <figure className="voice rv-glass">
+      <p className="voice-text">{v.text}</p>
+      <figcaption>
+        <span className="voice-avatar">{v.name.charAt(0)}</span>
+        <span>
+          <b>{v.name}</b>
+          <i>{v.role}</i>
+        </span>
+      </figcaption>
+    </figure>
+  )
+}
+
 export function Testimonials() {
   const T = SITE.testimonials
+  const items = T.items || []
+  const has = items.length > 0
   return (
     <section className="site-section" id="voices">
       <div className="site-sec-head">
         <span className="site-kicker">{T.kicker}</span>
         <h2 className="site-sec-title">{T.title}</h2>
-        <p className="site-sec-sub">{T.note}</p>
+        {T.note && <p className="site-sec-sub">{T.note}</p>}
       </div>
-      <div className="voice-grid">
-        {T.items.map((v) => (
-          <figure className="voice rv-glass" key={v.name}>
-            <p className="voice-text">{v.text}</p>
-            <figcaption>
-              <span className="voice-avatar">{v.name.charAt(0)}</span>
-              <span>
-                <b>{v.name}</b>
-                <i>{v.role}</i>
-              </span>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      {!has ? (
+        <p className="voice-empty rv-glass">{T.empty || 'هنوز نظری ثبت نشده است.'}</p>
+      ) : (
+        /*
+         * نوار بی‌نهایت: دو گروه تکراریِ یکسان، کنار هم. انیمیشن کل نوار
+         * را به اندازهٔ یک گروه جلو می‌برد و چون گروه دوم همان اولی است،
+         * بی‌وقفه و بدون پرش تکرار می‌شود. با نگه‌داشتن موس می‌ایستد.
+         */
+        <div className={'marquee' + (items.length < 4 ? ' static' : '')}>
+          <div className="marquee-track" style={{ '--duration': Math.max(items.length * 9, 24) + 's' }}>
+            <div className="marquee-group">
+              {items.map((v, i) => <TestimonialCard v={v} key={'a' + i} />)}
+            </div>
+            <div className="marquee-group" aria-hidden="true">
+              {items.map((v, i) => <TestimonialCard v={v} key={'b' + i} />)}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -239,11 +360,7 @@ export function Pricing() {
             <h3 className="price-name">{pl.name}</h3>
             <div className="price-amount">
               {pl.price !== '—'
-                ? <>
-                    {pl.oldPrice && <s className="price-old">{pl.oldPrice}</s>}
-                    <b>{pl.price}</b>
-                    <span>{pl.unit}</span>
-                  </>
+                ? <><b>{pl.price}</b><span>{pl.unit}</span></>
                 : <b className="price-soon">—</b>}
             </div>
             <div className="price-period">{pl.period}</div>

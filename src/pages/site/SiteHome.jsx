@@ -26,9 +26,9 @@ export default function SiteHome() {
     })
   }, [])
 
-  // اسکرول نرم به بخش درخواستی
+  // اسکرول نرم به بخش درخواستی؛ بدون هش، از بالای صفحه شروع شود
   useEffect(() => {
-    if (!loc.hash) return
+    if (!loc.hash) { window.scrollTo(0, 0); return }
     const el = document.getElementById(loc.hash.slice(1))
     if (!el) return
     const id = setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 90)
