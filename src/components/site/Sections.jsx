@@ -237,7 +237,7 @@ export function Compare() {
   return (
     <section className="site-section" id="compare">
       <div className="site-sec-head">
-        <span className="site-kicker">{C.kicker}</span>
+        {C.kicker && <span className="site-kicker">{C.kicker}</span>}
         <h2 className="site-sec-title">{C.title}</h2>
         <p className="site-sec-sub">{C.subtitle}</p>
       </div>
