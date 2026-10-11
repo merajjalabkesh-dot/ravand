@@ -13,8 +13,9 @@ export const todayISO = () => {
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
 }
 export const isoAddDays = (iso, n) => {
-  const p = iso.split('-').map(Number)
-  const dt = new Date(p[0], p[1] - 1, p[2] + n)
+  const safeIso = (typeof iso === 'string' && iso.includes('-')) ? iso : todayISO()
+  const p = safeIso.split('-').map(Number)
+  const dt = new Date(p[0], p[1] - 1, p[2] + (+n || 0))
   return dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate())
 }
 
@@ -52,7 +53,8 @@ export function g2j(gy, gm, gd) {
   return { jy, jm, jd }
 }
 export function jalaliOf(iso) {
-  const p = iso.split('-').map(Number)
+  const safeIso = (typeof iso === 'string' && iso.includes('-')) ? iso : todayISO()
+  const p = safeIso.split('-').map(Number)
   const j = g2j(p[0], p[1], p[2])
   const dt = new Date(p[0], p[1] - 1, p[2])
   return { ...j, jw: dt.getDay() }
@@ -205,10 +207,13 @@ export function moodFace(level, size) {
 /* عادت آیا در این روزِ هفته برنامه‌ریزی شده؟ bad همیشه، good با روزهای خالی
    همیشه. مبنای همهٔ محاسبات درصد/استریک در Home، Today و Reports. */
 export function isScheduled(h, iso) {
-  if (h.type === 'bad') return true
+  if (!h || h.type === 'bad') return true
   const d = h.days || []
   if (!d.length) return true
-  return d.includes(new Date(iso.split('-').map(Number)).getDay())
+  const safeIso = (typeof iso === 'string' && iso.includes('-')) ? iso : todayISO()
+  const p = safeIso.split('-').map(Number)
+  const dow = new Date(p[0], p[1] - 1, p[2]).getDay()
+  return d.includes(dow)
 }
 
 const DEFAULT_DB = {

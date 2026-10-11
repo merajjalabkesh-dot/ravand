@@ -19,7 +19,9 @@ export default function Today() {
   // حساب می‌شدند؛ cleanStreak می‌تواند تا createdAt صدها روز عقب برود.
   // حالا فقط با تغییر db یا روز دوباره حساب می‌شوند.
   const { pct, streaks, cleanStreaks } = useMemo(() => {
-    const dow = new Date(iso.split('-').map(Number)).getDay()
+    const safeIso = (typeof iso === 'string' && iso.includes('-')) ? iso : todayISO()
+    const pIso = safeIso.split('-').map(Number)
+    const dow = new Date(pIso[0], pIso[1] - 1, pIso[2]).getDay()
     const goods = db.habits.filter((h) => h.type !== 'bad' && (h.type !== 'good' || (!(h.days || []).length) || (h.days || []).includes(dow)))
     let p = 0
     if (goods.length) {
@@ -66,7 +68,7 @@ export default function Today() {
       // day completed notification (only today)
       if (isToday) {
         const goods = db.habits.filter((x) => x.type !== 'bad')
-        const schedIds = goods.filter((g) => !(g.days || []).length || (g.days || []).includes(new Date(iso.split('-').map(Number)).getDay()))
+        const schedIds = goods.filter((g) => isScheduled(g, iso))
         if (schedIds.length > 0 && schedIds.every((g) => day.habits && day.habits[g.id]) && db.settings.notify && !wasOn) {
           browserNotify(t('today.notifyTitle'), t('today.allHabitsDoneNotification'), { tag: 'day-complete' })
         }
@@ -142,7 +144,7 @@ export default function Today() {
                 </div>
               )
             }
-            const sched = isSched(h)
+            const sched = isSched(h, iso)
             const st = habitStreak(h.id)
             return (
                           <div className={'habit-check' + (done ? ' done' : '')} key={h.id} onClick={() => toggleHabit(h.id)} style={sched ? {} : { opacity: .55 }}>
