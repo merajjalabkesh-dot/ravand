@@ -142,10 +142,16 @@ export default function Journal() {
   const list = Object.keys(db.days).sort().reverse().map((iso) => {
     const dd = db.days[iso]
     if (!dd || !dd.journal || (!dd.journal.text && !dd.journal.good && !dd.journal.img && !dd.journal.mood)) return null
-    const gTxt = dd.journal.good
-    const gFull = t('journal.entryGoodThingsPrefix', { text: gTxt })
-    const gi = gFull.lastIndexOf(gTxt)
-    const gPre = gFull.slice(0, gi), gPost = gFull.slice(gi + gTxt.length)
+    const gTxt = dd.journal.good || ''
+    let gPre = '', gPost = ''
+    if (gTxt) {
+      const gFull = t('journal.entryGoodThingsPrefix', { text: gTxt })
+      const gi = gFull.lastIndexOf(gTxt)
+      if (gi >= 0) {
+        gPre = gFull.slice(0, gi)
+        gPost = gFull.slice(gi + gTxt.length)
+      }
+    }
     return (
       <div className="journal-entry" key={iso}>
         <div className="journal-head">

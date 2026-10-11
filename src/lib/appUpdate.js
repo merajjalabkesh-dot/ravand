@@ -25,9 +25,10 @@ const DISMISS_KEY = 'rg_update_dismissed_v1'
 const API_BASE = ((typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
   'https://ravand-production.up.railway.app')
 
-/** پلتفرم در حال اجرا: electron | android | ios | native | web */
+/** پلتفرم در حال اجرا: tauri | electron | android | ios | native | web */
 export function runtimePlatform() {
   const w = (typeof window !== 'undefined') ? window : {}
+  if (w.__TAURI_INTERNALS__ || w.__TAURI__ || (typeof location !== 'undefined' && location.hostname === 'tauri.localhost')) return 'tauri'
   if (w.ravandApp && w.ravandApp.isElectron) return 'electron'
   if (w.Capacitor && typeof w.Capacitor.getPlatform === 'function') {
     const p = w.Capacitor.getPlatform()
@@ -118,7 +119,7 @@ export async function fetchVersionInfo() {
 /* ---------- چک و اقدام ---------- */
 
 function urlForPlatform(platform, info) {
-  if (platform === 'electron') return info.exeUrl
+  if (platform === 'electron' || platform === 'tauri' || platform === 'native') return info.exeUrl
   if (platform === 'android') return info.apkUrl
   return ''
 }
