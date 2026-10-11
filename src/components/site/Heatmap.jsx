@@ -13,6 +13,18 @@ const MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', '�
 
 const pad = (n) => String(n).padStart(2, '0')
 
+/* تصادفیِ قطعی با هستهٔ عددی — برای نمونهٔ جدول، هر بار همان نتیجه */
+function mulberry32(seed) {
+  let a = seed >>> 0
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 /** تیک کوچک داخل خانهٔ عادت/کار — یک‌بار تعریف شده، دو جا استفاده می‌شود */
 const CheckMark = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0a0f1f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
@@ -52,7 +64,7 @@ const faLong = (iso) => {
 
 const HABITS = [
   { name: 'صبح زود بیدار شدن', color: '#f5a623' },
-  { name: 'دو liter آب', color: '#38bdf8' },
+  { name: 'دو لیتر آب', color: '#38bdf8' },
   { name: 'پیاده‌روی ۳۰ دقیقه', color: '#43e8a8' },
   { name: 'کتاب خواندن', color: '#a78bfa' },
   { name: 'بدون گوشی تا ناهار', color: '#fb923c' },
@@ -74,7 +86,7 @@ const MOODS = [
 
 const JOURNAL_LINES = [
   'صبح زود بیدار شدم و قبل از همه کارهایم را نوشتم.',
-  'روز شلوغی بود، ولی هر چهز دقیقه را هم قاطی نکردم.',
+  'روز شلوغی بود، ولی هر ۵ دقیقه را هم قاطی نکردم.',
   'بعدازظهر خسته شدم و استراحت کوتاهی زدم.',
   'یک کار کوچک که مدت‌ها عقب انداخته بودم را تمام کردم.',
   'هوا خوب بود و پیاده‌روی حالم را بهتر کرد.',
@@ -97,16 +109,18 @@ function buildStory(cols) {
     else if (prog < 0.86) density = 0.6
     else density = 0.35
 
+    // تصادفیِ قطعی: با هستهٔ ثابت، هر بار همان جدول ساخته می‌شود
+    const rnd = mulberry32(i * 2654435761 + 12345)
+
     // تعداد کارهای روز
-    const nTasks = density > 0.8 ? 4 : density > 0.55 ? 3 : density > 0.3 ? 2 : (Math.random() < 0.7 ? 1 : 0)
+    const nTasks = density > 0.8 ? 4 : density > 0.55 ? 3 : density > 0.3 ? 2 : (rnd() < 0.7 ? 1 : 0)
     const tasks = []
     for (let k = 0; k < nTasks; k++) {
       const seed = (i * 7 + k * 13) % TASK_POOL.length
-      tasks.push({ text: TASK_POOL[seed], done: Math.random() < density })
+      tasks.push({ text: TASK_POOL[seed], done: rnd() < density })
     }
 
     // عادت‌های انجام‌شده
-    const doneCount = Math.round(density * HABITS.length + (Math.random() - 0.5) * 0.8)
     const habits = HABITS.map((h, hi) => ({
       ...h,
       done: ((i * 5 + hi * 11) % 10) / 10 < density,
@@ -114,9 +128,9 @@ function buildStory(cols) {
     const habitsDone = habits.filter((h) => h.done).length
 
     // حس و حال، خواب و بیداری
-    const mood = Math.max(1, Math.min(5, Math.round(1 + density * 3.4 + (Math.random() - 0.5))))
-    const wake = 6 * 60 + Math.round(60 + (1 - density) * 90 + Math.random() * 40)
-    const sleep = (21 * 60 + Math.round(density * 120 + Math.random() * 50)) % 1440
+    const mood = Math.max(1, Math.min(5, Math.round(1 + density * 3.4 + (rnd() - 0.5))))
+    const wake = 6 * 60 + Math.round(60 + (1 - density) * 90 + rnd() * 40)
+    const sleep = (21 * 60 + Math.round(density * 120 + rnd() * 50)) % 1440
 
     out[cell.iso] = {
       done: habitsDone,
@@ -131,6 +145,25 @@ function buildStory(cols) {
     }
   })
   return out
+}
+
+/*
+ * آمار خلاصهٔ جدول نمونه — همان چیزی که بالای جدول در بخش «نمونه» نشان
+ * داده می‌شود. از همان داده‌ای ساخته می‌شود که جدول رسم می‌کند، پس هیچ‌وقت
+ * با جدول ناهمخوان نمی‌شود.
+ */
+export function getSampleSummary(weeks) {
+  const { cols } = buildGrid(weeks)
+  const story = buildStory(cols)
+  let full = 0, empty = 0
+  cols.flat().forEach((cell) => {
+    if (cell.future) return
+    const d = story[cell.iso]
+    if (!d) return
+    if (d.done >= d.total) full++
+    else if (d.done === 0) empty++
+  })
+  return { full, empty, habits: HABITS.length }
 }
 
 /** تاریخ میلادی — تقویم هفته از شنبه شروع می‌شود */
@@ -261,14 +294,13 @@ export default function Heatmap({ weeks = 20, labels }) {
   const moodOf = (v) => MOODS[(v || 1) - 1]
 
   return (
-    <div className="hm-wrap">
+    <div className="hm-wrap" role="group" aria-label="جدول فعالیت سه ماه گذشته">
       <div className="hm-body" ref={bodyRef}>
         <div className="hm-days" aria-hidden="true">
           {DAY_LABELS.map((d) => <span key={d}>{d}</span>)}
         </div>
 
-        <div className="hm-grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}
-          role="img" aria-label="جدول فعالیت سه ماه گذشته">
+        <div className="hm-grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${cols.length}, var(--hm-cell))` }}>
           {cols.map((col) => col.map((cell, row) => {
             const lvl = cell.future ? -1 : levelOf(story[cell.iso])
             return (

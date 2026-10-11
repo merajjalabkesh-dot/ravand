@@ -16,6 +16,9 @@ export default function Download() {
     })
   }, [])
 
+  // اگر از پایین صفحهٔ دیگری به اینجا آمدیم، از بالای صفحه شروع شود
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   return (
     <div className="site">
       <SiteHeader />
@@ -30,7 +33,7 @@ export default function Download() {
           </div>
         </section>
 
-        <section className="site-section" id="platforms">
+        <section className="site-section" id="download">
           <DownloadCards />
         </section>
 

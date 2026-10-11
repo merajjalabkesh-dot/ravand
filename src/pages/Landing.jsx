@@ -158,7 +158,6 @@ export default function Landing() {
             <Pricing />
             <section className="site-section" id="download">
               <div className="site-sec-head">
-                <span className="site-kicker">دانلود</span>
                 <h2 className="site-sec-title">روند را نصب کن</h2>
                 <p className="site-sec-sub">
                   هر نسخه‌ای که به دلت می‌خواهد را بردار. <Link to="/download" className="site-inline-link">جزئیات بیشتر</Link>

@@ -4,7 +4,7 @@ import { SITE } from '../../config/site.config'
 import { useApp } from '../../lib/store'
 import Logo from './Logo'
 import AppLink from './AppLink'
-import { jumpToAnchor } from './helpers'
+import { jumpToAnchor, anchorHref } from './helpers'
 
 export default function SiteHeader({ floating = false }) {
   const { db } = useApp()
@@ -27,19 +27,16 @@ export default function SiteHeader({ floating = false }) {
     setOpen(false)
   }
 
-  // روی لندینگ (/) و /download بخش‌های live/features/... وجود ندارند،
-    // پس لینک‌ها باید به /site#anchor بروند.
-    // فقط در /site خود لنگر داخلی است.
-    const isSitePage = loc.pathname === '/site'
-    const makeHref = (anchor) => isSitePage ? anchor : `/site${anchor}`
+  // لینک‌های لنگر: در صفحه‌هایی که بخش را دارند درون‌صفحه‌ای، وگرنه /site#anchor.
+  const makeHref = (anchor) => anchorHref(anchor, loc.pathname)
 
-    const links = [
-      { to: makeHref('#live'), label: 'نمونه' },
-      { to: makeHref('#features'), label: 'امکانات' },
-      { to: makeHref('#compare'), label: 'مقایسه' },
-      { to: makeHref('#pricing'), label: 'تعرفه' },
-      { to: '/download', label: 'دانلود' },
-    ]
+  const links = [
+    { to: makeHref('#live'), label: 'نمونه' },
+    { to: makeHref('#features'), label: 'امکانات' },
+    { to: makeHref('#compare'), label: 'مقایسه' },
+    { to: makeHref('#pricing'), label: 'تعرفه' },
+    { to: makeHref('#download'), label: 'دانلود' },
+  ]
 
   return (
     <header className={'site-header' + (scrolled ? ' is-scrolled' : '') + (floating ? ' is-floating' : '')}>
