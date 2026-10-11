@@ -240,7 +240,7 @@
 #live, #about, #features, #compare, #audience, #voices, #pricing, #download, #steps, #faq, #channels { scroll-margin-top: 84px; }
 .site-sec-head { text-align: center; margin-bottom: 40px; }
 .site-kicker {
-  display: inline-block; font-size: clamp(15px, 1.4vw, 17px); font-weight: 800;
+  display: inline-block; font-size: clamp(17px, 1.6vw, 20px); font-weight: 800;
   letter-spacing: .1em; color: var(--site-accent-2); margin-bottom: 12px; line-height: 1.6;
 }
 .site-sec-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; line-height: 1.4; letter-spacing: -.01em; }
@@ -807,7 +807,7 @@ html.lang-en .ltr { direction: ltr; unicode-bidi: isolate; }
   .site-hero { padding: clamp(40px, 8vw, 64px) 16px clamp(32px, 6vw, 48px); min-height: 0; height: auto; }
   .site-hero-in { gap: 18px; }
   .site-sec-head { margin-bottom: 28px; }
-  .site-kicker { font-size: clamp(14px, 3.6vw, 15.5px); margin-bottom: 8px; }
+  .site-kicker { font-size: clamp(15.5px, 4vw, 17.5px); margin-bottom: 8px; }
   .site-sec-title { font-size: clamp(22px, 5.5vw, 30px); line-height: 1.35; }
   .site-sec-sub { font-size: 14px; line-height: 1.8; max-width: 100%; margin-top: 10px; }
 
