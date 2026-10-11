@@ -1,6 +1,9 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron')
 const path = require('node:path')
 const fs = require('node:fs')
+
+// حذف نوار منوی پیش‌فرض اپلیکیشن (File, Edit, View, Window)
+Menu.setApplicationMenu(null)
 
 const isDev = !app.isPackaged
 
@@ -25,6 +28,7 @@ function createWindow () {
   const win = new BrowserWindow({
     width: 1280,
     height: 840,
+    autoHideMenuBar: true,
     icon: resolveIcon(),
     webPreferences: {
       contextIsolation: true,
@@ -35,6 +39,8 @@ function createWindow () {
       additionalArguments: ['--rg-version=' + app.getVersion()]
     }
   })
+
+  win.removeMenu()
 
   if (isDev) {
     win.loadURL('http://localhost:5175')
