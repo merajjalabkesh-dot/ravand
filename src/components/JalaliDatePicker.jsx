@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { toFa, g2j, jalaliToISO, jalaliMonthLen, isLeapJalali } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 
@@ -11,6 +12,7 @@ export default function JalaliDatePicker({ value, onChange, min, max, className,
   const [pos, setPos] = useState({ top: 0, left: 0 })
   const ref = useRef(null)
   const btnRef = useRef(null)
+  const popRef = useRef(null)
 
   // initialize the view month from current value (or today)
   const sync = () => {
@@ -38,7 +40,11 @@ const toggleOpen = () => {
   useEffect(() => { if (open) sync() }, [open, value])
 
   useEffect(() => {
-    const on = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const on = (e) => {
+      if (ref.current && !ref.current.contains(e.target) && !popRef.current?.contains(e.target)) {
+        setOpen(false)
+      }
+    }
     document.addEventListener('mousedown', on)
     return () => document.removeEventListener('mousedown', on)
   }, [])
@@ -89,8 +95,8 @@ const toggleOpen = () => {
         {valueJ ? t('date.selectedFormat', { day: toFa(valueJ.jd), month: monthNames[valueJ.jm - 1], year: toFa(valueJ.jy) }) : (placeholder || t('date.placeholder'))}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
       </button>
-      {open && (
-        <div className="jpicker-pop" style={{ top: pos.top, left: pos.left }}>
+      {open && typeof document !== 'undefined' && createPortal(
+        <div ref={popRef} className="jpicker-pop" style={{ top: pos.top, left: pos.left, zIndex: 1000 }}>
           <div className="jpicker-head">
             <button type="button" className="jpicker-nav" onClick={() => changeMonth(-1)} aria-label={t('date.prevMonth')}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
             <div className="jpicker-title">{t('date.titleFormat', { month: monthNames[jm - 1], year: toFa(jy) })}</div>
@@ -110,7 +116,8 @@ const toggleOpen = () => {
               )
             })}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

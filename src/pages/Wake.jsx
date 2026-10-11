@@ -18,7 +18,8 @@ export default function Wake() {
   // helpers for plan
   const planDays = (() => {
     if (!s.planStart) return 0
-    const d0 = new Date(s.planStart.split('-').map(Number)), d1 = new Date()
+    const p0 = s.planStart.split('-').map(Number)
+    const d0 = new Date(p0[0], p0[1] - 1, p0[2]), d1 = new Date()
     return Math.max(0, Math.floor((d1 - d0) / 86400000))
   })()
   const sleepNorm = (m) => (m < 12 * 60 ? m + 1440 : m)

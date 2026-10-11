@@ -230,11 +230,13 @@ export default function Reports() {
           {cur.map((iso2) => {
             const p = dayPct(iso2), h2 = Math.max(4, p / maxPct * 100)
             const isT = iso2 === todayISO()
+            const p2 = iso2.split('-').map(Number)
+            const dow2 = new Date(p2[0], p2[1] - 1, p2[2]).getDay()
             return (
               <div className="bar-col" key={iso2} onClick={() => setSelectedDay(iso2)} title={t('reports.barTitle', { date: faDate(iso2) })} style={{ cursor: 'pointer' }}>
                 <div className="bar-val">{toFa(p)}</div>
                 <div className={'bar' + (p === 100 ? ' full' : '')} style={{ height: h2.toFixed(1) + 'px' }} />
-                <div className="bar-day">{range === 'week' || range === 'month' ? t(['reports.weekdaySun', 'reports.weekdayMon', 'reports.weekdayTue', 'reports.weekdayWed', 'reports.weekdayThu', 'reports.weekdayFri', 'reports.weekdaySat'][new Date(iso2.split('-').map(Number)).getDay()]) : ''}</div>
+                <div className="bar-day">{range === 'week' || range === 'month' ? t(['reports.weekdaySun', 'reports.weekdayMon', 'reports.weekdayTue', 'reports.weekdayWed', 'reports.weekdayThu', 'reports.weekdayFri', 'reports.weekdaySat'][dow2]) : ''}</div>
               </div>
             )
           })}

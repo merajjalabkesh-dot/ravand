@@ -1,6 +1,6 @@
 {
-  "version": "0.1.1",
-  "notes": "",
+  "version": "0.1.2",
+  "notes": "فیلتر عادت‌های امروز، اصلاح تقویم کارهای روزانه و بهبود کارایی",
   "apkUrl": "https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/ravand.apk",
   "exeUrl": "https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/Ravand-Setup.exe",
   "mandatory": false
