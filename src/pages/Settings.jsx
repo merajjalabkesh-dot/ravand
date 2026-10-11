@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useApp, ACCENTS, notifySupported, notifyPermission, requestNotifyPermission } from '../lib/store'
+import { useApp, notifySupported, notifyPermission, requestNotifyPermission } from '../lib/store'
 import { useI18n } from '../lib/i18n'
 import { api } from '../lib/apiClient'
 import { THEMES } from '../config/themes'
 
 const fadeUp = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 10 }, transition: { duration: .35, ease: [0.22, 1, 0.36, 1] } }
-
-const ACCENT_KEYS = { purple: 'settings.accent_purple', teal: 'settings.accent_teal', sakura: 'settings.accent_sakura', ocean: 'settings.accent_ocean', amber: 'settings.accent_amber', emerald: 'settings.accent_emerald' }
 
 /** هر تم یک کلید ترجمه دارد؛ اگر نبود، نام اصلی تم می‌ماند */
 const THEME_KEYS = { midnight: 'settings.theme_midnight', ocean: 'settings.theme_ocean', berry: 'settings.theme_berry', lilac: 'settings.theme_lilac', cream: 'settings.theme_cream', pinky: 'settings.theme_pinky' }
@@ -47,7 +45,6 @@ export default function Settings() {
   const [canInstall, setCanInstall] = useState(false)
   useEffect(() => { setCanInstall(canShowInstallGuide()) }, [])
 
-  const setAccent = (v) => { mutate((d) => { d.settings.accent = v }); toast(t('settings.toastAccent')) }
   const setFont = (v) => { mutate((d) => { d.settings.fontScale = v }); toast(t('settings.toastFont')) }
   const setTheme = (tid) => { mutate((d) => { d.settings.theme = tid }); toast(t('settings.toastTheme')) }
 
@@ -141,19 +138,6 @@ export default function Settings() {
                 <span className="theme-spectrum" style={{ background: `linear-gradient(135deg, ${th.bg} 0%, ${th.bg2} 34%, ${th.accent} 68%, ${th.accent2} 100%)` }} />
                 <span className="theme-name">{THEME_KEYS[th.id] ? t(THEME_KEYS[th.id]) : th.name}</span>
               </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="setting-row">
-          <div className="setting-title"><b>{t('settings.accent')}</b><span>{t('settings.accentHint')}</span></div>
-          <div className="app-accent-swatches">
-            {Object.entries(ACCENTS).map(([k, v]) => (
-              <button
-                key={k} className={'app-swatch' + (s.accent === v ? ' sel' : '')} style={{ background: v }}
-                onClick={() => setAccent(v)}
-                title={t(ACCENT_KEYS[k] || k)} aria-label={t('settings.accentAriaLabel', { name: t(ACCENT_KEYS[k] || k) })}
-              />
             ))}
           </div>
         </div>
