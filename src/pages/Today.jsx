@@ -48,6 +48,7 @@ export default function Today() {
   const tC = (d.tasks || []).length
 
   const isSched = isScheduled
+  const visibleHabits = db.habits.filter((h) => isSched(h, iso))
   const habitStreak = (id) => streaks[id] || 0
   const cleanStreak = (id) => cleanStreaks[id] || 0
 
@@ -129,27 +130,26 @@ export default function Today() {
 
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5"/><path d="M9 19v-6"/><path d="M14 19V8"/><path d="M19 19v-10"/></svg> {isToday ? t('today.habitsTitleToday') : t('today.habitsTitleOtherDay')}</div>
-        {db.habits.length === 0 ? <div className="empty-state"><div className="big">✦</div><p>{t('today.emptyHabits')}</p></div>
-          : db.habits.map((h) => {
+        {visibleHabits.length === 0 ? <div className="empty-state"><div className="big">✦</div><p>{t('today.emptyHabits')}</p></div>
+          : visibleHabits.map((h) => {
             const done = ids.has(h.id)
             const bad = h.type === 'bad'
             if (bad) {
-                          const cs = cleanStreak(h.id)
-                          return (
-                            <div className={'habit-check bad' + (done ? ' bad-done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
-                              <span className="habit-color" style={{ background: h.color }} />
-                              <span className="hname">{h.name}</span>
+              const cs = cleanStreak(h.id)
+              return (
+                <div className={'habit-check bad' + (done ? ' bad-done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
+                  <span className="habit-color" style={{ background: h.color }} />
+                  <span className="hname">{h.name}</span>
                   {cs > 0 && <span className="streak">{toFa(cs)} {t('today.cleanStreakSuffix')}</span>}
                   <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                 </div>
               )
             }
-            const sched = isSched(h, iso)
             const st = habitStreak(h.id)
             return (
-                          <div className={'habit-check' + (done ? ' done' : '')} key={h.id} onClick={() => toggleHabit(h.id)} style={sched ? {} : { opacity: .55 }}>
-                            <span className="habit-color" style={{ background: h.color }} />
-                            <span className="hname">{h.name}{!sched && <small style={{ color: 'var(--muted)' }}> {t('today.notScheduledToday')}</small>}</span>
+              <div className={'habit-check' + (done ? ' done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
+                <span className="habit-color" style={{ background: h.color }} />
+                <span className="hname">{h.name}</span>
                 {st > 0 && <span className="streak">{toFa(st)} {t('today.streakDaysSuffix')}</span>}
                 <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
               </div>
