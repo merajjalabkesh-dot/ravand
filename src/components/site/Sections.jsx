@@ -58,7 +58,7 @@ export function Live() {
   return (
     <section className="site-section site-live" id="live">
       <div className="site-sec-head">
-        <span className="site-kicker">{SITE.live.kicker}</span>
+        {SITE.live.kicker && <span className="site-kicker">{SITE.live.kicker}</span>}
         <h2 className="site-sec-title">{SITE.live.title}</h2>
         <p className="site-sec-sub">{SITE.live.subtitle}</p>
       </div>
@@ -188,7 +188,7 @@ export function About() {
   return (
     <section className="site-section" id="about">
       <div className="site-sec-head">
-        <span className="site-kicker">{SITE.about.kicker}</span>
+        {SITE.about.kicker && <span className="site-kicker">{SITE.about.kicker}</span>}
         <h2 className="site-sec-title">{SITE.about.title}</h2>
       </div>
       <div className="about-body">
@@ -211,7 +211,6 @@ export function Features() {
   return (
     <section className="site-section" id="features">
       <div className="site-sec-head">
-        <span className="site-kicker">امکانات</span>
         <h2 className="site-sec-title">{SITE.featuresTitle}</h2>
       </div>
       <div className="feat-grid">
