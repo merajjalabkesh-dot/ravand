@@ -88,7 +88,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .app { display: flex; position: fixed; inset: 0; align-items: stretch; overflow: hidden; }
 /* .main یک flex column است تا هر صفحهٔ اپ بتواند ارتفاع باقی‌مانده
    را بگیرد و محتوایش تا پایین صفحه پر شود. */
-.main { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 34px 80px; max-width: 1140px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
+.main { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding: 30px 34px 80px; max-width: 1140px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
 
 /* حالت standalone (افزودن به صفحهٔ اصلی آیفون): iOS ارتفاع کادرِ
    position:fixed;inset:0 را به ناحیهٔ زیر نوار وضعیت محدود می‌کند و
@@ -256,7 +256,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
  * align-items: start بود و همین باعث می‌شد پایین صفحه خالی بماند
  * و سایدبار کوتاه‌تر از صفحه به نظر برسد.
  */
-.home-page { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.home-page { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 16px; }
 .home-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; flex: 1; min-height: 0; }
 .home-sections > .glass { display: flex; flex-direction: column; }
 .home-sections > .glass > *:last-child { flex: 1; }
@@ -797,9 +797,19 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   /* سایدبار در موبایل جایی ندارد — نوار بالا جایگزینش است */
   .sidebar { display: none; }
 
-  /* نوار بالا حالا در جریان است و ارتفاع واقعی‌اش را می‌گیرد، پس دیگر
-     لازم نیست با پدینگِ بزرگ جایش را باز کنیم؛ فقط یک فاصلهٔ کوچک. */
-  .main { padding: 20px 16px 24px; }
+  /* پدینگ پایین کافی به همراه safe-area-inset-bottom تا انتهای آخرین کارت
+     (بخش حرکت در روز و خواب/بیداری) هرگز در کف صفحه یا زیر Home Indicator آیفون بریده نشود.
+     همچنین اسکرول روان با لختی سخت‌افزاری و مهار پرش زنجیره‌ای. */
+  .main {
+    padding: 16px 16px calc(72px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .home-page {
+    flex: 1 0 auto;
+    min-height: auto;
+  }
 
   /* نوار تب‌بار بالای صفحه، در فلوی عادی .app می‌نشیند (نه fixed). چون
      .app خودش inset:0 است، فرزندِ فلکسِ آن (این نوار) دقیقاً روی لبهٔ
@@ -1138,6 +1148,8 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.9; }
   width: min(560px, 100%);
   max-height: 82vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   background: var(--bg-2);
   border: 1px solid var(--glass-border);
   border-radius: 22px;
