@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build && node scripts/prune-cap-dist.mjs",
     "frontendDist": "../dist"
   },
   "app": {
@@ -15,7 +15,7 @@
         "title": "روند",
         "label": "main",
         "width": 1280,
-        "height": 860,
+        "height": 840,
         "minWidth": 420,
         "minHeight": 640,
         "resizable": true,

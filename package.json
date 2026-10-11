@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
+    "tauri:build": "npm run build && node scripts/prune-cap-dist.mjs && tauri build",
     "cap:sync": "npm run build && node scripts/prune-cap-dist.mjs && cap sync",
     "cap:copy": "npm run build && node scripts/prune-cap-dist.mjs && cap copy",
     "cap:android": "cap open android",
