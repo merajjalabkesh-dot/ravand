@@ -314,7 +314,7 @@ export function Testimonials() {
   return (
     <section className="site-section" id="voices">
       <div className="site-sec-head">
-        <span className="site-kicker">{T.kicker}</span>
+        {T.kicker && <span className="site-kicker">{T.kicker}</span>}
         <h2 className="site-sec-title">{T.title}</h2>
         {T.note && <p className="site-sec-sub">{T.note}</p>}
       </div>
@@ -349,7 +349,7 @@ export function Pricing() {
   return (
     <section className="site-section" id="pricing">
       <div className="site-sec-head">
-        <span className="site-kicker">{P.kicker}</span>
+        {P.kicker && <span className="site-kicker">{P.kicker}</span>}
         <h2 className="site-sec-title">{P.title}</h2>
         <p className="site-sec-sub">{P.subtitle}</p>
       </div>
@@ -416,7 +416,6 @@ export function DownloadSection() {
   return (
     <section className="site-section" id="download">
       <div className="site-sec-head">
-        <span className="site-kicker">دانلود</span>
         <h2 className="site-sec-title">{SITE.downloadTitle}</h2>
         <p className="site-sec-sub">{SITE.downloadSub}</p>
       </div>
@@ -456,7 +455,6 @@ export function Faq() {
   return (
     <section className="site-section" id="faq">
       <div className="site-sec-head">
-        <span className="site-kicker">سوالات</span>
         <h2 className="site-sec-title">{SITE.faqTitle}</h2>
       </div>
       <div className="faq-list">
@@ -485,7 +483,7 @@ export function Channels() {
   return (
     <section className="site-section" id="channels">
       <div className="site-sec-head">
-        <span className="site-kicker">{C.kicker}</span>
+        {C.kicker && <span className="site-kicker">{C.kicker}</span>}
         <h2 className="site-sec-title">{C.title}</h2>
         <p className="site-sec-sub">{C.subtitle}</p>
       </div>
