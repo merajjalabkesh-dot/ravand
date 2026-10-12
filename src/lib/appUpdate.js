@@ -155,7 +155,8 @@ export async function checkForUpdate() {
 /**
  * اقدام به‌روزرسانی:
  *   - web:      ریلود ساده (سرویس‌ورکر دارایی‌های تازه را می‌آورد)
- *   - electron: باز کردن exe در مرورگر سیستم از راه پل امن preload
+ *   - electron: باز کردن لینک دانلود در مرورگر سیستم از راه پل امن preload
+ *   - tauri:    باز کردن از طریق APIهای توری یا هدایت پنجره به لینک دانلود
  *   - android:  باز کردن apk در مرورگر سیستم تا کاربر خودش نصب کند
  * @returns {boolean} آیا کاری انجام شد
  */
@@ -166,26 +167,87 @@ export function openUpdate(res) {
     try { location.reload(); return true } catch { return false }
   }
 
+  // اعتبارسنجی امنیتی آدرس دانلود — فقط دامنه‌های مجاز گیت‌هاب
+  const safeUrl = cleanUrl(res.url)
+  if (!safeUrl) return false
+
   const w = (typeof window !== 'undefined') ? window : {}
-  if (res.platform === 'electron' && w.ravandApp && typeof w.ravandApp.openExternal === 'function' && res.url) {
-    try { w.ravandApp.openExternal(res.url); return true } catch { /* ادامه بده */ }
+
+  // ۱. محیط الکترون: باز کردن در مرورگر پیش‌فرض سیستم از طریق پل امن preload
+  if (w.ravandApp && typeof w.ravandApp.openExternal === 'function') {
+    try {
+      w.ravandApp.openExternal(safeUrl)
+      return true
+    } catch { /* ادامه بده */ }
   }
 
-  if (res.url) {
+  // ۲. محیط توری: بررسی بریج‌ها و پلاگین‌های توری یا فالبک به هدایت پنجره
+  const isTauri = res.platform === 'tauri' ||
+    Boolean(w.__TAURI_INTERNALS__ || w.__TAURI__ || (typeof location !== 'undefined' && location.hostname === 'tauri.localhost'))
+
+  if (isTauri) {
+    if (w.__TAURI__?.opener && typeof w.__TAURI__.opener.openUrl === 'function') {
+      try {
+        w.__TAURI__.opener.openUrl(safeUrl)
+        return true
+      } catch { /* ادامه بده */ }
+    }
+    if (w.__TAURI__?.shell && typeof w.__TAURI__.shell.open === 'function') {
+      try {
+        w.__TAURI__.shell.open(safeUrl)
+        return true
+      } catch { /* ادامه بده */ }
+    }
+    if (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.invoke === 'function') {
+      try {
+        w.__TAURI_INTERNALS__.invoke('plugin:opener|open_url', { url: safeUrl }).catch(() => {
+          try {
+            w.__TAURI_INTERNALS__.invoke('plugin:shell|open', { path: safeUrl }).catch(() => {})
+          } catch { /* هیچ */ }
+        })
+      } catch { /* ادامه بده */ }
+    }
+    // در توری در صورت نبود بریج، هدایت پنجره برای شروع دانلود فایل
     try {
-      const win = window.open(res.url, '_blank', 'noopener,noreferrer')
+      if (typeof window !== 'undefined' && window.location) {
+        window.location.href = safeUrl
+        return true
+      }
+    } catch { /* ادامه بده */ }
+  }
+
+  // ۳. پلتفرم اندروید و محیط‌های همراه مبتنی بر Capacitor
+  if (res.platform === 'android' || (w.Capacitor && typeof w.Capacitor.getPlatform === 'function')) {
+    try {
+      const win = window.open(safeUrl, '_system')
       if (win) return true
     } catch { /* ادامه بده */ }
-    try {
-      const a = document.createElement('a')
-      a.href = res.url
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      return true
-    } catch { /* هیچ */ }
   }
+
+  // ۴. روش‌های استاندارد وب/مرورگر
+  try {
+    const win = window.open(safeUrl, '_blank', 'noopener,noreferrer')
+    if (win) return true
+  } catch { /* ادامه بده */ }
+
+  try {
+    const a = document.createElement('a')
+    a.href = safeUrl
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    return true
+  } catch { /* ادامه بده */ }
+
+  // ۵. فالبک نهایی برای وب‌ویو و دسکتاپ: تغییر مکان پنجره به آدرس دانلود
+  try {
+    if (typeof window !== 'undefined' && window.location) {
+      window.location.href = safeUrl
+      return true
+    }
+  } catch { /* هیچ */ }
+
   return false
 }

@@ -501,7 +501,7 @@ export const FA = {
   "home.percentSign": "٪",
   "update.title": "نسخهٔ جدید روند آماده است",
   "update.body": "نسخهٔ {version} منتشر شد. برای دریافت، به‌روزرسانی کن.",
-  "update.download": "دانلود نسخهٔ جدید",
+  "update.download": "به‌روزرسانی",
   "update.reload": "به‌روزرسانی",
   "update.later": "بعداً"
 }
