@@ -57,6 +57,15 @@ app.whenReady().then(() => {
   })
 })
 
+app.on('before-quit', () => {
+  BrowserWindow.getAllWindows().forEach((w) => {
+    if (!w.isDestroyed()) w.destroy()
+  })
+})
+
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  if (process.platform !== 'darwin') {
+    app.quit()
+    process.exit(0)
+  }
 })
