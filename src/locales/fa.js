@@ -503,7 +503,13 @@ export const FA = {
   "update.body": "نسخهٔ {version} منتشر شد. برای دریافت، به‌روزرسانی کن.",
   "update.download": "دانلود نسخهٔ جدید",
   "update.reload": "به‌روزرسانی",
-  "update.later": "بعداً"
+  "update.later": "بعداً",
+  "update.preparing": "در حال آماده‌سازی…",
+  "update.downloading": "در حال دانلود ({percent}٪)…",
+  "update.installing": "در حال نصب و اعمال به‌روزرسانی…",
+  "update.completed": "دانلود کامل شد. در حال بازگشایی…",
+  "update.error": "خطا در دانلود به‌روزرسانی. لطفاً دوباره تلاش کنید.",
+  "update.retry": "تلاش مجدد"
 }
 
 export default FA

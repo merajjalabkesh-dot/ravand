@@ -154,12 +154,57 @@ export async function checkForUpdate() {
 }
 
 /**
+ * شنود به رویدادهای پیشرفت دانلود درون‌برنامه‌ای:
+ * - رویداد CustomEvent تحت نام 'app-update-progress' روی window
+ * - سیستم رویداد بومی توری (Tauri event listener)
+ * @param {(data: { stage?: string, percent?: number, downloaded?: number, total?: number, error?: string }) => void} callback
+ * @returns {() => void} تابع لغو اشتراک (unlisten)
+ */
+export function subscribeUpdateProgress(callback) {
+  if (typeof window === 'undefined' || typeof callback !== 'function') return () => {}
+
+  const domListener = (e) => {
+    if (e && e.detail) callback(e.detail)
+  }
+  window.addEventListener('app-update-progress', domListener)
+
+  let unlistenTauri = null
+  const w = window
+  try {
+    if (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.listen === 'function') {
+      const p = w.__TAURI_INTERNALS__.listen('app-update-progress', (event) => {
+        if (event && event.payload) callback(event.payload)
+      })
+      if (p && typeof p.then === 'function') {
+        p.then((fn) => { unlistenTauri = fn }).catch(() => {})
+      }
+    } else if (w.__TAURI__ && w.__TAURI__.event && typeof w.__TAURI__.event.listen === 'function') {
+      const p = w.__TAURI__.event.listen('app-update-progress', (event) => {
+        if (event && event.payload) callback(event.payload)
+      })
+      if (p && typeof p.then === 'function') {
+        p.then((fn) => { unlistenTauri = fn }).catch(() => {})
+      }
+    }
+  } catch {
+    /* نادیده‌گیری خطای محیط غیرتوری */
+  }
+
+  return () => {
+    window.removeEventListener('app-update-progress', domListener)
+    if (typeof unlistenTauri === 'function') {
+      try { unlistenTauri() } catch {}
+    }
+  }
+}
+
+/**
  * اقدام به‌روزرسانی:
  *   - web:      ریلود ساده (سرویس‌ورکر دارایی‌های تازه را می‌آورد)
- *   - tauri:    باز کردن امن در مرورگر سیستم با هندلر بومی open_in_browser
- *   - electron: باز کردن exe در مرورگر سیستم از راه پل امن preload
- *   - android:  باز کردن apk در مرورگر سیستم تا کاربر خودش نصب کند
- * @returns {Promise<boolean>|boolean} آیا کاری انجام شد
+ *   - tauri:    شروع دانلود درون‌برنامه‌ای با دستور بومی start_in_app_update (با فالبک به open_in_browser)
+ *   - android:  شروع دانلود درون‌برنامه‌ای در Capacitor / Native (با فالبک به باز کردن لینک)
+ *   - electron: شروع دانلود درون‌برنامه‌ای یا باز کردن لینک
+ * @returns {Promise<boolean>|boolean} آیا شروع شد
  */
 export async function openUpdate(res) {
   if (!res) return false
@@ -171,26 +216,54 @@ export async function openUpdate(res) {
   const w = (typeof window !== 'undefined') ? window : {}
   const safeUrl = cleanUrl(res.url)
 
-  // اولویت اول در توری دسکتاپ: دستور بومی هسته Rust
+  // اولویت نخست در توری دسکتاپ: دستور دانلود و به‌روزرسانی درون‌برنامه‌ای
   if ((res.platform === 'tauri' || w.__TAURI_INTERNALS__) && safeUrl) {
-    try {
-      if (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.invoke === 'function') {
-        await w.__TAURI_INTERNALS__.invoke('open_in_browser', { url: safeUrl })
+    const invoke = (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.invoke === 'function')
+      ? w.__TAURI_INTERNALS__.invoke.bind(w.__TAURI_INTERNALS__)
+      : (w.__TAURI__ && w.__TAURI__.core && typeof w.__TAURI__.core.invoke === 'function')
+      ? w.__TAURI__.core.invoke.bind(w.__TAURI__.core)
+      : null
+
+    if (invoke) {
+      try {
+        await invoke('download_and_apply_update', { url: safeUrl })
         return true
+      } catch {
+        try {
+          await invoke('start_in_app_update', { url: safeUrl })
+          return true
+        } catch {
+          // در صورت آماده نبودن هندلر بومی درون‌برنامه‌ای، فالبک به باز کردن مرورگر بومی
+          try {
+            await invoke('open_in_browser', { url: safeUrl })
+            return true
+          } catch { /* ادامه به فالبک وب */ }
+        }
       }
-      if (w.__TAURI__ && w.__TAURI__.core && typeof w.__TAURI__.core.invoke === 'function') {
-        await w.__TAURI__.core.invoke('open_in_browser', { url: safeUrl })
-        return true
-      }
-    } catch {
-      /* در صورت بروز خطا به فالبک‌ها ادامه می‌دهد */
     }
   }
 
-  if (res.platform === 'electron' && w.ravandApp && typeof w.ravandApp.openExternal === 'function' && safeUrl) {
-    try { w.ravandApp.openExternal(safeUrl); return true } catch { /* ادامه بده */ }
+  // اولویت نخست در اندروید (Capacitor): دانلود درون‌برنامه‌ای
+  if (res.platform === 'android' && safeUrl) {
+    try {
+      if (w.Capacitor && w.Capacitor.Plugins && w.Capacitor.Plugins.AppUpdate && typeof w.Capacitor.Plugins.AppUpdate.startUpdate === 'function') {
+        await w.Capacitor.Plugins.AppUpdate.startUpdate({ url: safeUrl })
+        return true
+      }
+    } catch { /* ادامه به فالبک باز کردن مرورگر */ }
   }
 
+  // پلتفرم Electron: متد اختصاصی در صورت وجود
+  if (res.platform === 'electron' && w.ravandApp && safeUrl) {
+    if (typeof w.ravandApp.startInAppUpdate === 'function') {
+      try { await w.ravandApp.startInAppUpdate(safeUrl); return true } catch { /* ادامه */ }
+    }
+    if (typeof w.ravandApp.openExternal === 'function') {
+      try { w.ravandApp.openExternal(safeUrl); return true } catch { /* ادامه */ }
+    }
+  }
+
+  // فالبک عمومی باز کردن در مرورگر
   if (safeUrl) {
     try {
       const win = window.open(safeUrl, '_blank', 'noopener,noreferrer')

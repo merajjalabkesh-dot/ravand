@@ -503,7 +503,13 @@ export const EN = {
   "update.body": "Version {version} is available. Update to get it.",
   "update.download": "Download the new version",
   "update.reload": "Update now",
-  "update.later": "Later"
+  "update.later": "Later",
+  "update.preparing": "Preparing update…",
+  "update.downloading": "Downloading ({percent}%)…",
+  "update.installing": "Installing and applying update…",
+  "update.completed": "Download complete. Launching…",
+  "update.error": "Update download failed. Please try again.",
+  "update.retry": "Retry"
 }
 
 export default EN
