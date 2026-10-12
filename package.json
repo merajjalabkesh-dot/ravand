@@ -8,8 +8,8 @@
     "build": "vite build && node scripts/generate-sw.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "npm run build && node scripts/prune-cap-dist.mjs && tauri build",
+    "tauri:dev": "npx @tauri-apps/cli dev",
+    "tauri:build": "npm run build && node scripts/prune-cap-dist.mjs && npx @tauri-apps/cli build",
     "cap:sync": "npm run build && node scripts/prune-cap-dist.mjs && cap sync",
     "cap:copy": "npm run build && node scripts/prune-cap-dist.mjs && cap copy",
     "cap:android": "cap open android",
@@ -57,7 +57,8 @@
       "perMachine": false,
       "artifactName": "Ravand-Setup.exe",
       "shortcutName": "Ravand",
-      "installerIcon": "src-tauri/icons/icon.ico"
+      "installerIcon": "src-tauri/icons/icon.ico",
+      "include": "installer.nsh"
     }
   },
   "description": "Ravand — daily habits, journal and life tracker",
