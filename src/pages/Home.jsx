@@ -106,30 +106,46 @@ export default function Home() {
   const toggleTask = (id) => {
     mutate((s) => { const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); const task = (day.tasks || []).find((x) => x.id === id); if (task) task.done = !task.done })
   }
-  const moveHabit = (id, dir) => {
-    mutate((s) => {
-      const list = s.habits || []
-      const i = list.findIndex((x) => x.id === id)
-      const j = i + dir
-      if (i < 0 || j < 0 || j >= list.length) return
-      const [item] = list.splice(i, 1)
-      list.splice(j, 0, item)
-    })
-  }
-  const moveTask = (id, dir) => {
-    mutate((s) => {
-      const day = s.days[iso]
-      if (!day || !day.tasks) return
-      const list = day.tasks
-      const i = list.findIndex((x) => x.id === id)
-      const j = i + dir
-      if (i < 0 || j < 0 || j >= list.length) return
-      const [item] = list.splice(i, 1)
-      list.splice(j, 0, item)
-    })
-  }
   const todayHabits = db.habits.filter(isScheduledToday)
   const todayTasks = (db.days[iso] && db.days[iso].tasks) || []
+
+  // چیدمان ترکیبی (Interleaved): عادت‌ها و کارها با هم در یک لیست قابل جابه‌جایی
+  const combinedItems = useMemo(() => {
+    const habitItems = todayHabits.map((h) => ({ key: 'h-' + h.id, type: 'habit', data: h }))
+    const taskItems = todayTasks.map((task) => ({ key: 't-' + task.id, type: 'task', data: task }))
+    const allItems = [...habitItems, ...taskItems]
+    const itemMap = new Map(allItems.map((item) => [item.key, item]))
+
+    const homeOrder = (db.days[iso] && db.days[iso].homeOrder) || []
+    const ordered = []
+    const seen = new Set()
+
+    for (const key of homeOrder) {
+      if (itemMap.has(key)) {
+        ordered.push(itemMap.get(key))
+        seen.add(key)
+      }
+    }
+    for (const item of allItems) {
+      if (!seen.has(item.key)) {
+        ordered.push(item)
+      }
+    }
+    return ordered
+  }, [todayHabits, todayTasks, db.days[iso]?.homeOrder])
+
+  const moveItem = (idx, dir) => {
+    const targetIdx = idx + dir
+    if (idx < 0 || targetIdx < 0 || targetIdx >= combinedItems.length) return
+    const newOrder = combinedItems.map((item) => item.key)
+    const [moved] = newOrder.splice(idx, 1)
+    newOrder.splice(targetIdx, 0, moved)
+
+    mutate((s) => {
+      const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } })
+      day.homeOrder = newOrder
+    })
+  }
 
   // دایرهٔ «حرکت در روز» کل روز را نشان می‌دهد: عادت‌ها و کارها با هم.
   // وزن هر دسته برابر تعدادش است، پس اگر کارها بیشتر باشند سهم بیشتری
@@ -156,35 +172,39 @@ export default function Home() {
   // می‌بیند، و fragment (یعنی <>...</>) در DOM اصلاً وجود ندارد.
   // برای همین وقتی فقط یک کار بود، آن کل ارتفاع را می‌گرفت و وسط
   // می‌نشست. با div واقعی، قوانین درست رویش اعمال می‌شود.
-  const habitsHtml = (todayHabits.length === 0 && todayTasks.length === 0)
+  const habitsHtml = combinedItems.length === 0
     ? <div className="empty-state"><div className="big">✦</div><p className="preline">{t('home.emptyTasks')}</p></div>
     : <div className="home-task-list">
-        {todayHabits.map((h, habitIdx) => {
-                  const done = H.dayIds(iso).has(h.id)
-                  const isBad = h.type === 'bad'
-                  return (
-                    <div className="task-row" key={'h-' + h.id} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
-                      <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
-                      {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
-                      <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
-                      {isBad ? <span className="mini-stat bad" style={{ fontSize: 11 }}>{t('home.habitTypeBad')}</span> : <span className="mini-stat good" style={{ fontSize: 11 }}>{t('home.habitTypeGood')}</span>}
+        {combinedItems.map((item, idx) => {
+          if (item.type === 'habit') {
+            const h = item.data
+            const done = H.dayIds(iso).has(h.id)
+            const isBad = h.type === 'bad'
+            return (
+              <div className="task-row" key={item.key} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
+                <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
+                {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
+                <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
+                {isBad ? <span className="mini-stat bad" style={{ fontSize: 11 }}>{t('home.habitTypeBad')}</span> : <span className="mini-stat good" style={{ fontSize: 11 }}>{t('home.habitTypeGood')}</span>}
+                <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                  <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, -1) }} disabled={idx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, 1) }} disabled={idx === combinedItems.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+                </span>
+              </div>
+            )
+          }
+          const task = item.data
+          return (
+            <div className="task-row" key={item.key} onClick={() => toggleTask(task.id)} style={{ cursor: 'pointer' }}>
+              <span className="task-box" style={{ background: task.done ? 'var(--accent-2)' : 'var(--surface-hover)' }} />
+              <span className="ttext" style={{ textDecoration: task.done ? 'line-through' : 'none', opacity: task.done ? .55 : 1 }}>{task.text}</span>
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, -1) }} disabled={habitIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveHabit(h.id, 1) }} disabled={habitIdx === todayHabits.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, -1) }} disabled={idx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, 1) }} disabled={idx === combinedItems.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
               </span>
             </div>
           )
         })}
-        {todayTasks.map((task, taskIdx) => (
-          <div className="task-row" key={'t-' + task.id} onClick={() => toggleTask(task.id)} style={{ cursor: 'pointer' }}>
-            <span className="task-box" style={{ background: task.done ? 'var(--accent-2)' : 'var(--surface-hover)' }} />
-            <span className="ttext" style={{ textDecoration: task.done ? 'line-through' : 'none', opacity: task.done ? .55 : 1 }}>{task.text}</span>
-            <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(task.id, -1) }} disabled={taskIdx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-              <button className="task-move" onClick={(e) => { e.stopPropagation(); moveTask(task.id, 1) }} disabled={taskIdx === todayTasks.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
-            </span>
-          </div>
-        ))}
       </div>
 
   return (
