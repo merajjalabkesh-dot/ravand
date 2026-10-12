@@ -139,6 +139,7 @@ export function dismissVersion(version) {
  */
 export async function checkForUpdate() {
   const platform = runtimePlatform()
+  if (platform === 'web') return null
   const info = await fetchVersionInfo()
   if (!info) return null
   if (!isNewer(info.version, RUNNING_VERSION)) return null
