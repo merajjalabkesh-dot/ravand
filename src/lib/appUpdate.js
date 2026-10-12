@@ -156,11 +156,12 @@ export async function checkForUpdate() {
 /**
  * اقدام به‌روزرسانی:
  *   - web:      ریلود ساده (سرویس‌ورکر دارایی‌های تازه را می‌آورد)
+ *   - tauri:    باز کردن امن در مرورگر سیستم با هندلر بومی open_in_browser
  *   - electron: باز کردن exe در مرورگر سیستم از راه پل امن preload
  *   - android:  باز کردن apk در مرورگر سیستم تا کاربر خودش نصب کند
- * @returns {boolean} آیا کاری انجام شد
+ * @returns {Promise<boolean>|boolean} آیا کاری انجام شد
  */
-export function openUpdate(res) {
+export async function openUpdate(res) {
   if (!res) return false
 
   if (res.platform === 'web') {
@@ -168,18 +169,36 @@ export function openUpdate(res) {
   }
 
   const w = (typeof window !== 'undefined') ? window : {}
-  if (res.platform === 'electron' && w.ravandApp && typeof w.ravandApp.openExternal === 'function' && res.url) {
-    try { w.ravandApp.openExternal(res.url); return true } catch { /* ادامه بده */ }
+  const safeUrl = cleanUrl(res.url)
+
+  // اولویت اول در توری دسکتاپ: دستور بومی هسته Rust
+  if ((res.platform === 'tauri' || w.__TAURI_INTERNALS__) && safeUrl) {
+    try {
+      if (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.invoke === 'function') {
+        await w.__TAURI_INTERNALS__.invoke('open_in_browser', { url: safeUrl })
+        return true
+      }
+      if (w.__TAURI__ && w.__TAURI__.core && typeof w.__TAURI__.core.invoke === 'function') {
+        await w.__TAURI__.core.invoke('open_in_browser', { url: safeUrl })
+        return true
+      }
+    } catch {
+      /* در صورت بروز خطا به فالبک‌ها ادامه می‌دهد */
+    }
   }
 
-  if (res.url) {
+  if (res.platform === 'electron' && w.ravandApp && typeof w.ravandApp.openExternal === 'function' && safeUrl) {
+    try { w.ravandApp.openExternal(safeUrl); return true } catch { /* ادامه بده */ }
+  }
+
+  if (safeUrl) {
     try {
-      const win = window.open(res.url, '_blank', 'noopener,noreferrer')
+      const win = window.open(safeUrl, '_blank', 'noopener,noreferrer')
       if (win) return true
     } catch { /* ادامه بده */ }
     try {
       const a = document.createElement('a')
-      a.href = res.url
+      a.href = safeUrl
       a.target = '_blank'
       a.rel = 'noopener noreferrer'
       document.body.appendChild(a)
