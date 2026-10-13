@@ -55,7 +55,7 @@ public class AppUpdatePlugin extends Plugin {
             updateDir.mkdirs();
         }
 
-        File targetFile = new File(updateDir, "ravand-update.apk");
+        File targetFile = new File(updateDir, "habitick-update.apk");
         if (targetFile.exists()) {
             targetFile.delete();
         }
@@ -112,7 +112,7 @@ public class AppUpdatePlugin extends Plugin {
             conn.setInstanceFollowRedirects(true);
             conn.setConnectTimeout(15000);
             conn.setReadTimeout(30000);
-            conn.setRequestProperty("User-Agent", "RavandApp-Android");
+            conn.setRequestProperty("User-Agent", "HabitickApp-Android");
             conn.connect();
 
             int code = conn.getResponseCode();

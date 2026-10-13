@@ -66,7 +66,7 @@ export function Live() {
       <div className="live-card rv-glass">
         <div className="live-head">
           <div>
-            <div className="live-title">روند</div>
+            <div className="live-title">{SITE.brand}</div>
             <div className="live-sub">سه ماه گذشته</div>
           </div>
           <div className="live-stats">
@@ -521,7 +521,7 @@ export function CtaBand() {
   return (
     <section className="site-cta-band">
       <div className="site-cta-in rv-glass-strong">
-        <h2>آماده‌ای روندت را شروع کنی؟</h2>
+        <h2>آماده‌ای با هبیتیک شروع کنی؟</h2>
         <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
         <div className="site-cta-btns">
           <AppLink className="btn site-btn big" to="/login">ساخت حساب رایگان</AppLink>

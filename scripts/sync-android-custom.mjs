@@ -31,6 +31,10 @@ const targets = [
     src: join(customDir, 'file_paths.xml'),
     dest: join(androidDir, 'app', 'src', 'main', 'res', 'xml', 'file_paths.xml'),
   },
+  {
+    src: join(customDir, 'strings.xml'),
+    dest: join(androidDir, 'app', 'src', 'main', 'res', 'values', 'strings.xml'),
+  },
 ];
 
 let synced = 0;

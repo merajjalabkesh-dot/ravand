@@ -33,7 +33,7 @@ async fn download_and_apply_update(window: tauri::Window, url: String) -> Result
 
     tauri::async_runtime::spawn_blocking(move || {
         let temp_dir = std::env::temp_dir();
-        let installer_path = temp_dir.join("Ravand-Setup-Update.exe");
+        let installer_path = temp_dir.join("Habitick-Setup-Update.exe");
 
         let response = ureq::get(&url)
             .timeout(std::time::Duration::from_secs(180))
@@ -133,5 +133,5 @@ pub fn run() {
             download_and_apply_update
         ])
         .run(tauri::generate_context!())
-        .expect("error while running روند");
+        .expect("error while running هبیتیک");
 }
