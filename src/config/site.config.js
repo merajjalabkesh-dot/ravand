@@ -211,13 +211,13 @@ export const SITE = {
       id: 'windows', icon: 'windows', name: 'ویندوز', latin: 'Windows', ext: '',
       text: 'نرم‌افزار بومی ویندوز ۱۰ و ۱۱. فوق‌العاده سبک (زیر ۶ مگابایت)، سریع و کاملاً آفلاین روی دسکتاپ بدون نیاز به باز کردن مرورگر.',
       points: ['فوق‌العاده سبک (زیر ۶ مگابایت)', 'کارکرد آفلاین کامل روی دسکتاپ', 'ویندوز ۱۰ و ۱۱'],
-      href: 'https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/Habitick-Setup.exe', primary: true,
+      href: '/downloads/Ravand-Setup.exe', primary: true,
     },
     {
       id: 'android', icon: 'android', name: 'اندروید', latin: 'Android', ext: '',
       text: 'نصب مستقیم روی گوشی اندرویدی. فایل سبک برنامه را دانلود کن و بدون واسطهٔ مارکت‌ها با کارکرد آفلاین شروع کن.',
       points: ['اندروید ۸ به بالا', 'نصب مستقیم و به‌روزرسانی آسان', 'کارکرد سریع و کاملاً آفلاین'],
-      href: 'https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/Habitick.apk', primary: true,
+      href: '/downloads/ravand.apk', primary: true,
     },
     {
       id: 'web', icon: 'web', name: 'وب‌اپ', latin: 'Web App', ext: '',

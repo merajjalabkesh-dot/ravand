@@ -188,10 +188,21 @@
   max-width: var(--site-max); margin: 0 auto;
   display: flex; align-items: center; gap: 18px; padding: 13px 22px;
 }
-.site-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.site-brand,
+.site-brand:visited {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none;
+  color: #ffffff;
+}
 .site-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.site-brand-text b { font-size: 17px; font-weight: 800; }
-.site-brand-text i {
+.site-brand-text b,
+.site-brand:visited .site-brand-text b,
+.site-brand:hover .site-brand-text b {
+  font-size: 17px; font-weight: 800;
+  color: #ffffff;
+}
+.site-brand-text i,
+.site-brand:visited .site-brand-text i {
   font-style: normal; font-size: 10px; letter-spacing: .18em;
   color: var(--site-muted); text-transform: uppercase; direction: ltr;
 }
