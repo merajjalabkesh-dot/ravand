@@ -211,7 +211,7 @@ export const SITE = {
       id: 'windows', icon: 'windows', name: 'ویندوز', latin: 'Windows', ext: '',
       text: 'نرم‌افزار بومی ویندوز ۱۰ و ۱۱. فوق‌العاده سبک (زیر ۶ مگابایت)، سریع و کاملاً آفلاین روی دسکتاپ بدون نیاز به باز کردن مرورگر.',
       points: ['فوق‌العاده سبک (زیر ۶ مگابایت)', 'کارکرد آفلاین کامل روی دسکتاپ', 'ویندوز ۱۰ و ۱۱'],
-      href: '/downloads/Ravand-Setup.exe', primary: true,
+      href: '/downloads/Habitick-Setup.exe', primary: true,
     },
     {
       id: 'android', icon: 'android', name: 'اندروید', latin: 'Android', ext: '',
