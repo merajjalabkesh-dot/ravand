@@ -188,7 +188,9 @@ export default function GlyphPortal({
       }
       if (!via) via = { index: fallbackIdx, x: center.x, y: 0, radius: Math.max(24, bounds.height / 4) }
       target = via
-      candidates = [target]
+      candidates = interactive
+        ? letters.map((box) => ({ index: box.index, ...boxCenter(box), radius: radiusOf(box) }))
+        : [target]
       return true
     };
 

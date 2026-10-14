@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import GlyphPortal from '../components/ui/glyph-portal'
 import PortalBackground from '../components/PortalBackground'
 import SiteHeader from '../components/site/SiteHeader'
+import Logo from '../components/site/Logo'
 import {
   Hero, About, Live, Features, Compare, Testimonials, Pricing, DownloadCards, Faq, Channels,
 } from '../components/site/Sections'
@@ -130,7 +131,6 @@ export default function Landing() {
           fontWeight={700}
           scrollLength={scrollLen}
           interactive
-          focusChar="b"
           annotations={false}
           enterLabel=""
           onProgress={onPortalProgress}
@@ -141,9 +141,31 @@ export default function Landing() {
             '--gp-field': SKY_CSS,
           }}
           front={
-            <div className="landing-front" style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
-              <p className="landing-front-lead">با هبیتیک عادت‌هایت را تیک بزن.</p>
-              <p className="landing-front-hint">اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
+            <div className="landing-portal-stage">
+              {/* هدر ظریف بالای صفحه */}
+              <div className="landing-portal-header">
+                <div className="landing-portal-brand">
+                  <Logo size={24} tone="gradient" />
+                  <span className="landing-portal-brand-title">هبیتیک.</span>
+                </div>
+                <div className="landing-portal-category">
+                  پیگیری هوشمند کارها و عادت‌ها
+                </div>
+              </div>
+
+              {/* متن بالای کلمه (Eyebrow) */}
+              <div className="landing-portal-eyebrow">
+                یک نگاه تازه به ریتم روزهایت
+              </div>
+
+              {/* بخش پایین: متن زیر کلمه و نشانگر اسکرول */}
+              <div className="landing-portal-footer">
+                <p className="landing-portal-support">با هبیتیک عادت‌هایت را تیک بزن.</p>
+                <div className="landing-portal-hint">
+                  <span>برای ورود اسکرول کنید</span>
+                  <span className="landing-portal-arrow" aria-hidden="true">↓</span>
+                </div>
+              </div>
             </div>
           }
         >
