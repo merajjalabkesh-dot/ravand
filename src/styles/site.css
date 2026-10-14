@@ -78,40 +78,7 @@
   transition: opacity .12s linear;
 }
 
-/* ۱. هدر ظریف بالای کلمه */
-.landing-portal-header {
-  position: absolute; top: clamp(16px, 3.2vh, 32px);
-  inset-inline: clamp(20px, 4vw, 48px);
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  z-index: 2;
-  direction: rtl;
-}
-.landing-portal-brand {
-  display: flex; align-items: center; gap: 8px;
-  font-size: clamp(14px, 1.8vw, 17px); font-weight: 800;
-  color: #081a33; letter-spacing: -0.01em;
-}
-.landing-portal-brand-title {
-  display: inline-block;
-  line-height: 1;
-}
-.landing-portal-category {
-  font-size: clamp(11px, 1.3vw, 13.5px); font-weight: 500;
-  color: #17385f; opacity: 0.9;
-  letter-spacing: -0.01em;
-}
-
-/* ۲. متن بالای کلمه (Eyebrow) */
-.landing-portal-eyebrow {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  bottom: calc(100% - var(--gp-word-top, 38%) + 18px);
-  font-size: clamp(12.5px, 1.6vw, 15px); font-weight: 600;
-  color: #153b66; text-align: center; white-space: nowrap;
-  letter-spacing: 0.01em;
-  text-shadow: 0 1px 12px rgba(255, 255, 255, .6);
-}
-
-/* ۳. بخش پایین: متن زیر کلمه و راهنمای اسکرول */
+/* بخش پایین: متن زیر کلمه و راهنمای اسکرول */
 .landing-portal-footer {
   position: absolute; left: 50%; transform: translateX(-50%);
   top: calc(var(--gp-word-bottom, 62%) + 20px);
@@ -149,8 +116,6 @@
 
 /* صفحه بسیار فشرده عمودی */
 @media (max-height: 520px) {
-  .landing-portal-header { top: 12px; }
-  .landing-portal-eyebrow { bottom: calc(100% - var(--gp-word-top, 38%) + 10px); font-size: 11px; }
   .landing-portal-footer { top: calc(var(--gp-word-bottom, 62%) + 10px); }
   .landing-portal-support { font-size: 15px; }
   .landing-portal-hint { margin-top: 8px; padding: 4px 10px; font-size: 11px; }
