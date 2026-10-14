@@ -41,7 +41,7 @@ export default function SiteHeader({ floating = false }) {
   return (
     <header className={'site-header' + (scrolled ? ' is-scrolled' : '') + (floating ? ' is-floating' : '')}>
       <div className="site-header-in">
-        <Link to="/" className="site-brand" aria-label="روند — صفحه اصلی">
+        <Link to="/" className="site-brand" aria-label={`${SITE.brand} — صفحه اصلی`}>
           <Logo size={44} tone="gradient" />
           <span className="site-brand-text">
             <b>{SITE.brand}</b>
