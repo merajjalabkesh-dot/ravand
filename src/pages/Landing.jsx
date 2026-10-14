@@ -38,7 +38,7 @@ export default function Landing() {
 
   useEffect(() => {
     setPageMeta({
-      title: 'هبیتیک — عادت‌هایت را بساز، روندت را ببین',
+      title: 'هبیتیک — با هبیتیک عادت‌هایت را تیک بزن',
       description: 'هبیتیک: کارهای روزانه، عادت و ژورنال در یک جدول. تقویم شمسی، کار آفلاین و بدون تبلیغ. دانلود برای ویندوز، اندروید و وب.',
       path: '/',
     })
@@ -142,7 +142,7 @@ export default function Landing() {
           }}
           front={
             <div className="landing-front" style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
-              <p className="landing-front-lead">عادت‌هایت را بساز، روندت را ببین.</p>
+              <p className="landing-front-lead">با هبیتیک عادت‌هایت را تیک بزن.</p>
               <p className="landing-front-hint">اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
             </div>
           }
