@@ -37,8 +37,12 @@ export default function Layout({ children }) {
     <div className="app">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg>
+          <span className="brand-mark" style={{ background: '#0a0f1f', border: '1px solid rgba(139, 92, 246, 0.35)', boxShadow: '0 0 20px rgba(139, 92, 246, 0.25)' }}>
+            <svg width="22" height="22" viewBox="0 0 512 512" fill="none" aria-hidden="true">
+              <rect x="116" y="292" width="88" height="88" rx="20" fill="#8b5cf6" opacity="0.45" />
+              <rect x="212" y="212" width="88" height="88" rx="20" fill="#8b5cf6" opacity="0.75" />
+              <rect x="308" y="132" width="88" height="88" rx="20" fill="#8b5cf6" opacity="1" />
+            </svg>
           </span>
           <div>
             <div className="brand-name">{t('nav.brand')}</div>
