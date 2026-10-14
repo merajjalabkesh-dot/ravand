@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import GlyphPortal from '../components/ui/glyph-portal'
 import PortalBackground from '../components/PortalBackground'
 import SiteHeader from '../components/site/SiteHeader'
-import Logo from '../components/site/Logo'
 import {
   Hero, About, Live, Features, Compare, Testimonials, Pricing, DownloadCards, Faq, Channels,
 } from '../components/site/Sections'
@@ -142,22 +141,6 @@ export default function Landing() {
           }}
           front={
             <div className="landing-portal-stage">
-              {/* هدر ظریف بالای صفحه */}
-              <div className="landing-portal-header">
-                <div className="landing-portal-brand">
-                  <Logo size={24} tone="gradient" />
-                  <span className="landing-portal-brand-title">هبیتیک.</span>
-                </div>
-                <div className="landing-portal-category">
-                  پیگیری هوشمند کارها و عادت‌ها
-                </div>
-              </div>
-
-              {/* متن بالای کلمه (Eyebrow) */}
-              <div className="landing-portal-eyebrow">
-                یک نگاه تازه به ریتم روزهایت
-              </div>
-
               {/* بخش پایین: متن زیر کلمه و نشانگر اسکرول */}
               <div className="landing-portal-footer">
                 <p className="landing-portal-support">با هبیتیک عادت‌هایت را تیک بزن.</p>
