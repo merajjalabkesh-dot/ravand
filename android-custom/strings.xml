@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">هبیتیک</string>
+    <string name="title_activity_main">هبیتیک</string>
+    <string name="package_name">app.ravand.app</string>
+    <string name="custom_url_scheme">app.ravand.app</string>
+</resources>

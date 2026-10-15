@@ -25,7 +25,7 @@ export const IconX = (p) => <S {...p}><path d="M18 6 6 18M6 6l12 12" /></S>
 export const IconArrow = (p) => <S {...p}><path d="M19 12H5M12 19l-7-7 7-7" /></S>
 
 /** ژورنال با نقشهٔ حال و هوا — دفترچه + اب/آفتاب */
-export const IconJournalMood = (p) => <S {...p}><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z" /><path d="M5 4a2 2 0 0 0-2 2v12" /><path d="M9 8h6M9 12h6" /><circle cx="18" cy="7" r="4" /><path d="M18 3v2M18 19v2M3 18h2M19 18h2" stroke="currentColor" stroke-width="1.2" /></S>
+export const IconJournalMood = (p) => <S {...p}><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z" /><path d="M5 4a2 2 0 0 0-2 2v12" /><path d="M9 8h6M9 12h6" /><circle cx="18" cy="7" r="4" /><path d="M18 3v2M18 19v2M3 18h2M19 18h2" stroke="currentColor" strokeWidth="1.2" /></S>
 
 /** جدول هر روز — همان نشانهٔ برند، در اندازهٔ آیکون */
 export const IconGrid = (p) => (

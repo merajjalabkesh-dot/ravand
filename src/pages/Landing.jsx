@@ -38,8 +38,8 @@ export default function Landing() {
 
   useEffect(() => {
     setPageMeta({
-      title: 'روند — عادت‌هایت را بساز، روندت را ببین',
-      description: 'روند: کارهای روزانه، عادت و ژورنال در یک جدول. تقویم جلالی، کار آفلاین و بدون تبلیغ. دانلود برای ویندوز، اندروید و وب.',
+      title: 'هبیتیک — با هبیتیک عادت‌هایت را تیک بزن',
+      description: 'هبیتیک: کارهای روزانه، عادت و ژورنال در یک جدول. تقویم شمسی، کار آفلاین و بدون تبلیغ. دانلود برای ویندوز، اندروید و وب.',
       path: '/',
     })
   }, [])
@@ -65,7 +65,7 @@ export default function Landing() {
     const finish = (value) => { if (!settled) { settled = true; setFace(value) } }
     const ready = () => {
       try {
-        if (document.fonts && document.fonts.check('700 100px ' + fontFaceName, 'ravand')) { return finish(faceStack) }
+        if (document.fonts && document.fonts.check('700 100px ' + fontFaceName, 'habitick')) { return finish(faceStack) }
       } catch (e) { /* ignore */ }
       finish(faceStack)
     }
@@ -125,12 +125,11 @@ export default function Landing() {
       </div>
       {face ? (
         <GlyphPortal
-          word="Ravand"
+          word="Habitick"
           fontFamily={face}
           fontWeight={700}
           scrollLength={scrollLen}
           interactive
-          focusChar="n"
           annotations={false}
           enterLabel=""
           onProgress={onPortalProgress}
@@ -141,9 +140,15 @@ export default function Landing() {
             '--gp-field': SKY_CSS,
           }}
           front={
-            <div className="landing-front" style={{ position: 'absolute', inset: 'auto 24px 7% 24px', textAlign: 'center' }}>
-              <p className="landing-front-lead">عادت‌هایت را بساز، روندت را ببین.</p>
-              <p className="landing-front-hint">اسکرول کنید <span style={{ display: 'inline-block', transform: 'translateY(1px)' }}>↓</span></p>
+            <div className="landing-portal-stage">
+              {/* بخش پایین: متن زیر کلمه و نشانگر اسکرول */}
+              <div className="landing-portal-footer">
+                <p className="landing-portal-support">با هبیتیک عادت‌هایت را تیک بزن.</p>
+                <div className="landing-portal-hint">
+                  <span>برای ورود اسکرول کنید</span>
+                  <span className="landing-portal-arrow" aria-hidden="true">↓</span>
+                </div>
+              </div>
             </div>
           }
         >
@@ -158,7 +163,7 @@ export default function Landing() {
             <Pricing />
             <section className="site-section" id="download">
               <div className="site-sec-head">
-                <h2 className="site-sec-title">روند را نصب کن</h2>
+                <h2 className="site-sec-title">هبیتیک را نصب کن</h2>
                 <p className="site-sec-sub">
                   هر نسخه‌ای که به دلت می‌خواهد را بردار. <Link to="/download" className="site-inline-link">جزئیات بیشتر</Link>
                 </p>
@@ -169,7 +174,7 @@ export default function Landing() {
             <Channels />
             <section className="site-cta-band">
               <div className="site-cta-in">
-                <h2>آماده‌ای روندت را شروع کنی؟</h2>
+                <h2>آماده‌ای با هبیتیک شروع کنی؟</h2>
                 <p>همین حالا حساب بساز. اولین جدول روزت از همین‌جا شروع می‌شود.</p>
                 <div className="site-cta-btns">
                   <AppLink className="btn site-btn big" to="/login">ساخت حساب رایگان</AppLink>
@@ -179,7 +184,7 @@ export default function Landing() {
             </section>
             <footer className="gp-rail-foot">
               <div className="site-foot-bar">
-                <span>© {new Date().getFullYear()} روند — همهٔ حقوق محفوظ است.</span>
+                <span>© {new Date().getFullYear()} هبیتیک — همهٔ حقوق محفوظ است.</span>
                 <span className="site-foot-note">بدون تبلیغ · بدون فروش داده</span>
               </div>
             </footer>

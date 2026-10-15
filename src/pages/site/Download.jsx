@@ -10,8 +10,8 @@ import Logo from '../../components/site/Logo'
 export default function Download() {
   useEffect(() => {
     setPageMeta({
-      title: 'دانلود روند — ویندوز exe، اندروید apk و وب‌اپ',
-      description: 'روند را برای ویندوز (exe)، اندروید (apk) و وب‌اپ دانلود کن. رایگان، بدون تبلیغ، با کار آفلاین و تقویم جلالی. حجم کمتر از ۸ مگابایت.',
+      title: 'دانلود هبیتیک — ویندوز exe، اندروید apk و وب‌اپ',
+      description: 'هبیتیک را برای ویندوز (exe)، اندروید (apk) و وب‌اپ دانلود کن. رایگان، بدون تبلیغ، با کار آفلاین و تقویم شمسی. حجم کمتر از ۸ مگابایت.',
       path: '/download',
     })
   }, [])
@@ -47,7 +47,7 @@ export default function Download() {
             <p>شاید جوابش در بخش سوالات متداول باشد.</p>
             <div className="site-cta-btns">
               <Link className="btn site-btn big" to="/site#faq">سوالات متداول</Link>
-              <Link className="btn site-btn ghost big" to="/site#compare">چرا روند؟</Link>
+              <Link className="btn site-btn ghost big" to="/site#compare">چرا هبیتیک؟</Link>
             </div>
           </div>
         </section>

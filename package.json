@@ -8,13 +8,13 @@
     "build": "vite build && node scripts/generate-sw.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "cap:sync": "npm run build && node scripts/prune-cap-dist.mjs && cap sync",
-    "cap:copy": "npm run build && node scripts/prune-cap-dist.mjs && cap copy",
+    "tauri:dev": "npx @tauri-apps/cli dev",
+    "tauri:build": "npm run build && node scripts/prune-cap-dist.mjs && npx @tauri-apps/cli build",
+    "cap:sync": "npm run build && node scripts/prune-cap-dist.mjs && node scripts/sync-android-custom.mjs && cap sync",
+    "cap:copy": "npm run build && node scripts/prune-cap-dist.mjs && node scripts/sync-android-custom.mjs && cap copy",
     "cap:android": "cap open android",
-    "cap:apk": "npm run build && node scripts/prune-cap-dist.mjs && cap sync && cd android && gradlew.bat assembleDebug",
-    "cap:apk:release": "npm run build && node scripts/prune-cap-dist.mjs && cap sync && cd android && gradlew.bat assembleRelease",
+    "cap:apk": "npm run build && node scripts/prune-cap-dist.mjs && node scripts/sync-android-custom.mjs && cap sync && cd android && gradlew.bat assembleDebug",
+    "cap:apk:release": "npm run build && node scripts/prune-cap-dist.mjs && node scripts/sync-android-custom.mjs && cap sync && cd android && gradlew.bat assembleRelease",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5175 && electron .\"",
     "electron:build": "npm run build && node scripts/prune-cap-dist.mjs && electron-builder",
     "version:sync": "node scripts/sync-app-version.mjs"
@@ -57,7 +57,8 @@
       "perMachine": false,
       "artifactName": "Ravand-Setup.exe",
       "shortcutName": "Ravand",
-      "installerIcon": "src-tauri/icons/icon.ico"
+      "installerIcon": "src-tauri/icons/icon.ico",
+      "include": "installer.nsh"
     }
   },
   "description": "Ravand — daily habits, journal and life tracker",

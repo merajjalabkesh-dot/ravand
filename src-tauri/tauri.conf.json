@@ -1,21 +1,21 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Ravand",
-  "version": "0.1.0",
+  "productName": "Habitick",
+  "version": "0.1.3",
   "identifier": "app.ravand.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build && node scripts/prune-cap-dist.mjs",
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
-        "title": "روند",
+        "title": "هبیتیک",
         "label": "main",
         "width": 1280,
-        "height": 860,
+        "height": 840,
         "minWidth": 420,
         "minHeight": 640,
         "resizable": true,
@@ -38,14 +38,15 @@
       "icons/128x128@2x.png",
       "icons/icon.ico"
     ],
-    "shortDescription": "روند — عادت‌ها و روزانه",
-    "longDescription": "روند اپی برای پیگیری عادت‌ها، کارهای روزانه و ژورنال با تقویم جلالی و کار آفلاین.",
-    "copyright": "Ravand",
+    "shortDescription": "هبیتیک — پیگیری عادت‌ها و روزانه",
+    "longDescription": "هبیتیک اپی برای پیگیری عادت‌ها، کارهای روزانه و ژورنال با تقویم جلالی و کار آفلاین.",
+    "copyright": "Habitick",
     "windows": {
       "nsis": {
         "installMode": "currentUser",
         "displayLanguageSelector": false,
-        "startMenuFolder": "Ravand"
+        "startMenuFolder": "Habitick",
+        "installerHooks": "installer-hooks.nsh"
       }
     }
   }
