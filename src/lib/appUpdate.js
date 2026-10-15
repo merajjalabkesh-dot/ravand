@@ -198,9 +198,65 @@ export function subscribeUpdateProgress(callback) {
 }
 
 /**
+ * ارسال رویداد پیشرفت آپدیت به شنودگرهای صفحه
+ * @param {{ stage?: string, percent?: number, downloaded?: number, total?: number, error?: string }} data
+ */
+export function dispatchProgress(data) {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    try {
+      window.dispatchEvent(new CustomEvent('app-update-progress', { detail: data }))
+    } catch { /* نادیده‌گیری خطا */ }
+  }
+}
+
+/**
+ * باز کردن مستقیم لینک دانلود در مرورگر کاربر (بومی در توری یا وب)
+ * @param {string} url
+ * @returns {Promise<boolean>}
+ */
+export async function openDirectDownload(url) {
+  const safeUrl = cleanUrl(url)
+  if (!safeUrl) return false
+
+  const w = (typeof window !== 'undefined') ? window : {}
+  if (w.__TAURI_INTERNALS__ || w.__TAURI__) {
+    const invoke = (w.__TAURI_INTERNALS__ && typeof w.__TAURI_INTERNALS__.invoke === 'function')
+      ? w.__TAURI_INTERNALS__.invoke.bind(w.__TAURI_INTERNALS__)
+      : (w.__TAURI__ && w.__TAURI__.core && typeof w.__TAURI__.core.invoke === 'function')
+      ? w.__TAURI__.core.invoke.bind(w.__TAURI__.core)
+      : null
+
+    if (invoke) {
+      try {
+        await invoke('open_in_browser', { url: safeUrl })
+        return true
+      } catch { /* ادامه به فالبک وب */ }
+    }
+  }
+
+  try {
+    const win = window.open(safeUrl, '_blank', 'noopener,noreferrer')
+    if (win) return true
+  } catch { /* ادامه به روش ساخت المنتی */ }
+
+  try {
+    const a = document.createElement('a')
+    a.href = safeUrl
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    return true
+  } catch { /* هیچ */ }
+
+  return false
+}
+
+/**
  * اقدام به‌روزرسانی:
  *   - web:      ریلود ساده (سرویس‌ورکر دارایی‌های تازه را می‌آورد)
- *   - tauri:    شروع دانلود درون‌برنامه‌ای با دستور بومی start_in_app_update (با فالبک به open_in_browser)
+ *   - tauri:    شروع دانلود درون‌برنامه‌ای با دستور بومی download_and_apply_update (با فالبک به start_in_app_update و open_in_browser)
  *   - android:  شروع دانلود درون‌برنامه‌ای در Capacitor / Native (با فالبک به باز کردن لینک)
  *   - electron: شروع دانلود درون‌برنامه‌ای یا باز کردن لینک
  * @returns {Promise<boolean>|boolean} آیا شروع شد
@@ -227,16 +283,24 @@ export async function openUpdate(res) {
       try {
         await invoke('download_and_apply_update', { url: safeUrl })
         return true
-      } catch {
+      } catch (err1) {
         try {
           await invoke('start_in_app_update', { url: safeUrl })
           return true
-        } catch {
-          // در صورت آماده نبودن هندلر بومی درون‌برنامه‌ای، فالبک به باز کردن مرورگر بومی
+        } catch (err2) {
+          // در صورت بروز خطا در دستور بومی دانلود، فالبک به باز کردن مرورگر بومی
           try {
             await invoke('open_in_browser', { url: safeUrl })
+            dispatchProgress({ stage: 'browser_opened', percent: 0, error: null })
             return true
-          } catch { /* ادامه به فالبک وب */ }
+          } catch (err3) {
+            const opened = await openDirectDownload(safeUrl)
+            if (opened) {
+              dispatchProgress({ stage: 'browser_opened', percent: 0, error: null })
+              return true
+            }
+            throw (err1 || err2 || err3 || new Error('Update failed'))
+          }
         }
       }
     }
@@ -249,7 +313,13 @@ export async function openUpdate(res) {
         await w.Capacitor.Plugins.AppUpdate.startUpdate({ url: safeUrl })
         return true
       }
-    } catch { /* ادامه به فالبک باز کردن مرورگر */ }
+    } catch {
+      const opened = await openDirectDownload(safeUrl)
+      if (opened) {
+        dispatchProgress({ stage: 'browser_opened', percent: 0, error: null })
+        return true
+      }
+    }
   }
 
   // پلتفرم Electron: متد اختصاصی در صورت وجود
@@ -258,26 +328,22 @@ export async function openUpdate(res) {
       try { await w.ravandApp.startInAppUpdate(safeUrl); return true } catch { /* ادامه */ }
     }
     if (typeof w.ravandApp.openExternal === 'function') {
-      try { w.ravandApp.openExternal(safeUrl); return true } catch { /* ادامه */ }
+      try {
+        w.ravandApp.openExternal(safeUrl)
+        dispatchProgress({ stage: 'browser_opened', percent: 0, error: null })
+        return true
+      } catch { /* ادامه */ }
     }
   }
 
   // فالبک عمومی باز کردن در مرورگر
   if (safeUrl) {
-    try {
-      const win = window.open(safeUrl, '_blank', 'noopener,noreferrer')
-      if (win) return true
-    } catch { /* ادامه بده */ }
-    try {
-      const a = document.createElement('a')
-      a.href = safeUrl
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
+    const opened = await openDirectDownload(safeUrl)
+    if (opened) {
+      dispatchProgress({ stage: 'browser_opened', percent: 0, error: null })
       return true
-    } catch { /* هیچ */ }
+    }
   }
-  return false
+
+  throw new Error('Could not open update')
 }

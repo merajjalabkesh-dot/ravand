@@ -1,7 +1,7 @@
 {
   "version": "0.1.4",
   "notes": "قابلیت تعیین زمان اختیاری برای کارها و عادت‌ها، مرتب‌سازی زمانی از صبح تا شب، تداخل‌سنجی هوشمند و ویرایش زمان عادت‌ها",
-  "apkUrl": "https://ravand.app/downloads/ravand.apk",
-  "exeUrl": "https://ravand.app/downloads/Habitick-Setup.exe",
+  "apkUrl": "https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/ravand.apk",
+  "exeUrl": "https://github.com/merajjalabkesh-dot/ravand/releases/download/v1.0.0/Habitick-Setup.exe",
   "mandatory": false
 }
