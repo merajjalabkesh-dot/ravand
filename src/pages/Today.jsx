@@ -11,6 +11,9 @@ export default function Today() {
   const { t } = useI18n()
   const [iso, setIso] = useState(todayISO())
   const [taskDate, setTaskDate] = useState(todayISO())
+  const [taskStartTime, setTaskStartTime] = useState('')
+  const [taskEndTime, setTaskEndTime] = useState('')
+  const [conflictModal, setConflictModal] = useState(null)
   const isToday = iso === todayISO()
   const d = db.days[iso] || { habits: {}, tasks: [], journal: { mood: 0, text: '' } }
   const ids = db.days[iso] ? new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) : new Set()
@@ -104,13 +107,97 @@ export default function Today() {
       list.splice(j, 0, item)
     })
   }
-  const addTask = () => {
+  const parseTimeToMin = (tStr) => {
+    if (!tStr || typeof tStr !== 'string' || !tStr.includes(':')) return null
+    const [h, m] = tStr.split(':').map(Number)
+    if (isNaN(h) || isNaN(m)) return null
+    return h * 60 + m
+  }
+
+  const formatTimeSpan = (s, e) => {
+    if (!s && !e) return null
+    if (s && e) return `${toFa(s)} - ${toFa(e)}`
+    if (s) return `${toFa(s)}`
+    return `${toFa(e)}`
+  }
+
+  const checkConflict = (targetIso, sTime, eTime) => {
+    if (!sTime && !eTime) return null
+    const taskStartMin = parseTimeToMin(sTime)
+    const taskEndMin = parseTimeToMin(eTime)
+    let tStart = taskStartMin !== null ? taskStartMin : (taskEndMin - 30)
+    let tEnd = taskEndMin !== null ? taskEndMin : (taskStartMin + 30)
+    if (tStart > tEnd) {
+      const temp = tStart
+      tStart = tEnd
+      tEnd = temp
+    }
+
+    const scheduledHabits = db.habits.filter((h) => isScheduled(h, targetIso) && (h.startTime || h.endTime))
+    for (const habit of scheduledHabits) {
+      const hStartMin = parseTimeToMin(habit.startTime)
+      const hEndMin = parseTimeToMin(habit.endTime)
+      let hStart = hStartMin !== null ? hStartMin : (hEndMin - 30)
+      let hEnd = hEndMin !== null ? hEndMin : (hStartMin + 30)
+      if (hStart > hEnd) {
+        const temp = hStart
+        hStart = hEnd
+        hEnd = temp
+      }
+      if (Math.max(tStart, hStart) < Math.min(tEnd, hEnd)) {
+        return {
+          habit,
+          habitTimeStr: formatTimeSpan(habit.startTime, habit.endTime)
+        }
+      }
+    }
+    return null
+  }
+
+  const insertTask = (text, target, sTime, eTime) => {
+    mutate((s) => {
+      const day = s.days[target] || (s.days[target] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } })
+      day.tasks = day.tasks || []
+      day.tasks.push({
+        id: Math.random().toString(36).slice(2, 7),
+        text,
+        done: false,
+        startTime: sTime || undefined,
+        endTime: eTime || undefined
+      })
+    })
+    const inp = document.getElementById('task-input')
+    if (inp) inp.value = ''
+    setTaskStartTime('')
+    setTaskEndTime('')
+    setConflictModal(null)
+    toast(target === todayISO() ? t('today.taskAddedToast') : t('today.taskAddedForDateToast', { date: faDate(target, false) }))
+  }
+
+  const addTask = (force = false) => {
     const inp = document.getElementById('task-input')
     if (!inp || !inp.value.trim()) { toast(t('today.emptyTaskErrorToast')); return }
+    const text = inp.value.trim()
     const target = taskDate
-    mutate((s) => { const day = s.days[target] || (s.days[target] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.tasks = day.tasks || []; day.tasks.push({ id: Math.random().toString(36).slice(2, 7), text: inp.value.trim(), done: false }) })
-    inp.value = ''
-    toast(target === todayISO() ? t('today.taskAddedToast') : t('today.taskAddedForDateToast', { date: faDate(target, false) }))
+    const sTime = taskStartTime.trim() || undefined
+    const eTime = taskEndTime.trim() || undefined
+
+    if (!force && (sTime || eTime)) {
+      const conflict = checkConflict(target, sTime, eTime)
+      if (conflict) {
+        setConflictModal({
+          taskText: text,
+          targetDate: target,
+          sTime,
+          eTime,
+          habit: conflict.habit,
+          habitTimeStr: conflict.habitTimeStr
+        })
+        return
+      }
+    }
+
+    insertTask(text, target, sTime, eTime)
   }
 
   return (
@@ -134,12 +221,18 @@ export default function Today() {
           : visibleHabits.map((h) => {
             const done = ids.has(h.id)
             const bad = h.type === 'bad'
+            const timeBadge = formatTimeSpan(h.startTime, h.endTime)
             if (bad) {
               const cs = cleanStreak(h.id)
               return (
                 <div className={'habit-check bad' + (done ? ' bad-done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
                   <span className="habit-color" style={{ background: h.color }} />
                   <span className="hname">{h.name}</span>
+                  {timeBadge && (
+                    <span className="badge" style={{ fontSize: 11, background: 'rgba(139,92,246,.15)', color: 'var(--accent)', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span>⏰</span> {timeBadge}
+                    </span>
+                  )}
                   {cs > 0 && <span className="streak">{toFa(cs)} {t('today.cleanStreakSuffix')}</span>}
                   <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                 </div>
@@ -150,6 +243,11 @@ export default function Today() {
               <div className={'habit-check' + (done ? ' done' : '')} key={h.id} onClick={() => toggleHabit(h.id)}>
                 <span className="habit-color" style={{ background: h.color }} />
                 <span className="hname">{h.name}</span>
+                {timeBadge && (
+                  <span className="badge" style={{ fontSize: 11, background: 'rgba(139,92,246,.15)', color: 'var(--accent)', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span>⏰</span> {timeBadge}
+                  </span>
+                )}
                 {st > 0 && <span className="streak">{toFa(st)} {t('today.streakDaysSuffix')}</span>}
                 <span className="check-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
               </div>
@@ -161,23 +259,134 @@ export default function Today() {
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> {isToday ? 'کارهای روزانه' : 'کارهای این روز'}</div>
         {tC === 0 ? <p className="glass-hint">{isToday ? t('today.emptyTasksToday') : t('today.emptyTasksOtherDay')}</p>
-          : (d.tasks || []).map((task, idx) => (
-            <div className={'task-row' + (task.done ? ' done' : '')} key={task.id}>
-              <span className="task-box" onClick={() => toggleTask(task.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-              <span className="ttext">{task.text}</span>
-              <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-                <button className="task-move" onClick={() => moveTask(task.id, -1)} disabled={idx === 0} title={t('today.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-                <button className="task-move" onClick={() => moveTask(task.id, 1)} disabled={idx === tC - 1} title={t('today.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
-              </span>
-              <button className="task-del" onClick={() => delTask(task.id)} title={t('today.deleteTask')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-            </div>
-          ))}
-        <div className="add-row">
-          <input className="input" id="task-input" maxLength={120} placeholder={t('today.newTaskPlaceholder')} onKeyDown={(e) => e.key === 'Enter' && addTask()} />
-          <JalaliDatePicker value={taskDate} onChange={(v) => v && setTaskDate(v)} min={iso} placeholder={t('today.pickDatePlaceholder')} />
-          <button className="btn" onClick={addTask}>{t('today.addTask')}</button>
+          : (d.tasks || []).map((task, idx) => {
+            const timeBadge = formatTimeSpan(task.startTime, task.endTime)
+            return (
+              <div className={'task-row' + (task.done ? ' done' : '')} key={task.id}>
+                <span className="task-box" onClick={() => toggleTask(task.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                <span className="ttext">
+                  {task.text}
+                  {timeBadge && (
+                    <span className="badge" style={{ fontSize: 11, background: 'rgba(56,189,248,.14)', color: '#38bdf8', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 4, marginInlineStart: 8 }}>
+                      <span>⏰</span> {timeBadge}
+                    </span>
+                  )}
+                </span>
+                <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                  <button className="task-move" onClick={() => moveTask(task.id, -1)} disabled={idx === 0} title={t('today.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+                  <button className="task-move" onClick={() => moveTask(task.id, 1)} disabled={idx === tC - 1} title={t('today.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+                </span>
+                <button className="task-del" onClick={() => delTask(task.id)} title={t('today.deleteTask')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+            )
+          })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+          <div className="add-row">
+            <input className="input" id="task-input" maxLength={120} placeholder={t('today.newTaskPlaceholder')} onKeyDown={(e) => e.key === 'Enter' && addTask()} />
+            <JalaliDatePicker value={taskDate} onChange={(v) => v && setTaskDate(v)} min={iso} placeholder={t('today.pickDatePlaceholder')} />
+            <button className="btn" onClick={() => addTask()}>{t('today.addTask')}</button>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', paddingInlineStart: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>ساعت اختیاری:</span>
+            <input
+              type="time"
+              className="input"
+              style={{ width: 110, padding: '5px 8px', fontSize: 12, textAlign: 'center' }}
+              value={taskStartTime}
+              onChange={(e) => setTaskStartTime(e.target.value)}
+              placeholder={t('today.startTimePlaceholder')}
+              title={t('today.startTimePlaceholder')}
+            />
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>تا</span>
+            <input
+              type="time"
+              className="input"
+              style={{ width: 110, padding: '5px 8px', fontSize: 12, textAlign: 'center' }}
+              value={taskEndTime}
+              onChange={(e) => setTaskEndTime(e.target.value)}
+              placeholder={t('today.endTimePlaceholder')}
+              title={t('today.endTimePlaceholder')}
+            />
+            {(taskStartTime || taskEndTime) && (
+              <button
+                type="button"
+                className="btn-ghost"
+                style={{ fontSize: 11, padding: '2px 6px', color: 'var(--muted)' }}
+                onClick={() => { setTaskStartTime(''); setTaskEndTime('') }}
+              >
+                پاک کردن
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
+
+      {conflictModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.68)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: 16
+          }}
+          onClick={() => setConflictModal(null)}
+        >
+          <div
+            className="glass"
+            style={{
+              maxWidth: 420,
+              width: '100%',
+              background: '#0d1326',
+              border: '1px solid rgba(245,166,35,0.4)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              padding: 20
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#f5a623', marginBottom: 12, fontSize: 16, fontWeight: 700 }}>
+              <span style={{ fontSize: 20 }}>⚠️</span>
+              <span>{t('today.conflictModalTitle')}</span>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--fg)', marginBottom: 20 }}>
+              {t('today.conflictModalDesc', {
+                task: conflictModal.taskText,
+                habit: conflictModal.habit?.name || '',
+                time: conflictModal.habitTimeStr || ''
+              })}
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                className="btn-ghost"
+                style={{ fontSize: 13, padding: '8px 14px' }}
+                onClick={() => {
+                  insertTask(
+                    conflictModal.taskText,
+                    conflictModal.targetDate,
+                    conflictModal.sTime,
+                    conflictModal.eTime
+                  )
+                }}
+              >
+                {t('today.conflictIgnore')}
+              </button>
+              <button
+                className="btn"
+                style={{ fontSize: 13, padding: '8px 16px', background: 'var(--accent)' }}
+                onClick={() => setConflictModal(null)}
+              >
+                {t('today.conflictRemindThanks')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <motion.div variants={fadeUp} className="glass">
         <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/></svg> {t('today.dayReportTitle')}</div>

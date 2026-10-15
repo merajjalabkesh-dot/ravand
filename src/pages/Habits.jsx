@@ -14,6 +14,9 @@ export default function Habits() {
   const [type, setType] = useState('good')
   const [days, setDays] = useState([])
   const [color, setColor] = useState(HABIT_COLORS[0])
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [editingHabitId, setEditingHabitId] = useState(null)
 
   const dayIds = (iso) => { const d = db.days[iso]; if (!d) return new Set(); return new Set(Object.keys(d.habits || {}).filter((k) => d.habits[k])) }
   const habitStreak = (id) => { let s = 0, x = todayISO(); if (!dayIds(x).has(id)) x = isoAddDays(x, -1); while (dayIds(x).has(id)) { s++; x = isoAddDays(x, -1) }; return s }
@@ -23,19 +26,82 @@ export default function Habits() {
   const habitDone30 = (id) => { let n = 0; for (let i = 0; i < 30; i++) if (dayIds(isoAddDays(todayISO(), -i)).has(id)) n++; return n }
   const weekDone = (id) => { let n = 0; for (let i = 0; i < 7; i++) if (dayIds(isoAddDays(todayISO(), -i)).has(id)) n++; return n }
 
-  const add = () => {
+  const resetForm = () => {
+    setName('')
+    setType('good')
+    setDays([])
+    setColor(HABIT_COLORS[0])
+    setStartTime('')
+    setEndTime('')
+    setEditingHabitId(null)
+  }
+
+  const startEdit = (h) => {
+    setEditingHabitId(h.id)
+    setName(h.name || '')
+    setType(h.type || 'good')
+    setDays(h.days ? [...h.days] : [])
+    setColor(h.color || HABIT_COLORS[0])
+    setStartTime(h.startTime || '')
+    setEndTime(h.endTime || '')
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch { /* noop */ }
+  }
+
+  const saveOrAdd = () => {
     if (!name.trim()) { toast(t('habits.nameRequiredToast')); return }
     const good = type === 'good'
-    mutate((s) => { s.habits.push({ id: Math.random().toString(36).slice(2, 7), name: name.trim(), color, type, weeklyGoal: 7, days: good && days.length ? [...days] : null, createdAt: todayISO() }) })
+    const sTime = startTime.trim() || undefined
+    const eTime = endTime.trim() || undefined
+
+    if (editingHabitId) {
+      mutate((s) => {
+        const target = s.habits.find((h) => h.id === editingHabitId)
+        if (target) {
+          target.name = name.trim()
+          target.type = type
+          target.color = color
+          target.days = good && days.length ? [...days] : null
+          if (sTime) target.startTime = sTime; else delete target.startTime
+          if (eTime) target.endTime = eTime; else delete target.endTime
+        }
+      })
+      toast(t('habits.habitUpdatedToast', { name: name.trim() }))
+      resetForm()
+      return
+    }
+
+    mutate((s) => {
+      s.habits.push({
+        id: Math.random().toString(36).slice(2, 7),
+        name: name.trim(),
+        color,
+        type,
+        weeklyGoal: 7,
+        days: good && days.length ? [...days] : null,
+        startTime: sTime,
+        endTime: eTime,
+        createdAt: todayISO()
+      })
+    })
     toast(t(good ? 'habits.habitCreatedToastGood' : 'habits.habitCreatedToastBad', { name: name.trim() }))
-    setName(''); setType('good'); setDays([]); setColor(HABIT_COLORS[0])
+    resetForm()
   }
   const del = (id) => { if (!confirm(t('habits.deleteConfirm'))) return; mutate((s) => { s.habits = s.habits.filter((h) => h.id !== id) }); toast(t('habits.deletedToast')) }
   const relapse = (id) => { if (!confirm(t('habits.relapseConfirm'))) return; mutate((s) => { const day = s.days[todayISO()] || (s.days[todayISO()] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } }); day.habits = day.habits || {}; delete day.habits[id]; const h = s.habits.find((y) => y.id === id); if (h) h.lastRelapse = todayISO() }); toast(t('habits.relapseToast')) }
 
+  const formatTimeSpan = (s, e) => {
+    if (!s && !e) return null
+    if (s && e) return `${toFa(s)} - ${toFa(e)}`
+    if (s) return `${toFa(s)}`
+    return `${toFa(e)}`
+  }
+
   const list = db.habits.length === 0 ? <div className="empty-state"><div className="big">✦</div><p>{t('habits.emptyStateLine1')}<br />{t('habits.emptyStateLine2')}</p></div>
       : db.habits.map((h) => {
         const bad = h.type === 'bad'
+        const timeBadge = formatTimeSpan(h.startTime, h.endTime)
         if (bad) {
         const cs = cleanStreak(h.id), bs = bestClean(h.id)
         const csFa = toFa(cs)
@@ -51,11 +117,19 @@ export default function Habits() {
                     <span className="hname">{h.name}</span>
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="badge" style={{ fontSize: 9, background: 'rgba(248,113,113,.16)', color: '#f87171' }}>{t('habits.badgeBad')}</span>
+              {timeBadge && (
+                <span className="badge" style={{ fontSize: 11, background: 'rgba(139,92,246,.15)', color: 'var(--accent)', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span>⏰</span> {timeBadge}
+                </span>
+              )}
               <span style={{ fontSize: 13, color: 'var(--muted)' }}>{cleanParts[0]}<b style={{ color: 'var(--accent)' }}>{csFa}{cleanParts[1]}</b></span>
               <span className="mini-stat">{t('habits.bestCleanLabel', { count: toFa(bs) })}</span>
               {msg && <span className="milestone">{msg}</span>}
             </div>
             <button className="relapse-btn" onClick={() => relapse(h.id)} title={t('habits.relapseButtonTitle')}>{t('habits.relapseButton')}</button>
+            <button className="delete-habit" onClick={() => startEdit(h)} title={t('habits.editButtonTitle')} style={{ color: 'var(--accent)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <button className="delete-habit" onClick={() => del(h.id)} title={t('habits.deleteButtonTitle')}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
         )
@@ -71,10 +145,18 @@ export default function Habits() {
                 <span className="hname">{h.name}</span>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="badge good-badge">{t('habits.badgeGood')}</span>
+            {timeBadge && (
+              <span className="badge" style={{ fontSize: 11, background: 'rgba(139,92,246,.15)', color: 'var(--accent)', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <span>⏰</span> {timeBadge}
+              </span>
+            )}
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>{st > 0 ? t('habits.streakConsecutivePrefix', { days: stFa }) : ''}<b>{stFa}</b>{streakTail}</span>
             <span className="mini-stat">{t('habits.doneLast30Days', { count: toFa(done30) })}</span>
             <span className="mini-stat goal-label">{t('habits.weeklyGoalLabel', { done: toFa(wg), goal: toFa(goal) })}</span>
           </div>
+          <button className="delete-habit" onClick={() => startEdit(h)} title={t('habits.editButtonTitle')} style={{ color: 'var(--accent)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
           <button className="delete-habit" onClick={() => del(h.id)} title={t('habits.deleteButtonTitle')}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
         </div>
       )
@@ -85,8 +167,13 @@ export default function Habits() {
       <motion.div variants={fadeUp} className="page-head"><h1>{t('habits.pageTitle')}</h1><div className="sub">{t('habits.pageSubtitle')}</div></motion.div>
 
       <motion.div variants={fadeUp} className="glass">
-        <div className="glass-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg> {t('habits.formTitle')}</div>
-        <div className="field" style={{ marginBottom: 12 }}><input className="input" style={{ maxWidth: 420 }} maxLength={50} placeholder={type === 'good' ? t('habits.namePlaceholderGood') : t('habits.namePlaceholderBad')} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} /></div>
+        <div className="glass-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          {editingHabitId ? t('habits.formTitleEdit') : t('habits.formTitle')}
+        </div>
+        <div className="field" style={{ marginBottom: 12 }}>
+          <input className="input" style={{ maxWidth: 420 }} maxLength={50} placeholder={type === 'good' ? t('habits.namePlaceholderGood') : t('habits.namePlaceholderBad')} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveOrAdd()} />
+        </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
           <button className={'type-btn good' + (type === 'good' ? ' sel' : '')} onClick={() => setType('good')}>{t('habits.typeGood')}</button>
           <button className={'type-btn bad' + (type === 'bad' ? ' sel' : '')} onClick={() => { setType('bad'); setDays([]) }}>{t('habits.typeBad')}</button>
@@ -101,12 +188,49 @@ export default function Habits() {
             </div>
           </div>
         )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 13, color: 'var(--muted)' }}>{t('habits.timeOptionalLabel')}</span>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              type="time"
+              className="input"
+              style={{ width: 130, padding: '7px 10px', fontSize: 13, textAlign: 'center' }}
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              placeholder={t('habits.startTimePlaceholder')}
+              title={t('habits.startTimePlaceholder')}
+            />
+            <span style={{ color: 'var(--muted)', fontSize: 13 }}>تا</span>
+            <input
+              type="time"
+              className="input"
+              style={{ width: 130, padding: '7px 10px', fontSize: 13, textAlign: 'center' }}
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              placeholder={t('habits.endTimePlaceholder')}
+              title={t('habits.endTimePlaceholder')}
+            />
+            {(startTime || endTime) && (
+              <button
+                type="button"
+                className="btn-ghost"
+                style={{ fontSize: 12, padding: '4px 8px', color: 'var(--muted)' }}
+                onClick={() => { setStartTime(''); setEndTime('') }}
+              >
+                پاک کردن زمان
+              </button>
+            )}
+          </div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>{t('habits.colorLabel')}</span>
           <div className="color-swatches">
             {HABIT_COLORS.map((c) => <button key={c} className={'swatch' + (c === color ? ' sel' : '')} style={{ background: c }} onClick={() => setColor(c)} aria-label={t('habits.pickColorAria')} />)}
           </div>
-          <button className="btn" onClick={add}>{t('habits.addHabit')}</button>
+          <button className="btn" onClick={saveOrAdd}>{editingHabitId ? t('habits.saveChanges') : t('habits.addHabit')}</button>
+          {editingHabitId && (
+            <button className="btn-ghost" onClick={resetForm} style={{ fontSize: 13 }}>{t('habits.cancelEdit')}</button>
+          )}
         </div>
       </motion.div>
 

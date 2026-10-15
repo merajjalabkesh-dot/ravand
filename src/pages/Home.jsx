@@ -147,6 +147,45 @@ export default function Home() {
     })
   }
 
+  const getItemStartMin = (item) => {
+    const s = item.data?.startTime
+    if (s && typeof s === 'string' && s.includes(':')) {
+      const [h, m] = s.split(':').map(Number)
+      if (!isNaN(h) && !isNaN(m)) return h * 60 + m
+    }
+    const e = item.data?.endTime
+    if (e && typeof e === 'string' && e.includes(':')) {
+      const [h, m] = e.split(':').map(Number)
+      if (!isNaN(h) && !isNaN(m)) return h * 60 + m
+    }
+    return null
+  }
+
+  const sortByTime = () => {
+    if (combinedItems.length <= 1) return
+    const sorted = [...combinedItems].sort((a, b) => {
+      const minA = getItemStartMin(a)
+      const minB = getItemStartMin(b)
+      if (minA !== null && minB !== null) return minA - minB
+      if (minA !== null) return -1
+      if (minB !== null) return 1
+      return 0
+    })
+    const newOrder = sorted.map((item) => item.key)
+    mutate((s) => {
+      const day = s.days[iso] || (s.days[iso] = { habits: {}, tasks: [], journal: { mood: 0, text: '' } })
+      day.homeOrder = newOrder
+    })
+    toast(t('home.sortedToast'))
+  }
+
+  const formatTimeSpan = (s, e) => {
+    if (!s && !e) return null
+    if (s && e) return `${toFa(s)} - ${toFa(e)}`
+    if (s) return `${toFa(s)}`
+    return `${toFa(e)}`
+  }
+
   // دایرهٔ «حرکت در روز» کل روز را نشان می‌دهد: عادت‌ها و کارها با هم.
   // وزن هر دسته برابر تعدادش است، پس اگر کارها بیشتر باشند سهم بیشتری
   // می‌گیرند؛ و اگر فقط عادت باشد، همان درصد عادت‌ها می‌شود.
@@ -180,11 +219,19 @@ export default function Home() {
             const h = item.data
             const done = H.dayIds(iso).has(h.id)
             const isBad = h.type === 'bad'
+            const timeBadge = formatTimeSpan(h.startTime, h.endTime)
             return (
               <div className="task-row" key={item.key} onClick={() => toggleHabit(h.id)} style={{ cursor: 'pointer', opacity: .96 }}>
                 <span className="task-box" style={{ background: done ? h.color : 'var(--surface-hover)' }} />
                 {isBad && <span className="badge bad" style={{ fontSize: 10, marginLeft: 6 }}>{t('home.quitBadge')}</span>}
-                <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>{h.name}</span>
+                <span className="ttext" style={{ textDecoration: done ? 'line-through' : 'none', opacity: done ? .55 : 1 }}>
+                  {h.name}
+                  {timeBadge && (
+                    <span className="badge" style={{ fontSize: 10, background: 'rgba(139,92,246,.15)', color: 'var(--accent)', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 3, marginInlineStart: 6 }}>
+                      <span>⏰</span> {timeBadge}
+                    </span>
+                  )}
+                </span>
                 {isBad ? <span className="mini-stat bad" style={{ fontSize: 11 }}>{t('home.habitTypeBad')}</span> : <span className="mini-stat good" style={{ fontSize: 11 }}>{t('home.habitTypeGood')}</span>}
                 <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                   <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, -1) }} disabled={idx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
@@ -194,10 +241,18 @@ export default function Home() {
             )
           }
           const task = item.data
+          const timeBadge = formatTimeSpan(task.startTime, task.endTime)
           return (
             <div className="task-row" key={item.key} onClick={() => toggleTask(task.id)} style={{ cursor: 'pointer' }}>
               <span className="task-box" style={{ background: task.done ? 'var(--accent-2)' : 'var(--surface-hover)' }} />
-              <span className="ttext" style={{ textDecoration: task.done ? 'line-through' : 'none', opacity: task.done ? .55 : 1 }}>{task.text}</span>
+              <span className="ttext" style={{ textDecoration: task.done ? 'line-through' : 'none', opacity: task.done ? .55 : 1 }}>
+                {task.text}
+                {timeBadge && (
+                  <span className="badge" style={{ fontSize: 10, background: 'rgba(56,189,248,.14)', color: '#38bdf8', direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: 3, marginInlineStart: 6 }}>
+                    <span>⏰</span> {timeBadge}
+                  </span>
+                )}
+              </span>
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                 <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, -1) }} disabled={idx === 0} title={t('home.moveUp')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
                 <button className="task-move" onClick={(e) => { e.stopPropagation(); moveItem(idx, 1) }} disabled={idx === combinedItems.length - 1} title={t('home.moveDown')}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
@@ -254,7 +309,24 @@ export default function Home() {
 
       <div className="home-sections">
         <motion.div variants={fadeUp} className="glass">
-          <div className="glass-title"><FireSvg /> {t('home.todaysTasksTitle')}</div>
+          <div className="glass-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FireSvg />
+              <span>{t('home.todaysTasksTitle')}</span>
+            </div>
+            {combinedItems.length > 1 && (
+              <button
+                type="button"
+                className="btn ghost small"
+                onClick={sortByTime}
+                title={t('home.sortByTimeTooltip')}
+                style={{ fontSize: 11, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: 5, borderRadius: 8 }}
+              >
+                <span>⏰</span>
+                <span>{t('home.sortByTime')}</span>
+              </button>
+            )}
+          </div>
           {habitsHtml}
         </motion.div>
         <motion.div variants={fadeUp} className="glass">
