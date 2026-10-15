@@ -526,7 +526,10 @@ export const FA = {
   "update.installing": "در حال نصب و اعمال به‌روزرسانی…",
   "update.completed": "دانلود کامل شد. در حال بازگشایی…",
   "update.error": "خطا در دانلود به‌روزرسانی. لطفاً دوباره تلاش کنید.",
-  "update.retry": "تلاش مجدد"
+  "update.retry": "تلاش مجدد",
+  "update.downloadDirect": "دانلود مستقیم از مرورگر",
+  "update.timeout": "آماده‌سازی طولانی شد. می‌توانید نسخه جدید را مستقیم از مرورگر دریافت کنید.",
+  "update.browserOpened": "صفحهٔ دریافت نسخه جدید در مرورگر باز شد."
 }
 
 export default FA

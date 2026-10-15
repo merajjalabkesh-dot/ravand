@@ -526,7 +526,10 @@ export const EN = {
   "update.installing": "Installing and applying update…",
   "update.completed": "Download complete. Launching…",
   "update.error": "Update download failed. Please try again.",
-  "update.retry": "Retry"
+  "update.retry": "Retry",
+  "update.downloadDirect": "Download via browser",
+  "update.timeout": "Preparation took too long. You can download directly via your browser.",
+  "update.browserOpened": "Download page opened in browser."
 }
 
 export default EN
