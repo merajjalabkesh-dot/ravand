@@ -36,6 +36,7 @@ async fn download_and_apply_update(window: tauri::Window, url: String) -> Result
         let installer_path = temp_dir.join("Habitick-Setup-Update.exe");
 
         let response = ureq::get(&url)
+            .set("User-Agent", "Habitick-Updater")
             .timeout(std::time::Duration::from_secs(180))
             .call()
             .map_err(|e| format!("Download request failed: {}", e))?;
@@ -52,6 +53,7 @@ async fn download_and_apply_update(window: tauri::Window, url: String) -> Result
         let mut buf = [0u8; 32768];
         let mut downloaded: u64 = 0;
         let mut last_percent: u32 = 0;
+        let mut last_emitted_bytes: u64 = 0;
 
         loop {
             let n = reader
@@ -70,8 +72,15 @@ async fn download_and_apply_update(window: tauri::Window, url: String) -> Result
                 0
             };
 
-            if percent != last_percent {
+            let should_emit = if total > 0 {
+                percent != last_percent
+            } else {
+                downloaded.saturating_sub(last_emitted_bytes) >= 65536
+            };
+
+            if should_emit {
                 last_percent = percent;
+                last_emitted_bytes = downloaded;
                 let _ = window.emit(
                     "app-update-progress",
                     UpdateProgressPayload {
@@ -86,6 +95,20 @@ async fn download_and_apply_update(window: tauri::Window, url: String) -> Result
         file.flush()
             .map_err(|e| format!("Failed to flush file: {}", e))?;
         drop(file);
+
+        // بررسی صحت هدر فایل نصابی ویندوز (امضای جادویی MZ در ساختار PE)
+        let mut check_file = std::fs::File::open(&installer_path)
+            .map_err(|e| format!("Failed to open downloaded file for validation: {}", e))?;
+        let mut header = [0u8; 2];
+        let bytes_read = check_file
+            .read(&mut header)
+            .map_err(|e| format!("Failed to read file header: {}", e))?;
+        drop(check_file);
+
+        if bytes_read < 2 || &header[0..2] != b"MZ" {
+            let _ = std::fs::remove_file(&installer_path);
+            return Err("فایل دانلود شده نصاب معتبر ویندوز نیست".into());
+        }
 
         let _ = window.emit(
             "app-update-progress",
