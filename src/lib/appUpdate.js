@@ -17,9 +17,8 @@ export const RUNNING_VERSION =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_APP_VERSION) ||
   '0.0.0'
 
-// فقط همین میزبان‌ها برای لینک دانلود مجازند: GitHub و فایل‌های ریلیز آن
-// (GitHub بعد از ریلیز به objects.githubusercontent.com ریدایرکت می‌کند).
-const GITHUB_RE = /^https:\/\/(github\.com|[a-z0-9-]+\.githubusercontent\.com)(\/|$)/i
+// فقط همین میزبان‌ها برای لینک دانلود مجازند: GitHub، فایل‌های ریلیز آن و دامنه برنامه (ravand.app).
+const GITHUB_RE = /^https:\/\/(github\.com|[a-z0-9-]+\.githubusercontent\.com|ravand\.app)(\/|$)/i
 
 const DISMISS_KEY = 'rg_update_dismissed_v1'
 const API_BASE = ((typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
